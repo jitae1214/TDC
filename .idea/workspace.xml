@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ChangeListManager">
+    <list default="true" id="0895e0f4-7fe4-4c52-b020-f293c9fd0679" name="변경" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/back/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/mvnw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/WebConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/WebConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/service/EmailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/service/EmailService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/service/RegisterService.java" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/service/RegisterService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/resources/templates/email/password-reset.html" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/resources/templates/email/password-reset.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/resources/templates/email/verification.html" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/resources/templates/email/verification.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/front/src/app/routes/AppRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/app/routes/AppRoutes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/login/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/login/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/login/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/login/ui/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/back/mvnw" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/config/WebConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/config/WebConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/service/EmailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/service/EmailService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/service/RegisterService.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/service/RegisterService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/resources/templates/email/password-reset.html" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/resources/templates/email/password-reset.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/back/src/main/resources/templates/email/verification.html" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/resources/templates/email/verification.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/app/routes/AppRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/app/routes/AppRoutes.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/login/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/login/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/ui/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/main/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/main/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/main/ui/index.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/main/ui/index.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/signup/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/signup/ui/index.tsx" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;jitae1214&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "ssh://git@github.com/jitae1214/HKC.git",
+    "accountId": "8dd5627a-3a69-4f8a-a502-e2ca905a48de"
+  }
+}]]></component>
+  <component name="ProjectColorInfo">{
+  &quot;customColor&quot;: &quot;&quot;,
+  &quot;associatedIndex&quot;: 7
+}</component>
+  <component name="ProjectId" id="2wL0GsQ03LBllsy3RRf7d9IY83q" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Shell Script.mvnw.executor": "Run",
+    "git-widget-placeholder": "Back",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/jite1/Desktop/TDCfront",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="RunManager">
+    <configuration name="mvnw" type="ShConfigurationType" temporary="true">
+      <option name="SCRIPT_TEXT" value="" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
+      <option name="SCRIPT_PATH" value="$PROJECT_DIR$/back/mvnw" />
+      <option name="SCRIPT_OPTIONS" value="" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+      <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$/back" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
+      <option name="INTERPRETER_PATH" value="/bin/sh" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="EXECUTE_IN_TERMINAL" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="true" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Shell Script.mvnw" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.153" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.153" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="애플리케이션 수준" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="디폴트 작업">
+      <changelist id="0895e0f4-7fe4-4c52-b020-f293c9fd0679" name="변경" comment="" />
+      <created>1745805455582</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1745805455582</updated>
+      <workItem from="1745805456721" duration="104000" />
+      <workItem from="1746080303857" duration="454000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+</project>
