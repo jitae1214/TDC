@@ -12,6 +12,9 @@ const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKA
 // 구글 인증 관련 상수
 const GOOGLE_AUTH_URL_BASE = 'https://accounts.google.com/o/oauth2/v2/auth';
 
+// 네이버 인증 관련 상수
+const NAVER_AUTH_URL_BASE = 'https://nid.naver.com/oauth2.0/authorize';
+
 // 소셜 로그인 응답 인터페이스
 export interface SocialLoginResponse {
   success: boolean;
@@ -57,6 +60,34 @@ export const getGoogleLoginUrl = async (): Promise<string> => {
     return `${GOOGLE_AUTH_URL_BASE}?${googleParams.toString()}`;
   } catch (error) {
     console.error('구글 로그인 URL 생성 중 오류 발생:', error);
+    return '';
+  }
+};
+
+/**
+ * 네이버 로그인 URL 생성
+ */
+export const getNaverLoginUrl = async (): Promise<string> => {
+  try {
+    // 백엔드에서 클라이언트 ID와 리디렉션 URI 가져오기
+    const response = await apiClient.get('/auth/naver-info');
+    const { clientId, redirectUri } = response.data;
+    
+    // 무작위 상태 값 생성 (CSRF 방지)
+    const state = Math.random().toString(36).substring(2, 15);
+    localStorage.setItem('naverOAuthState', state);
+    
+    // 네이버 로그인 URL 생성
+    const naverParams = new URLSearchParams({
+      response_type: 'code',
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      state: state
+    });
+    
+    return `${NAVER_AUTH_URL_BASE}?${naverParams.toString()}`;
+  } catch (error) {
+    console.error('네이버 로그인 URL 생성 중 오류 발생:', error);
     return '';
   }
 };

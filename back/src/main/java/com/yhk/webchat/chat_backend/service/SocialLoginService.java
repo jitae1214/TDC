@@ -63,6 +63,21 @@ public class SocialLoginService {
 
     @Value("${spring.security.oauth2.client.provider.google.user-info-uri}")
     private String googleUserInfoUri;
+
+    @Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    private String naverClientId;
+
+    @Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    private String naverClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.naver.redirect-uri}")
+    private String naverRedirectUri;
+
+    @Value("${spring.security.oauth2.client.provider.naver.token-uri}")
+    private String naverTokenUri;
+
+    @Value("${spring.security.oauth2.client.provider.naver.user-info-uri}")
+    private String naverUserInfoUri;
     
     @Value("${jwt.secret}")
     private String jwtSecret;
@@ -347,6 +362,118 @@ public class SocialLoginService {
             );
         } catch (Exception e) {
             throw new RuntimeException("구글 사용자 정보 파싱 중 오류 발생", e);
+        }
+    }
+
+    /**
+     * 네이버 액세스 토큰 획득
+     * 인증 코드를 통해 액세스 토큰을 요청
+     * @param code 인증 코드
+     * @return 액세스 토큰
+     */
+    public String getNaverAccessToken(String code) {
+        // REST API 호출을 위한 RestTemplate
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        
+        // 파라미터 설정
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code);
+        params.add("client_id", naverClientId);
+        params.add("client_secret", naverClientSecret);
+        params.add("redirect_uri", naverRedirectUri);
+        params.add("grant_type", "authorization_code");
+        
+        // HttpEntity 객체 생성
+        HttpEntity<MultiValueMap<String, String>> naverTokenRequest = 
+            new HttpEntity<>(params, headers);
+        
+        // POST 요청
+        ResponseEntity<String> response = restTemplate.exchange(
+            naverTokenUri,
+            HttpMethod.POST,
+            naverTokenRequest,
+            String.class
+        );
+        
+        // JSON 파싱
+        try {
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            return jsonNode.get("access_token").asText();
+        } catch (Exception e) {
+            throw new RuntimeException("네이버 토큰 파싱 중 오류 발생", e);
+        }
+    }
+
+    /**
+     * 네이버 사용자 정보 획득
+     * 액세스 토큰을 통해 사용자 정보를 요청
+     * @param accessToken 액세스 토큰
+     * @return 사용자 정보
+     */
+    public SocialUserInfo getNaverUserInfo(String accessToken) {
+        // REST API 호출을 위한 RestTemplate
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+        
+        // HttpEntity 객체 생성
+        HttpEntity<MultiValueMap<String, String>> naverUserInfoRequest = 
+            new HttpEntity<>(headers);
+        
+        // GET 요청
+        ResponseEntity<String> response = restTemplate.exchange(
+            naverUserInfoUri,
+            HttpMethod.GET,
+            naverUserInfoRequest,
+            String.class
+        );
+        
+        // JSON 파싱
+        try {
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            JsonNode responseNode = jsonNode.get("response");
+            
+            if (responseNode == null) {
+                throw new RuntimeException("네이버 사용자 정보에 response 필드가 없습니다.");
+            }
+            
+            String socialId = responseNode.path("id").asText();
+            String email = responseNode.path("email").asText("");
+            String name = responseNode.path("name").asText("");
+            String nickname = responseNode.path("nickname").asText("");
+            if (nickname.isEmpty()) {
+                nickname = name;
+            }
+            String profileImage = responseNode.path("profile_image").asText("");
+            
+            Map<String, Object> additionalInfo = new HashMap<>();
+            if (responseNode.has("age")) {
+                additionalInfo.put("age", responseNode.get("age").asText());
+            }
+            if (responseNode.has("gender")) {
+                additionalInfo.put("gender", responseNode.get("gender").asText());
+            }
+            if (responseNode.has("mobile")) {
+                additionalInfo.put("mobile", responseNode.get("mobile").asText());
+            }
+            
+            SocialUserInfo userInfo = new SocialUserInfo(
+                socialId, 
+                "naver",
+                email, 
+                nickname, 
+                profileImage
+            );
+            userInfo.setAdditionalInfo(additionalInfo);
+            return userInfo;
+        } catch (Exception e) {
+            throw new RuntimeException("네이버 사용자 정보 파싱 중 오류 발생", e);
         }
     }
 

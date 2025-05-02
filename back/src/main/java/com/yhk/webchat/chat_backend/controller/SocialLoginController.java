@@ -44,6 +44,12 @@ public class SocialLoginController {
     @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
     private String googleRedirectUri;
     
+    @Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    private String naverClientId;
+    
+    @Value("${spring.security.oauth2.client.registration.naver.redirect-uri}")
+    private String naverRedirectUri;
+    
     /**
      * 소셜 로그인 처리
      * @param request 소셜 로그인 요청 정보
@@ -55,7 +61,9 @@ public class SocialLoginController {
         
         try {
             // 지원하는 소셜 로그인 제공자 확인
-            if (!"kakao".equals(request.getProvider()) && !"google".equals(request.getProvider())) {
+            if (!"kakao".equals(request.getProvider()) && 
+                !"google".equals(request.getProvider()) && 
+                !"naver".equals(request.getProvider())) {
                 return ResponseEntity.badRequest().body(
                     new LoginResponse(false, "지원하지 않는 소셜 로그인 제공자입니다.", null, null)
                 );
@@ -75,9 +83,12 @@ public class SocialLoginController {
             if ("kakao".equals(request.getProvider())) {
                 accessToken = socialLoginService.getKakaoAccessToken(request.getCode());
                 userInfo = socialLoginService.getKakaoUserInfo(accessToken);
-            } else {
+            } else if ("google".equals(request.getProvider())) {
                 accessToken = socialLoginService.getGoogleAccessToken(request.getCode());
                 userInfo = socialLoginService.getGoogleUserInfo(accessToken);
+            } else { // naver
+                accessToken = socialLoginService.getNaverAccessToken(request.getCode());
+                userInfo = socialLoginService.getNaverUserInfo(accessToken);
             }
             
             // 사용자 정보 조회 또는 생성
@@ -142,6 +153,24 @@ public class SocialLoginController {
         try {
             info.put("clientId", googleClientId);
             info.put("redirectUri", googleRedirectUri);
+            
+            return ResponseEntity.ok(info);
+        } catch (Exception e) {
+            info.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(info);
+        }
+    }
+    
+    /**
+     * 네이버 로그인 정보 조회
+     * @return 네이버 로그인 정보
+     */
+    @GetMapping("/naver-info")
+    public ResponseEntity<Map<String, String>> getNaverInfo() {
+        Map<String, String> info = new HashMap<>();
+        try {
+            info.put("clientId", naverClientId);
+            info.put("redirectUri", naverRedirectUri);
             
             return ResponseEntity.ok(info);
         } catch (Exception e) {
