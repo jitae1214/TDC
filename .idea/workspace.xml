@@ -2,7 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="0895e0f4-7fe4-4c52-b020-f293c9fd0679" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/back/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/mvnw" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" afterDir="false" />
@@ -17,19 +16,6 @@
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/back/mvnw" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/config/WebConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/config/WebConfig.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/service/EmailService.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/service/EmailService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/service/RegisterService.java" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/java/com/yhk/webchat/chat_backend/service/RegisterService.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/src/main/resources/templates/email/password-reset.html" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/resources/templates/email/password-reset.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/back/src/main/resources/templates/email/verification.html" beforeDir="false" afterPath="$PROJECT_DIR$/back/src/main/resources/templates/email/verification.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/app/routes/AppRoutes.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/app/routes/AppRoutes.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/pages/login/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/pages/login/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/ui/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/pages/main/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/main/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/pages/main/ui/index.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/main/ui/index.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/pages/signup/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/signup/ui/index.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,12 +31,12 @@
     &quot;assignee&quot;: &quot;jitae1214&quot;
   }
 }</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "ssh://git@github.com/jitae1214/HKC.git",
-    "accountId": "8dd5627a-3a69-4f8a-a502-e2ca905a48de"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;ssh://git@github.com/jitae1214/HKC.git&quot;,
+    &quot;accountId&quot;: &quot;8dd5627a-3a69-4f8a-a502-e2ca905a48de&quot;
   }
-}]]></component>
+}</component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 7
@@ -65,7 +51,7 @@
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
     "Shell Script.mvnw.executor": "Run",
-    "git-widget-placeholder": "Back",
+    "git-widget-placeholder": "front",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "C:/Users/jite1/Desktop/TDCfront",
@@ -117,6 +103,7 @@
       <updated>1745805455582</updated>
       <workItem from="1745805456721" duration="104000" />
       <workItem from="1746080303857" duration="454000" />
+      <workItem from="1746152484434" duration="33000" />
     </task>
     <servers />
   </component>
