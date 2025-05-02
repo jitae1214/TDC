@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대시보드</title>
+    <style>
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        .user-name {
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        .logout-btn {
+            background-color: white;
+            color: #4CAF50;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .welcome-message {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+        .dashboard-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .card h2 {
+            margin-top: 0;
+            color: #333;
+            font-size: 18px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>채팅 애플리케이션</h1>
+        <div class="user-info">
+            <div class="user-name" id="username">사용자</div>
+            <button class="logout-btn" id="logoutBtn">로그아웃</button>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="welcome-message">
+            <h2>환영합니다, <span id="welcomeUsername">사용자</span>님!</h2>
+            <p>오늘은 <span id="currentDate">2025년 4월 3일</span> 입니다.</p>
+        </div>
+        
+        <div class="dashboard-cards">
+            <div class="card">
+                <h2>프로필</h2>
+                <p>닉네임: <span id="nickname">사용자</span></p>
+                <p>상태: <span id="status">온라인</span></p>
+                <button id="editProfileBtn">프로필 수정</button>
+            </div>
+            
+            <div class="card">
+                <h2>친구 목록</h2>
+                <p>현재 등록된 친구가 없습니다.</p>
+                <button id="addFriendBtn">친구 추가</button>
+            </div>
+            
+            <div class="card">
+                <h2>채팅방</h2>
+                <p>참여 중인 채팅방이 없습니다.</p>
+                <button id="createChatBtn">채팅방 생성</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 현재 날짜 표시
+            const now = new Date();
+            const options = { year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('currentDate').textContent = now.toLocaleDateString('ko-KR', options);
+            
+            // 로그인 정보 확인 (실제로는 JWT 토큰 검증 후 사용자 정보 가져옴)
+            const userInfo = getUserInfo();
+            
+            if (userInfo) {
+                document.getElementById('username').textContent = userInfo.username;
+                document.getElementById('welcomeUsername').textContent = userInfo.nickname || userInfo.username;
+                document.getElementById('nickname').textContent = userInfo.nickname || userInfo.username;
+                document.getElementById('status').textContent = '온라인';
+            } else {
+                // 로그인 정보가 없으면 로그인 페이지로 리다이렉트
+                window.location.href = '/login.html';
+            }
+            
+            // 로그아웃 버튼 이벤트
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                // 로그아웃 처리 (JWT 토큰 삭제 등)
+                localStorage.removeItem('userInfo');
+                localStorage.removeItem('token');
+                window.location.href = '/login.html';
+            });
+            
+            // 프로필 수정 버튼 이벤트
+            document.getElementById('editProfileBtn').addEventListener('click', function() {
+                alert('프로필 수정 기능은 준비 중입니다.');
+            });
+            
+            // 친구 추가 버튼 이벤트
+            document.getElementById('addFriendBtn').addEventListener('click', function() {
+                alert('친구 추가 기능은 준비 중입니다.');
+            });
+            
+            // 채팅방 생성 버튼 이벤트
+            document.getElementById('createChatBtn').addEventListener('click', function() {
+                alert('채팅방 생성 기능은 준비 중입니다.');
+            });
+        });
+        
+        // 사용자 정보 가져오기 (로컬 스토리지에서 임시로 가져옴, 실제로는 서버 API 호출)
+        function getUserInfo() {
+            const storedInfo = localStorage.getItem('userInfo');
+            
+            // 테스트를 위한 임시 데이터
+            if (!storedInfo) {
+                const testUser = {
+                    userId: 1,
+                    username: '테스트사용자',
+                    nickname: '테스터',
+                    emailVerified: true
+                };
+                localStorage.setItem('userInfo', JSON.stringify(testUser));
+                return testUser;
+            }
+            
+            return JSON.parse(storedInfo);
+        }
+    </script>
+</body>
+</html> 

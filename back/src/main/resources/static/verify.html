@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>이메일 인증</title>
+    <style>
+        body {
+            font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 400px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 24px;
+        }
+        .message {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .loading {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            padding: 12px 24px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .email-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-bottom: 15px;
+        }
+        .resend-form {
+            display: none;
+            margin-top: 20px;
+            text-align: left;
+        }
+        .resend-form h3 {
+            margin-bottom: 10px;
+        }
+        .links {
+            margin-top: 30px;
+        }
+        .links a {
+            color: #4CAF50;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .links a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>이메일 인증</h1>
+        <div id="message" class="message loading">인증 상태를 확인하는 중입니다...</div>
+        
+        <div id="resendForm" class="resend-form">
+            <h3>인증 메일 재발송</h3>
+            <input type="email" id="email" class="email-input" placeholder="이메일 주소" required>
+            <button id="resendBtn">재발송</button>
+        </div>
+        
+        <div class="links">
+            <a href="/register.html">회원가입</a>
+            <a href="#">로그인</a>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const token = urlParams.get('token');
+            const messageDiv = document.getElementById('message');
+            const resendForm = document.getElementById('resendForm');
+            const emailInput = document.getElementById('email');
+            const resendBtn = document.getElementById('resendBtn');
+            
+            // 토큰이 있으면 인증 검증 요청
+            if (token) {
+                verifyEmail(token);
+            } else {
+                messageDiv.textContent = '유효하지 않은 인증 링크입니다.';
+                messageDiv.className = 'message error';
+                showResendForm();
+            }
+            
+            // 재발송 버튼 클릭 이벤트
+            resendBtn.addEventListener('click', function() {
+                const email = emailInput.value.trim();
+                if (email) {
+                    resendVerificationEmail(email);
+                } else {
+                    alert('이메일 주소를 입력해주세요.');
+                }
+            });
+            
+            // 이메일 인증 검증 함수
+            async function verifyEmail(token) {
+                try {
+                    const response = await fetch(`/api/auth/verify?token=${token}`, {
+                        method: 'GET'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        messageDiv.textContent = data.message || '이메일 인증이 완료되었습니다.';
+                        messageDiv.className = 'message success';
+                    } else {
+                        messageDiv.textContent = data.message || '이메일 인증에 실패했습니다.';
+                        messageDiv.className = 'message error';
+                        showResendForm();
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    messageDiv.textContent = '서버와의 통신 중 오류가 발생했습니다.';
+                    messageDiv.className = 'message error';
+                    showResendForm();
+                }
+            }
+            
+            // 인증 메일 재발송 함수
+            async function resendVerificationEmail(email) {
+                try {
+                    const response = await fetch('/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ email })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        messageDiv.textContent = data.message || '인증 메일이 재발송되었습니다. 이메일을 확인해주세요.';
+                        messageDiv.className = 'message success';
+                    } else {
+                        messageDiv.textContent = data.message || '인증 메일 재발송에 실패했습니다.';
+                        messageDiv.className = 'message error';
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    messageDiv.textContent = '서버와의 통신 중 오류가 발생했습니다.';
+                    messageDiv.className = 'message error';
+                }
+            }
+            
+            // 재발송 폼 표시 함수
+            function showResendForm() {
+                resendForm.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html> 
