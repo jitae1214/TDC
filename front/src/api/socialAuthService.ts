@@ -9,6 +9,9 @@ const KAKAO_CLIENT_ID = '7a8ccc15d52d94a934242f9807ffe8ff';
 const KAKAO_REDIRECT_URI = `${window.location.origin}/auth/kakao/callback`;
 const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${KAKAO_REDIRECT_URI}&response_type=code`;
 
+// 구글 인증 관련 상수
+const GOOGLE_AUTH_URL_BASE = 'https://accounts.google.com/o/oauth2/v2/auth';
+
 // 소셜 로그인 응답 인터페이스
 export interface SocialLoginResponse {
   success: boolean;
@@ -29,9 +32,33 @@ export interface SocialAuthCodeParams {
  * 카카오 로그인 링크 반환
  */
 export const getKakaoLoginUrl = (): string => {
-  console.log('카카오 로그인 URL:', KAKAO_AUTH_URL);
-  console.log('리디렉션 URI:', KAKAO_REDIRECT_URI);
   return KAKAO_AUTH_URL;
+};
+
+/**
+ * 구글 로그인 URL 생성
+ */
+export const getGoogleLoginUrl = async (): Promise<string> => {
+  try {
+    // 백엔드에서 클라이언트 ID와 리디렉션 URI 가져오기
+    const response = await apiClient.get('/auth/google-info');
+    const { clientId, redirectUri } = response.data;
+    
+    // 구글 로그인 URL 생성
+    const googleParams = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      scope: 'email profile',
+      access_type: 'offline',
+      prompt: 'consent'
+    });
+    
+    return `${GOOGLE_AUTH_URL_BASE}?${googleParams.toString()}`;
+  } catch (error) {
+    console.error('구글 로그인 URL 생성 중 오류 발생:', error);
+    return '';
+  }
 };
 
 /**
@@ -41,16 +68,10 @@ export const loginWithSocialAuthCode = async (
   params: SocialAuthCodeParams
 ): Promise<SocialLoginResponse> => {
   try {
-    console.log('소셜 로그인 요청 파라미터:', JSON.stringify(params));
-    console.log('API 요청 URL:', `${apiClient.defaults.baseURL}/auth/social-login`);
-    
     const response = await apiClient.post<SocialLoginResponse>(
       '/auth/social-login',
       params
     );
-    
-    console.log('소셜 로그인 응답 상태:', response.status);
-    console.log('소셜 로그인 응답 데이터:', JSON.stringify(response.data));
     
     // 로그인 성공 시 토큰과 사용자 이름 저장
     if (response.data.success && response.data.token) {
@@ -58,24 +79,13 @@ export const loginWithSocialAuthCode = async (
       if (response.data.username) {
         setUsername(response.data.username);
       }
-      console.log('소셜 로그인 성공: 토큰 및 사용자 정보 저장 완료');
     }
     
     return response.data;
   } catch (error: any) {
-    console.error('소셜 로그인 오류:', error);
-    if (error.response) {
-      console.error('오류 응답 상태:', error.response.status);
-      console.error('오류 응답 데이터:', JSON.stringify(error.response.data));
-    } else if (error.request) {
-      console.error('응답 없음:', error.request);
-    } else {
-      console.error('요청 설정 오류:', error.message);
-    }
-    
     return {
       success: false,
-      message: '서버 연결 중 오류가 발생했습니다.'
+      message: '서버 연결 중 오류 발생'
     };
   }
 };
@@ -88,8 +98,6 @@ export const checkKakaoLoginStatus = (): boolean => {
   // URL에서 인증 코드 확인
   const params = new URLSearchParams(window.location.search);
   const code = params.get('code');
-  
-  console.log('카카오 인증 코드 확인:', code ? '코드 존재' : '코드 없음');
   
   return Boolean(code);
 }; 

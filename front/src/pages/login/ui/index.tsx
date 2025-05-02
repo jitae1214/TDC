@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../../../api/authService";
 import KakaoLoginButton from "../../../components/KakaoLoginButton";
+import GoogleLoginButton from "../../../components/GoogleLoginButton";
 
 const Login = () => {
     const navigate = useNavigate();
@@ -82,6 +83,8 @@ const Login = () => {
             <div style={{ margin: '20px 0' }}>또는</div>
 
             <KakaoLoginButton />
+            <div style={{ margin: '10px 0' }}></div>
+            <GoogleLoginButton />
             
             <div style={{ marginTop: '30px' }}>
                 <Link to="/main" style={{ marginRight: '20px' }}>메인으로</Link>

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +48,27 @@ public class SocialLoginService {
 
     @Value("${spring.security.oauth2.client.provider.kakao.user-info-uri}")
     private String kakaoUserInfoUri;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String googleClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String googleRedirectUri;
+
+    @Value("${spring.security.oauth2.client.provider.google.token-uri}")
+    private String googleTokenUri;
+
+    @Value("${spring.security.oauth2.client.provider.google.user-info-uri}")
+    private String googleUserInfoUri;
+    
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+    
+    @Value("${jwt.expiration}")
+    private long jwtExpiration;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -130,14 +157,15 @@ public class SocialLoginService {
             }
             
             // 소셜 사용자 정보 객체 생성
-            return new SocialUserInfo(
+            SocialUserInfo userInfo = new SocialUserInfo(
                     id,
                     "kakao",
                     email,
                     nickname,
-                    profileImage,
-                    additionalInfo
+                    profileImage
             );
+            userInfo.setAdditionalInfo(additionalInfo);
+            return userInfo;
         } catch (JsonProcessingException e) {
             throw new RuntimeException("카카오 사용자 정보 파싱 중 오류가 발생했습니다.", e);
         }
@@ -224,5 +252,124 @@ public class SocialLoginService {
         
         // 중복인 경우 랜덤 문자열 추가
         return basicUsername + "_" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    /**
+     * 구글 액세스 토큰 획득
+     * 인증 코드를 통해 액세스 토큰을 요청
+     * @param code 인증 코드
+     * @return 액세스 토큰
+     */
+    public String getGoogleAccessToken(String code) {
+        // REST API 호출을 위한 RestTemplate
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        
+        // 파라미터 설정
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code);
+        params.add("client_id", googleClientId);
+        params.add("client_secret", googleClientSecret);
+        params.add("redirect_uri", googleRedirectUri);
+        params.add("grant_type", "authorization_code");
+        
+        // HttpEntity 객체 생성
+        HttpEntity<MultiValueMap<String, String>> googleTokenRequest = 
+            new HttpEntity<>(params, headers);
+        
+        // POST 요청
+        ResponseEntity<String> response = restTemplate.exchange(
+            googleTokenUri,
+            HttpMethod.POST,
+            googleTokenRequest,
+            String.class
+        );
+        
+        // JSON 파싱
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode;
+        
+        try {
+            jsonNode = objectMapper.readTree(response.getBody());
+            return jsonNode.get("access_token").asText();
+        } catch (Exception e) {
+            throw new RuntimeException("구글 토큰 파싱 중 오류 발생", e);
+        }
+    }
+    
+    /**
+     * 구글 사용자 정보 획득
+     * 액세스 토큰을 통해 사용자 정보를 요청
+     * @param accessToken 액세스 토큰
+     * @return 사용자 정보
+     */
+    public SocialUserInfo getGoogleUserInfo(String accessToken) {
+        // REST API 호출을 위한 RestTemplate
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+        
+        // HttpEntity 객체 생성
+        HttpEntity<MultiValueMap<String, String>> googleUserInfoRequest = 
+            new HttpEntity<>(headers);
+        
+        // GET 요청
+        ResponseEntity<String> response = restTemplate.exchange(
+            googleUserInfoUri,
+            HttpMethod.GET,
+            googleUserInfoRequest,
+            String.class
+        );
+        
+        // JSON 파싱
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode;
+        
+        try {
+            jsonNode = objectMapper.readTree(response.getBody());
+            
+            String socialId = jsonNode.path("sub").asText();
+            String email = jsonNode.path("email").asText("");
+            String name = jsonNode.path("name").asText("");
+            String picture = jsonNode.path("picture").asText("");
+            
+            return new SocialUserInfo(
+                socialId, 
+                "google",
+                email, 
+                name, 
+                picture
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("구글 사용자 정보 파싱 중 오류 발생", e);
+        }
+    }
+
+    /**
+     * 사용자 정보 업데이트
+     */
+    @Transactional
+    public User updateUser(User user) {
+        return userRepository.save(user);
+    }
+    
+    /**
+     * JWT 토큰 생성
+     */
+    public String generateToken(String username) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS256)
+                .compact();
     }
 } 
