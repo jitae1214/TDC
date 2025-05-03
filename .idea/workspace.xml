@@ -5,6 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0895e0f4-7fe4-4c52-b020-f293c9fd0679" name="변경" comment="">
+      <change afterPath="$PROJECT_DIR$/front/src/pages/signup/api/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/front/src/pages/signup/model/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/front/src/pages/signup/ui/styles.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/back/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/mvnw" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" afterDir="false" />
@@ -19,7 +22,7 @@
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/pages/login/ui/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/ui/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/signup/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/signup/ui/index.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
