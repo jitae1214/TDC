@@ -1,7 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
   <component name="ChangeListManager">
     <list default="true" id="0895e0f4-7fe4-4c52-b020-f293c9fd0679" name="변경" comment="">
+      <change afterPath="$PROJECT_DIR$/front/src/pages/login/api/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/front/src/pages/login/model/index.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/front/src/pages/login/ui/styles.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/back/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/mvnw" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" afterDir="false" />
@@ -16,11 +22,22 @@
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/components/KakaoLoginButton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/components/KakaoLoginButton.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/login/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/login/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/ui/index.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/signup/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/signup/index.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="CSS File" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -50,40 +67,50 @@
   "keyToString": {
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.git.unshallow": "true",
+    "Shell Script.back.executor": "Run",
     "Shell Script.mvnw.executor": "Run",
     "git-widget-placeholder": "front",
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/jite1/Desktop/TDCfront",
+    "last_opened_file_path": "C:/Users/jite1/Desktop/TDC/back",
+    "list.type.of.created.stylesheet": "CSS",
     "node.js.detected.package.eslint": "true",
     "node.js.detected.package.tslint": "true",
     "node.js.selected.package.eslint": "(autodetect)",
     "node.js.selected.package.tslint": "(autodetect)",
     "nodejs_package_manager_path": "npm",
+    "npm.start.executor": "Run",
+    "ts.external.directory.path": "C:\\Users\\jite1\\Desktop\\TDC\\front\\node_modules\\typescript\\lib",
     "vue.rearranger.settings.migration": "true"
   }
 }]]></component>
-  <component name="RunManager">
-    <configuration name="mvnw" type="ShConfigurationType" temporary="true">
-      <option name="SCRIPT_TEXT" value="" />
-      <option name="INDEPENDENT_SCRIPT_PATH" value="true" />
-      <option name="SCRIPT_PATH" value="$PROJECT_DIR$/back/mvnw" />
-      <option name="SCRIPT_OPTIONS" value="" />
-      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="true" />
+  <component name="RunManager" selected="npm.start">
+    <configuration name="back" type="ShConfigurationType">
+      <option name="SCRIPT_TEXT" value=".\mvnw.cmd spring-boot:run" />
+      <option name="INDEPENDENT_SCRIPT_PATH" value="false" />
+      <option name="SCRIPT_PATH" value="$PROJECT_DIR$/back" />
+      <option name="SCRIPT_OPTIONS" value=".\mvnw.cmd spring-boot:run" />
+      <option name="INDEPENDENT_SCRIPT_WORKING_DIRECTORY" value="false" />
       <option name="SCRIPT_WORKING_DIRECTORY" value="$PROJECT_DIR$/back" />
-      <option name="INDEPENDENT_INTERPRETER_PATH" value="true" />
-      <option name="INTERPRETER_PATH" value="/bin/sh" />
+      <option name="INDEPENDENT_INTERPRETER_PATH" value="false" />
+      <option name="INTERPRETER_PATH" value="$PROJECT_DIR$/back" />
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="EXECUTE_IN_TERMINAL" value="true" />
-      <option name="EXECUTE_SCRIPT_FILE" value="true" />
+      <option name="EXECUTE_SCRIPT_FILE" value="false" />
       <envs />
       <method v="2" />
     </configuration>
-    <recent_temporary>
-      <list>
-        <item itemvalue="Shell Script.mvnw" />
-      </list>
-    </recent_temporary>
+    <configuration name="start" type="js.build_tools.npm" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/front/package.json" />
+      <command value="start" />
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="npm.start" />
+      <item itemvalue="Shell Script.back" />
+    </list>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -104,6 +131,7 @@
       <workItem from="1745805456721" duration="104000" />
       <workItem from="1746080303857" duration="454000" />
       <workItem from="1746152484434" duration="33000" />
+      <workItem from="1746295350337" duration="5911000" />
     </task>
     <servers />
   </component>

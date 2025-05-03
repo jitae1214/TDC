@@ -1,7 +1,15 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { login } from "../../../api/authService";
 import KakaoLoginButton from "../../../components/KakaoLoginButton";
+import loginApi from "../api";
+import "./styles.css";
+
+// 로그인 유효성 검사용
+const validateLogin = (username: string, password: string): string | null => {
+    if (!username.trim()) return "아이디를 입력하세요.";
+    if (!password) return "비밀번호를 입력하세요.";
+    return null;
+};
 
 const Login = () => {
     const navigate = useNavigate();
@@ -12,23 +20,19 @@ const Login = () => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        if (!username.trim()) {
-            setErrorMessage("아이디를 입력하세요.");
-            return;
-        }
-        
-        if (!password) {
-            setErrorMessage("비밀번호를 입력하세요.");
+
+        const validationError = validateLogin(username, password);
+        if (validationError) {
+            setErrorMessage(validationError);
             return;
         }
 
         try {
             setIsLoading(true);
             setErrorMessage("");
-            
-            const response = await login({ username, password });
-            
+
+            const response = await loginApi({ username, password });
+
             if (response.success) {
                 navigate("/api-test");
             } else {
@@ -43,51 +47,53 @@ const Login = () => {
     };
 
     return (
-        <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column',
-            justifyContent: 'center', 
-            alignItems: 'center',
-            height: '100vh',
-            padding: '20px'
-        }}>
-            <h2>로그인</h2>
-            
-            {errorMessage && <div style={{ color: 'red', marginBottom: '15px' }}>{errorMessage}</div>}
-            
-            <form onSubmit={handleSubmit}>
-                <div>
-                    <label>아이디</label>
-                    <input
-                        type="text"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
-                </div>
-                
-                <div>
-                    <label>비밀번호</label>
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-                
-                <button type="submit" disabled={isLoading}>
-                    {isLoading ? "로그인 중..." : "로그인"}
-                </button>
-            </form>
+        <div className="login-container">
+            <div className="login-card">
+                <h2>로그인</h2>
 
-            <div style={{ margin: '20px 0' }}>또는</div>
+                {errorMessage && (
+                    <div className="login-error">{errorMessage}</div>
+                )}
 
-            <KakaoLoginButton />
-            
-            <div style={{ marginTop: '30px' }}>
-                <Link to="/main" style={{ marginRight: '20px' }}>메인으로</Link>
-                <Link to="/signup">회원가입</Link>
+                <form onSubmit={handleSubmit} className="login-form">
+                    <div>
+                        <label htmlFor="username">아이디</label>
+                        <input
+                            id="username"
+                            type="text"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
+                            placeholder="아이디를 입력하세요"
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="password">비밀번호</label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            placeholder="비밀번호를 입력하세요"
+                        />
+                    </div>
+
+                    <button type="submit" className="login-button" disabled={isLoading}>
+                        {isLoading ? "로그인 중..." : "로그인"}
+                    </button>
+                </form>
+
+                <div className="login-divider">또는</div>
+
+                <KakaoLoginButton />
+
+                <div className="login-links">
+                    <Link to="/main">메인으로</Link>
+                    <Link to="/signup">회원가입</Link>
+                </div>
             </div>
         </div>
+
     );
 };
 

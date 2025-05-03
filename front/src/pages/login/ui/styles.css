@@ -1,0 +1,173 @@
+/* 겉멋용 */
+:root {
+    --primary-color: #3498db;
+    --primary-hover: #2980b9;
+    --error-color: #e74c3c;
+    --error-background: #fdecea;
+    --background-gradient-start: #e0eafc;
+    --background-gradient-end: #cfdef3;
+    --card-background: #ffffff;
+    --input-background: #f9f9f9;
+    --input-focus-border: #3498db;
+    --divider-color: #ccc;
+    --text-color: #2c3e50;
+    --sub-text-color: #555;
+    --link-color: #3498db;
+    --link-hover-color: #1f6fb2;
+
+    --max-width: 400px;
+    --card-padding: 40px 35px;
+    --input-padding: 12px 14px;
+    --button-padding: 12px;
+    --gap: 18px;
+    --font-size: 15px;
+    --font-size-large: 16px;
+    --font-size-heading: 26px;
+    --font-size-small: 14px;
+}
+
+/* CSS는 위대하니까 기본 세팅이 필요하다 하하하하하 근데 여기에만 해도 다른 페이지도 다 적용 되는것도 웃김 */
+body {
+    margin: 0;
+    padding: 0;
+}
+
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: linear-gradient(135deg, var(--background-gradient-start), var(--background-gradient-end));
+    font-family: "Pretendard", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.login-card {
+    background-color: var(--card-background);
+    padding: var(--card-padding);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: var(--max-width);
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.login-card h2 {
+    margin-bottom: 25px;
+    font-size: var(--font-size-heading);
+    font-weight: 700;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.login-error {
+    color: var(--error-color);
+    margin-bottom: 15px;
+    font-size: var(--font-size-small);
+    text-align: center;
+    background-color: var(--error-background);
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}
+
+.login-form label {
+    font-weight: 600;
+    font-size: var(--font-size-small);
+    margin-bottom: 6px;
+    color: var(--sub-text-color);
+}
+
+.login-form input {
+    width: 100%;
+    padding: var(--input-padding);
+    font-size: var(--font-size);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    background-color: var(--input-background);
+    transition: all 0.2s;
+}
+
+.login-button {
+    width: 100%;
+    padding: var(--button-padding);
+    font-size: var(--font-size);
+    font-weight: 600;
+    border-radius: 8px;
+    box-sizing: border-box;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+}
+
+.login-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.login-button:disabled {
+    background-color: #95a5a6;
+    cursor: not-allowed;
+}
+
+.login-divider {
+    margin: 24px 0;
+    text-align: center;
+    color: #888;
+    font-size: var(--font-size-small);
+    position: relative;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 40%;
+    height: 1px;
+    background-color: var(--divider-color);
+}
+
+.login-divider::before {
+    left: 0;
+}
+
+.login-divider::after {
+    right: 0;
+}
+
+.login-links {
+    text-align: center;
+    margin-top: 24px;
+}
+
+.login-links a {
+    margin: 0 12px;
+    color: var(--link-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.login-links a:hover {
+    color: var(--link-hover-color);
+    text-decoration: underline;
+}
