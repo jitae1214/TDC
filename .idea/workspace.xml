@@ -5,9 +5,6 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="0895e0f4-7fe4-4c52-b020-f293c9fd0679" name="변경" comment="">
-      <change afterPath="$PROJECT_DIR$/front/src/pages/login/api/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/front/src/pages/login/model/index.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/front/src/pages/login/ui/styles.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/back/mvnw" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/mvnw" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/back/src/main/java/com/yhk/webchat/chat_backend/config/SecurityConfig.java" afterDir="false" />
@@ -22,10 +19,7 @@
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/index.js" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/main/ui/index.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/TDCfront/front/src/pages/signup/ui/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/components/KakaoLoginButton.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/components/KakaoLoginButton.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/pages/login/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/index.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/pages/login/ui/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/ui/index.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/front/src/pages/signup/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/signup/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/front/src/pages/login/ui/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/front/src/pages/login/ui/styles.css" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -63,27 +57,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "Shell Script.back.executor": "Run",
-    "Shell Script.mvnw.executor": "Run",
-    "git-widget-placeholder": "front",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/jite1/Desktop/TDC/back",
-    "list.type.of.created.stylesheet": "CSS",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "npm.start.executor": "Run",
-    "ts.external.directory.path": "C:\\Users\\jite1\\Desktop\\TDC\\front\\node_modules\\typescript\\lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;Shell Script.back.executor&quot;: &quot;Run&quot;,
+    &quot;Shell Script.mvnw.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;front&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/jite1/Desktop/TDC/back&quot;,
+    &quot;list.type.of.created.stylesheet&quot;: &quot;CSS&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;npm.start.executor&quot;: &quot;Run&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Users\\jite1\\Desktop\\TDC\\front\\node_modules\\typescript\\lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected="npm.start">
     <configuration name="back" type="ShConfigurationType">
       <option name="SCRIPT_TEXT" value=".\mvnw.cmd spring-boot:run" />
