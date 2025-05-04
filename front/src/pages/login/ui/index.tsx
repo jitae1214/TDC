@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import KakaoLoginButton from "../../../components/KakaoLoginButton";
-<<<<<<< HEAD
 import GoogleLoginButton from "../../../components/GoogleLoginButton";
 import NaverLoginButton from "../../../components/NaverLoginButton";
-=======
 import loginApi from "../api";
 import "./styles.css";
 
@@ -14,7 +12,6 @@ const validateLogin = (username: string, password: string): string | null => {
     if (!password) return "비밀번호를 입력하세요.";
     return null;
 };
->>>>>>> aba7e284ca0a05d11dc2f9c140214ced5d45992a
 
 const Login = () => {
     const navigate = useNavigate();
@@ -60,17 +57,6 @@ const Login = () => {
                     <div className="login-error">{errorMessage}</div>
                 )}
 
-<<<<<<< HEAD
-            <KakaoLoginButton />
-            <div style={{ margin: '10px 0' }}></div>
-            <GoogleLoginButton />
-            <div style={{ margin: '10px 0' }}></div>
-            <NaverLoginButton />
-            
-            <div style={{ marginTop: '30px' }}>
-                <Link to="/main" style={{ marginRight: '20px' }}>메인으로</Link>
-                <Link to="/signup">회원가입</Link>
-=======
                 <form onSubmit={handleSubmit} className="login-form">
                     <div>
                         <label htmlFor="username">아이디</label>
@@ -102,15 +88,17 @@ const Login = () => {
                 <div className="login-divider">또는</div>
 
                 <KakaoLoginButton />
+                <div style={{ margin: '10px 0' }}></div>
+                <GoogleLoginButton />
+                <div style={{ margin: '10px 0' }}></div>
+                <NaverLoginButton />
 
-                <div className="login-links">
-                    <Link to="/main">메인으로</Link>
+                <div className="login-links" style={{ marginTop: '30px' }}>
+                    <Link to="/main" style={{ marginRight: '20px' }}>메인으로</Link>
                     <Link to="/signup">회원가입</Link>
                 </div>
->>>>>>> aba7e284ca0a05d11dc2f9c140214ced5d45992a
             </div>
         </div>
-
     );
 };
 

@@ -47,7 +47,6 @@ const NaverLoginButton: React.FC<NaverLoginButtonProps> = ({
         justifyContent: 'center',
         fontSize: '14px',
         width: '100%',
-        maxWidth: '300px',
         opacity: isLoading ? 0.7 : 1,
       }}
     >
