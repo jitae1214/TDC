@@ -4,8 +4,13 @@
     --primary-hover: #2980b9;
     --error-color: #e74c3c;
     --error-background: #fdecea;
+<<<<<<< HEAD
     --background-gradient-start: #e0eafc;
     --background-gradient-end: #cfdef3;
+=======
+    --background-gradient-start: #ff0000;
+    --background-gradient-end: #1a00ff;
+>>>>>>> aba7e284ca0a05d11dc2f9c140214ced5d45992a
     --card-background: #ffffff;
     --input-background: #f9f9f9;
     --input-focus-border: #3498db;

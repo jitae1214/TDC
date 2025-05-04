@@ -33,7 +33,6 @@ const KakaoLoginButton: React.FC<KakaoLoginButtonProps> = ({
         justifyContent: 'center',
         fontSize: '14px',
         width: '100%',
-        maxWidth: '300px',
       }}
     >
       {/* 카카오 아이콘 */}

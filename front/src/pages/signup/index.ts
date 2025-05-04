@@ -1,2 +1,2 @@
 import Signup from "./ui";
-export default Signup; 
+export default Signup;
