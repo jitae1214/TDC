@@ -160,7 +160,7 @@ public class SocialLoginService {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
             
             // 사용자 정보 추출
-            String id = jsonNode.get("id").asText();
+            String id = jsonNode.get("id").asText(); // 카카오 고유 ID가 여기 들어감
             String nickname = jsonNode.path("properties").path("nickname").asText();
             String profileImage = jsonNode.path("properties").path("profile_image").asText();
             String email = jsonNode.path("kakao_account").path("email").asText("");
@@ -173,7 +173,7 @@ public class SocialLoginService {
             
             // 소셜 사용자 정보 객체 생성
             SocialUserInfo userInfo = new SocialUserInfo(
-                    id,
+                    id, // 카카오 고유 ID가 여기 들어감
                     "kakao",
                     email,
                     nickname,
@@ -182,9 +182,11 @@ public class SocialLoginService {
             userInfo.setAdditionalInfo(additionalInfo);
             return userInfo;
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("카카오 사용자 정보 파싱 중 오류가 발생했습니다.", e);
+            throw new RuntimeException("카카오 사용자 정보 파싱 중 오류가 발생", e);
         }
     }
+
+    
 
     /**
      * 소셜 로그인 사용자 찾기 또는 생성
@@ -257,6 +259,7 @@ public class SocialLoginService {
      * 소셜 로그인 사용자의 사용자 이름 생성
      */
     private String generateUsername(SocialUserInfo userInfo) {
+        // 사용자 이름 첫글자를 대문자로 변환
         String prefix = userInfo.getProvider().substring(0, 1).toUpperCase();
         String basicUsername = prefix + "_" + userInfo.getSocialId();
         
@@ -348,13 +351,13 @@ public class SocialLoginService {
         try {
             jsonNode = objectMapper.readTree(response.getBody());
             
-            String socialId = jsonNode.path("sub").asText();
+            String socialId = jsonNode.path("sub").asText(); // 구글 API에서 제공하는 고유번호 가져옴
             String email = jsonNode.path("email").asText("");
             String name = jsonNode.path("name").asText("");
             String picture = jsonNode.path("picture").asText("");
             
             return new SocialUserInfo(
-                socialId, 
+                socialId, // 구글 고유 ID가 여기 들어감
                 "google",
                 email, 
                 name, 
@@ -443,7 +446,7 @@ public class SocialLoginService {
                 throw new RuntimeException("네이버 사용자 정보에 response 필드가 없습니다.");
             }
             
-            String socialId = responseNode.path("id").asText();
+            String socialId = responseNode.path("id").asText(); // 네이버 API에서 제공하는 고유번호 가져옴
             String email = responseNode.path("email").asText("");
             String name = responseNode.path("name").asText("");
             String nickname = responseNode.path("nickname").asText("");
@@ -464,7 +467,7 @@ public class SocialLoginService {
             }
             
             SocialUserInfo userInfo = new SocialUserInfo(
-                socialId, 
+                socialId,  // 네이버 고유 ID가 여기 들어감
                 "naver",
                 email, 
                 nickname, 
