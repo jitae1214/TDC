@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Main from "../../pages/main/ui";
 import Login from "../../pages/login/ui";
-import Signup from "../../pages/signup/ui";
+import Signup from "../../pages/signup/ui/SignupForm";
 import ApiTest from "../../pages/ApiTest";
 import Profile from "../../pages/Profile";
 import ProtectedRoute from "./ProtectedRoute";

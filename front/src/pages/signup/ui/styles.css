@@ -1,0 +1,220 @@
+:root {
+    --signup-primary-color: #007BFF;
+    --signup-primary-color-hover: #0056b3;
+    --signup-background-gradient-start: #ff0000;
+    --signup-background-gradient-end: #1a00ff;
+
+    --signup-card-background: #ffffff;
+    --signup-success-color: #4caf50;
+    --signup-error-color: #f44336;
+    --signup-background-color: #fafafa;
+    --signup-border-color: #ccc;
+    --signup-text-color: #333;
+    --signup-secondary-text-color: #888;
+    --signup-input-focus-color: #007BFF;
+
+    --signup-card-padding: 30px 35px;
+    --signup-max-width: 500px;
+}
+
+.signup-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    min-height: 100vh;  /* 최소 높이를 화면에 맞춤 */
+    background: linear-gradient(135deg, var(--signup-background-gradient-start), var(--signup-background-gradient-end));
+    font-family: "Pretendard", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    overflow-y: auto; /* 세로 스크롤이 가능하도록 추가 */
+}
+
+.signup-card {
+    background-color: var(--signup-card-background);
+    padding: var(--signup-card-padding);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: var(--signup-max-width);
+    max-height: 90vh; /* 최대 높이 90vh로 제한하여 스크롤이 생기게 함 */
+    overflow-y: auto;  /* 세로 스크롤 추가 */
+    animation: fadeIn 0.4s ease-in-out;
+    box-sizing: border-box;
+}
+
+.signup-title {
+    text-align: center;
+    font-size: 1.75rem;
+    margin-bottom: 1.2rem;
+    font-weight: 600;
+    color: var(--signup-text-color);
+}
+
+.signup-nav {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 1.2rem;
+}
+
+.signup-nav a {
+    margin-left: 15px;
+    text-decoration: none;
+    color: var(--signup-primary-color);
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.signup-nav a:hover {
+    color: var(--signup-primary-color-hover);
+}
+
+.signup-message {
+    margin-bottom: 1.2rem;
+    padding: 0.8rem;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.signup-message.error {
+    color: #fff;
+    background-color: var(--signup-error-color);
+}
+
+.signup-message.success {
+    color: #fff;
+    background-color: var(--signup-success-color);
+}
+
+.signup-form label {
+    display: block;
+    margin-bottom: 0.2rem;
+    font-weight: 500;
+    color: #444;
+}
+
+.signup-form input[type="text"],
+.signup-form input[type="email"],
+.signup-form input[type="password"] {
+    width: 95%;
+    padding: 0.65rem;
+    margin-bottom: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid var(--signup-border-color);
+    font-size: 0.95rem;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.signup-form input[type="text"]:focus,
+.signup-form input[type="email"]:focus,
+.signup-form input[type="password"]:focus {
+    border-color: var(--signup-input-focus-color);
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+.signup-form .field-error {
+    color: var(--signup-error-color);
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.signup-form .extra {
+    font-size: 0.8rem;
+    color: var(--signup-secondary-text-color);
+    margin-bottom: 1rem;
+}
+
+.signup-form .terms {
+    margin-top: 1.2rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.signup-form .terms input {
+    margin-right: 0.5rem;
+}
+
+.signup-form button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: var(--signup-primary-color);
+    border: none;
+    color: white;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 1rem;
+}
+
+.signup-form button:hover {
+    background-color: var(--signup-primary-color-hover);
+}
+
+.signup-form button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+/* 반응형 디자인
+    768은 국룰이니까 이거 기준으로 합니다
+*/
+@media (max-width: 768px) {
+    .signup-card {
+        padding: 20px 25px;
+    }
+
+    .signup-title {
+        font-size: 1.5rem;
+    }
+
+    .signup-nav a {
+        font-size: 0.9rem;
+    }
+
+    .signup-form input[type="text"],
+    .signup-form input[type="email"],
+    .signup-form input[type="password"] {
+        padding: 0.8rem;
+        font-size: 1rem;
+    }
+
+    .signup-form .extra {
+        font-size: 0.9rem;
+    }
+
+    .signup-form button {
+        font-size: 1.1rem;
+        padding: 1rem;
+    }
+
+    .signup-form .terms {
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .signup-card {
+        padding: 15px 20px;
+    }
+
+    .signup-title {
+        font-size: 1.25rem;
+    }
+
+    .signup-nav a {
+        font-size: 0.8rem;
+    }
+
+    .signup-form input[type="text"],
+    .signup-form input[type="email"],
+    .signup-form input[type="password"] {
+        padding: 0.9rem;
+        font-size: 1.1rem;
+    }
+
+    .signup-form button {
+        font-size: 1.2rem;
+        padding: 1.2rem;
+    }
+}

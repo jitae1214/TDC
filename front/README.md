@@ -62,7 +62,7 @@ To learn React, check out the [React documentation](https://reactjs.org/).
    - 인증 코드 추출 및 백엔드로 전송
    - 로그인 성공/실패 시 UI 처리
 
-4. 로그인 페이지 업데이트 (`src/pages/login/ui/index.tsx`)
+4. 로그인 페이지 업데이트 (`src/pages/login/ui/SignupForm.tsx`)
    - 카카오 로그인 버튼 추가
 
 5. 라우트 추가 (`src/app/routes/AppRoutes.js`)
