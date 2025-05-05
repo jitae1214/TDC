@@ -53,7 +53,7 @@ public class User {
     @Column(name = "last_login_at")
     private LocalDateTime lastLoginAt;
     
-    // 소셜 로그인 관련 필드 추가
+    // 소셜 로그인 필드
     @Column(name = "social_id")
     private String socialId;
     
@@ -105,26 +105,33 @@ public class User {
     }
     
     // Getter 및 Setter 메서드
+
+    // 사용자 아이디 반환
     public Long getId() {
         return id;
     }
 
+    // 사용자 아이디 설정
     public void setId(Long id) {
         this.id = id;
     }
 
+    // 사용자 이름 반환
     public String getUsername() {
         return username;
     }
 
+    // 사용자 이름 설정
     public void setUsername(String username) {
         this.username = username;
     }
 
+    // 사용자 비밀번호 반환
     public String getPassword() {
         return password;
     }
 
+    // 사용자 비밀번호 설정
     public void setPassword(String password) {
         this.password = password;
     }
@@ -153,50 +160,62 @@ public class User {
         this.nickname = nickname;
     }
 
+    // 사용자 상태 반환
     public String getStatus() {
         return status;
     }
 
+    // 사용자 상태 설정
     public void setStatus(String status) {
         this.status = status;
     }
 
+    // 이메일 인증 여부 반환
     public boolean isEmailVerified() {
         return emailVerified;
     }
 
+    // 이메일 인증 여부 설정
     public void setEmailVerified(boolean emailVerified) {
         this.emailVerified = emailVerified;
     }
 
+    // 프로필 이미지 URL 반환
     public String getProfileImageUrl() {
         return profileImageUrl;
     }
 
+    // 프로필 이미지 URL 설정
     public void setProfileImageUrl(String profileImageUrl) {
         this.profileImageUrl = profileImageUrl;
     }
 
+    // 생성 시간 반환
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
+    // 생성 시간 설정
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
+    // 업데이트 시간 반환
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
+    // 업데이트 시간 설정
     public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 
+    // 마지막 로그인 시간 반환
     public LocalDateTime getLastLoginAt() {
         return lastLoginAt;
     }
 
+    // 마지막 로그인 시간 설정
     public void setLastLoginAt(LocalDateTime lastLoginAt) {
         this.lastLoginAt = lastLoginAt;
     }
@@ -206,22 +225,27 @@ public class User {
         return socialId;
     }
 
+    // 소셜 로그인 관련 ID 설정
     public void setSocialId(String socialId) {
         this.socialId = socialId;
     }
 
+    // 소셜 로그인 관련 공급자 반환
     public String getProvider() {
         return provider;
     }
 
+    // 소셜 로그인 관련 공급자 설정
     public void setProvider(String provider) {
         this.provider = provider;
     }
-    
+
+    // 친구 목록 반환
     public List<User> getFriends() {
         return friends;
     }
 
+    // 친구 목록 설정
     public void setFriends(List<User> friends) {
         this.friends = friends;
     }
@@ -329,7 +353,8 @@ public class User {
             this.provider = provider;
             return this;
         }
-        
+
+        // 사용자 객체 생성
         public User build() {
             return new User(id, username, password, email, fullName, nickname, status, emailVerified, 
                     profileImageUrl, createdAt, updatedAt, lastLoginAt, socialId, provider);

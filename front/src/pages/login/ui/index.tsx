@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import KakaoLoginButton from "../../../components/KakaoLoginButton";
+import GoogleLoginButton from "../../../components/GoogleLoginButton";
+import NaverLoginButton from "../../../components/NaverLoginButton";
 import loginApi from "../api";
 import "./styles.css";
 
@@ -86,6 +88,10 @@ const Login = () => {
                 <div className="login-divider">또는</div>
 
                 <KakaoLoginButton />
+                <div style={{ margin: '10px 0' }}></div>
+                <GoogleLoginButton />
+                <div style={{ margin: '10px 0' }}></div>
+                <NaverLoginButton />
 
                 <div className="login-links">
                     <Link to="/main">메인으로</Link>

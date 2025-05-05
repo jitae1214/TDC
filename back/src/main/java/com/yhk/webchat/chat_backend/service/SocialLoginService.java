@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -19,7 +20,12 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
+
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -42,6 +48,42 @@ public class SocialLoginService {
 
     @Value("${spring.security.oauth2.client.provider.kakao.user-info-uri}")
     private String kakaoUserInfoUri;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-secret}")
+    private String googleClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.google.redirect-uri}")
+    private String googleRedirectUri;
+
+    @Value("${spring.security.oauth2.client.provider.google.token-uri}")
+    private String googleTokenUri;
+
+    @Value("${spring.security.oauth2.client.provider.google.user-info-uri}")
+    private String googleUserInfoUri;
+
+    @Value("${spring.security.oauth2.client.registration.naver.client-id}")
+    private String naverClientId;
+
+    @Value("${spring.security.oauth2.client.registration.naver.client-secret}")
+    private String naverClientSecret;
+
+    @Value("${spring.security.oauth2.client.registration.naver.redirect-uri}")
+    private String naverRedirectUri;
+
+    @Value("${spring.security.oauth2.client.provider.naver.token-uri}")
+    private String naverTokenUri;
+
+    @Value("${spring.security.oauth2.client.provider.naver.user-info-uri}")
+    private String naverUserInfoUri;
+    
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+    
+    @Value("${jwt.expiration}")
+    private long jwtExpiration;
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -118,7 +160,7 @@ public class SocialLoginService {
             JsonNode jsonNode = objectMapper.readTree(response.getBody());
             
             // 사용자 정보 추출
-            String id = jsonNode.get("id").asText();
+            String id = jsonNode.get("id").asText(); // 카카오 고유 ID가 여기 들어감
             String nickname = jsonNode.path("properties").path("nickname").asText();
             String profileImage = jsonNode.path("properties").path("profile_image").asText();
             String email = jsonNode.path("kakao_account").path("email").asText("");
@@ -130,18 +172,21 @@ public class SocialLoginService {
             }
             
             // 소셜 사용자 정보 객체 생성
-            return new SocialUserInfo(
-                    id,
+            SocialUserInfo userInfo = new SocialUserInfo(
+                    id, // 카카오 고유 ID가 여기 들어감
                     "kakao",
                     email,
                     nickname,
-                    profileImage,
-                    additionalInfo
+                    profileImage
             );
+            userInfo.setAdditionalInfo(additionalInfo);
+            return userInfo;
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("카카오 사용자 정보 파싱 중 오류가 발생했습니다.", e);
+            throw new RuntimeException("카카오 사용자 정보 파싱 중 오류가 발생", e);
         }
     }
+
+    
 
     /**
      * 소셜 로그인 사용자 찾기 또는 생성
@@ -214,6 +259,7 @@ public class SocialLoginService {
      * 소셜 로그인 사용자의 사용자 이름 생성
      */
     private String generateUsername(SocialUserInfo userInfo) {
+        // 사용자 이름 첫글자를 대문자로 변환
         String prefix = userInfo.getProvider().substring(0, 1).toUpperCase();
         String basicUsername = prefix + "_" + userInfo.getSocialId();
         
@@ -224,5 +270,236 @@ public class SocialLoginService {
         
         // 중복인 경우 랜덤 문자열 추가
         return basicUsername + "_" + UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    /**
+     * 구글 액세스 토큰 획득
+     * 인증 코드를 통해 액세스 토큰을 요청
+     * @param code 인증 코드
+     * @return 액세스 토큰
+     */
+    public String getGoogleAccessToken(String code) {
+        // REST API 호출을 위한 RestTemplate
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        
+        // 파라미터 설정
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code);
+        params.add("client_id", googleClientId);
+        params.add("client_secret", googleClientSecret);
+        params.add("redirect_uri", googleRedirectUri);
+        params.add("grant_type", "authorization_code");
+        
+        // HttpEntity 객체 생성
+        HttpEntity<MultiValueMap<String, String>> googleTokenRequest = 
+            new HttpEntity<>(params, headers);
+        
+        // POST 요청
+        ResponseEntity<String> response = restTemplate.exchange(
+            googleTokenUri,
+            HttpMethod.POST,
+            googleTokenRequest,
+            String.class
+        );
+        
+        // JSON 파싱
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode;
+        
+        try {
+            jsonNode = objectMapper.readTree(response.getBody());
+            return jsonNode.get("access_token").asText();
+        } catch (Exception e) {
+            throw new RuntimeException("구글 토큰 파싱 중 오류 발생", e);
+        }
+    }
+    
+    /**
+     * 구글 사용자 정보 획득
+     * 액세스 토큰을 통해 사용자 정보를 요청
+     * @param accessToken 액세스 토큰
+     * @return 사용자 정보
+     */
+    public SocialUserInfo getGoogleUserInfo(String accessToken) {
+        // REST API 호출을 위한 RestTemplate
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+        
+        // HttpEntity 객체 생성
+        HttpEntity<MultiValueMap<String, String>> googleUserInfoRequest = 
+            new HttpEntity<>(headers);
+        
+        // GET 요청
+        ResponseEntity<String> response = restTemplate.exchange(
+            googleUserInfoUri,
+            HttpMethod.GET,
+            googleUserInfoRequest,
+            String.class
+        );
+        
+        // JSON 파싱
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode;
+        
+        try {
+            jsonNode = objectMapper.readTree(response.getBody());
+            
+            String socialId = jsonNode.path("sub").asText(); // 구글 API에서 제공하는 고유번호 가져옴
+            String email = jsonNode.path("email").asText("");
+            String name = jsonNode.path("name").asText("");
+            String picture = jsonNode.path("picture").asText("");
+            
+            return new SocialUserInfo(
+                socialId, // 구글 고유 ID가 여기 들어감
+                "google",
+                email, 
+                name, 
+                picture
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("구글 사용자 정보 파싱 중 오류 발생", e);
+        }
+    }
+
+    /**
+     * 네이버 액세스 토큰 획득
+     * 인증 코드를 통해 액세스 토큰을 요청
+     * @param code 인증 코드
+     * @return 액세스 토큰
+     */
+    public String getNaverAccessToken(String code) {
+        // REST API 호출을 위한 RestTemplate
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+        
+        // 파라미터 설정
+        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+        params.add("code", code);
+        params.add("client_id", naverClientId);
+        params.add("client_secret", naverClientSecret);
+        params.add("redirect_uri", naverRedirectUri);
+        params.add("grant_type", "authorization_code");
+        
+        // HttpEntity 객체 생성
+        HttpEntity<MultiValueMap<String, String>> naverTokenRequest = 
+            new HttpEntity<>(params, headers);
+        
+        // POST 요청
+        ResponseEntity<String> response = restTemplate.exchange(
+            naverTokenUri,
+            HttpMethod.POST,
+            naverTokenRequest,
+            String.class
+        );
+        
+        // JSON 파싱
+        try {
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            return jsonNode.get("access_token").asText();
+        } catch (Exception e) {
+            throw new RuntimeException("네이버 토큰 파싱 중 오류 발생", e);
+        }
+    }
+
+    /**
+     * 네이버 사용자 정보 획득
+     * 액세스 토큰을 통해 사용자 정보를 요청
+     * @param accessToken 액세스 토큰
+     * @return 사용자 정보
+     */
+    public SocialUserInfo getNaverUserInfo(String accessToken) {
+        // REST API 호출을 위한 RestTemplate
+        RestTemplate restTemplate = new RestTemplate();
+        
+        // 헤더 설정
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(accessToken);
+        
+        // HttpEntity 객체 생성
+        HttpEntity<MultiValueMap<String, String>> naverUserInfoRequest = 
+            new HttpEntity<>(headers);
+        
+        // GET 요청
+        ResponseEntity<String> response = restTemplate.exchange(
+            naverUserInfoUri,
+            HttpMethod.GET,
+            naverUserInfoRequest,
+            String.class
+        );
+        
+        // JSON 파싱
+        try {
+            JsonNode jsonNode = objectMapper.readTree(response.getBody());
+            JsonNode responseNode = jsonNode.get("response");
+            
+            if (responseNode == null) {
+                throw new RuntimeException("네이버 사용자 정보에 response 필드가 없습니다.");
+            }
+            
+            String socialId = responseNode.path("id").asText(); // 네이버 API에서 제공하는 고유번호 가져옴
+            String email = responseNode.path("email").asText("");
+            String name = responseNode.path("name").asText("");
+            String nickname = responseNode.path("nickname").asText("");
+            if (nickname.isEmpty()) {
+                nickname = name;
+            }
+            String profileImage = responseNode.path("profile_image").asText("");
+            
+            Map<String, Object> additionalInfo = new HashMap<>();
+            if (responseNode.has("age")) {
+                additionalInfo.put("age", responseNode.get("age").asText());
+            }
+            if (responseNode.has("gender")) {
+                additionalInfo.put("gender", responseNode.get("gender").asText());
+            }
+            if (responseNode.has("mobile")) {
+                additionalInfo.put("mobile", responseNode.get("mobile").asText());
+            }
+            
+            SocialUserInfo userInfo = new SocialUserInfo(
+                socialId,  // 네이버 고유 ID가 여기 들어감
+                "naver",
+                email, 
+                nickname, 
+                profileImage
+            );
+            userInfo.setAdditionalInfo(additionalInfo);
+            return userInfo;
+        } catch (Exception e) {
+            throw new RuntimeException("네이버 사용자 정보 파싱 중 오류 발생", e);
+        }
+    }
+
+    /**
+     * 사용자 정보 업데이트
+     */
+    @Transactional
+    public User updateUser(User user) {
+        return userRepository.save(user);
+    }
+    
+    /**
+     * JWT 토큰 생성
+     */
+    public String generateToken(String username) {
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpiration);
+        
+        return Jwts.builder()
+                .setSubject(username)
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(Keys.hmacShaKeyFor(jwtSecret.getBytes()), SignatureAlgorithm.HS256)
+                .compact();
     }
 } 

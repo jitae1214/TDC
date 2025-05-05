@@ -102,6 +102,7 @@ public class VerificationToken {
         return new VerificationTokenBuilder();
     }
     
+    // 빌더 패턴 구현을 위한 정적 내부 클래스
     public static class VerificationTokenBuilder {
         private Long id;
         private String token;
