@@ -140,6 +140,10 @@ export const checkEmailAvailability = async (email: string): Promise<Availabilit
 export const logout = (): void => {
   setAuthToken(null); // JWT 토큰 제거
   localStorage.removeItem(AUTH_USERNAME_KEY); // 사용자 이름 제거
+  
+  // 세션 스토리지에서도 토큰 제거
+  sessionStorage.removeItem('token');
+  sessionStorage.removeItem(AUTH_USERNAME_KEY);
 };
 
 // 로그인 상태 확인

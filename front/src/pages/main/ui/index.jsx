@@ -8,7 +8,7 @@ const Main = () => {
     
     const handleLogout = () => {
         logout();
-        window.location.reload(); // 페이지 새로고침으로 상태 업데이트
+        window.location.href = '/login'; // 로그아웃 후 로그인 페이지로 리다이렉트
     };
     
     return (

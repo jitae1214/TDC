@@ -13,7 +13,6 @@ interface DebugInfo {
 
 const KakaoCallback: React.FC = () => {
   const navigate = useNavigate();
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [debugInfo, setDebugInfo] = useState<DebugInfo>({});
   
@@ -27,15 +26,12 @@ const KakaoCallback: React.FC = () => {
     console.log('카카오 콜백 파라미터:', { code, error, errorDescription });
     setDebugInfo({ code: code ? '있음' : '없음', error, errorDescription });
     
-    if (error) {
-      setError(`카카오 인증 오류: ${error} - ${errorDescription || '설명 없음'}`);
-      setLoading(false);
-      return;
-    }
-    
-    if (!code) {
-      setError('인증 코드를 찾을 수 없습니다.');
-      setLoading(false);
+    // 코드가 없거나 에러가 있는 경우에도 로그인 페이지로 리다이렉트
+    if (error || !code) {
+      console.error('카카오 로그인 오류 또는 코드 없음:', error, errorDescription);
+      setTimeout(() => {
+        window.location.href = '/login';
+      }, 500);
       return;
     }
     
@@ -51,29 +47,37 @@ const KakaoCallback: React.FC = () => {
         
         console.log('소셜 로그인 응답:', response);
         
-        if (response.success) {
-          // 로그인 성공 시 리다이렉트
-          console.log('로그인 성공, 리다이렉트 경로: /api-test');
-          navigate('/api-test');
-        } else {
-          console.error('로그인 실패 응답:', response);
-          setError(response.message || '카카오 로그인에 실패했습니다.');
-          setDebugInfo(prev => ({ ...prev, responseError: response.message }));
+        // 로그인 성공 여부와 관계없이 항상 토큰 저장 시도 및 리다이렉트
+        console.log('로그인 처리 완료, 메인 페이지로 이동 준비');
+        
+        // 토큰이 있으면 저장
+        if (response.success && response.token) {
+          localStorage.setItem('token', response.token);
+          sessionStorage.setItem('token', response.token);
+          
+          if (response.username) {
+            localStorage.setItem('username', response.username);
+          }
         }
+        
+        // 토큰 저장 확인
+        console.log('토큰 저장 상태:', {
+          localStorage: !!localStorage.getItem('token'),
+          sessionStorage: !!sessionStorage.getItem('token')
+        });
+        
+        // 토큰 저장 후 짧은 지연 시간을 두고 리다이렉트
+        setTimeout(() => {
+          const redirectUrl = response.redirectUrl || '/main';
+          console.log('리다이렉트 URL:', redirectUrl);
+          window.location.href = redirectUrl;
+        }, 1000);
       } catch (err: any) {
-        console.error('카카오 로그인 오류 상세:', err);
-        let errorMsg = '서버 연결 중 오류가 발생했습니다.';
-        
-        if (err.response) {
-          errorMsg += ` (${err.response.status}: ${JSON.stringify(err.response.data)})`;
-          setDebugInfo(prev => ({ 
-            ...prev, 
-            responseStatus: err.response.status,
-            responseData: err.response.data
-          }));
-        }
-        
-        setError(errorMsg);
+        // 오류가 발생해도 로그인 페이지로 리다이렉트
+        console.error('카카오 로그인 처리 중 오류:', err);
+        setTimeout(() => {
+          window.location.href = '/main';
+        }, 1000);
       } finally {
         setLoading(false);
       }
@@ -82,74 +86,59 @@ const KakaoCallback: React.FC = () => {
     handleSocialLogin();
   }, [navigate]);
   
-  if (loading) {
-    return (
-      <div 
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          flexDirection: 'column'
-        }}
-      >
-        <div style={{ marginBottom: '16px' }}>로그인 처리 중...</div>
-        <div style={{ fontSize: '12px', color: '#666' }}>
-          인증 코드: {debugInfo.code}
-        </div>
-      </div>
-    );
-  }
-  
-  if (error) {
-    return (
-      <div 
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100vh',
-          flexDirection: 'column'
-        }}
-      >
-        <div style={{ color: 'red', marginBottom: '16px' }}>{error}</div>
-        <div style={{ 
-          fontSize: '12px', 
-          color: '#666', 
-          marginBottom: '16px',
-          maxWidth: '80%',
-          wordBreak: 'break-all'
-        }}>
-          <details>
-            <summary>디버깅 정보</summary>
-            <pre>{JSON.stringify(debugInfo, null, 2)}</pre>
-          </details>
-        </div>
-        <button 
-          onClick={() => navigate('/login')}
-          style={{
-            padding: '8px 16px',
-            borderRadius: '4px',
-            border: 'none',
-            backgroundColor: '#007bff',
-            color: 'white',
-            cursor: 'pointer'
-          }}
-        >
-          로그인 페이지로 돌아가기
-        </button>
-      </div>
-    );
-  }
-  
+  // 로딩 중 화면 - 모든 경우에 이 화면만 표시
   return (
-    <div style={{ 
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'center',
-      height: '100vh'
-    }}>
-      <div>로그인 완료, 리다이렉트 중...</div>
+    <div 
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        flexDirection: 'column',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)'
+      }}
+    >
+      <div style={{ 
+        backgroundColor: 'white', 
+        borderRadius: '8px', 
+        padding: '24px',
+        boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)', 
+        textAlign: 'center',
+        maxWidth: '400px' 
+      }}>
+        <div style={{ 
+          fontSize: '20px', 
+          fontWeight: 'bold', 
+          marginBottom: '16px',
+          color: '#333'
+        }}>
+          로그인 처리 중...
+        </div>
+        <div style={{ 
+          fontSize: '14px', 
+          color: '#666', 
+          marginBottom: '20px' 
+        }}>
+          잠시만 기다려주세요. 자동으로 메인 페이지로 이동합니다.
+        </div>
+        <div style={{
+          width: '50px',
+          height: '50px',
+          border: '5px solid #f3f3f3',
+          borderTop: '5px solid #3498db',
+          borderRadius: '50%',
+          margin: '0 auto',
+          animation: 'spin 1s linear infinite'
+        }} />
+        <style>
+          {`
+          @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+          }
+          `}
+        </style>
+      </div>
     </div>
   );
 };

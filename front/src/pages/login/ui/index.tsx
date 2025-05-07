@@ -36,7 +36,7 @@ const Login = () => {
             const response = await loginApi({ username, password });
 
             if (response.success) {
-                navigate("/api-test");
+                navigate("/main");
             } else {
                 setErrorMessage(response.message || "로그인에 실패했습니다.");
             }
@@ -94,7 +94,6 @@ const Login = () => {
                 <NaverLoginButton />
 
                 <div className="login-links" style={{ marginTop: '30px' }}>
-                    <Link to="/main" style={{ marginRight: '20px' }}>메인으로</Link>
                     <Link to="/signup">회원가입</Link>
                 </div>
             </div>

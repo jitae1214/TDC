@@ -1,5 +1,5 @@
 import React from 'react';
-import { HashRouter as Router, Route, Routes } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Main from "../../pages/main/ui";
 import Login from "../../pages/login/ui";
 import Signup from "../../pages/signup/ui/SignupForm";
@@ -15,8 +15,12 @@ const AppRoutes = () => {
     return (
         <Router>
             <Routes>
-                <Route path="/" element={<Main/>}/>
-                <Route path="/main" element={<Main/>}/>
+                <Route path="/" element={<Login/>}/>
+                <Route path="/main" element={
+                    <ProtectedRoute>
+                        <Main/>
+                    </ProtectedRoute>
+                }/>
                 <Route path="/login" element={<Login/>}/>
                 <Route path="/signup" element={<Signup/>}/>
                 <Route path="/verify-email" element={<EmailVerificationPage/>}/>

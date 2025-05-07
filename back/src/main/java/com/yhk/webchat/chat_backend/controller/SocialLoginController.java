@@ -108,12 +108,14 @@ public class SocialLoginController {
             // JWT 토큰 생성
             String jwtToken = socialLoginService.generateToken(user.getUsername());
             
+            // 로그인 성공 응답에 리다이렉트 URL 추가
             return ResponseEntity.ok(new LoginResponse(
                 true,
                 "소셜 로그인 성공",
                 jwtToken,
-                user.getUsername())
-            );
+                user.getUsername(),
+                "/main" // 리다이렉트 URL 추가
+            ));
         } catch (Exception e) {
             log.error("소셜 로그인 처리 중 오류 발생", e);
             Map<String, String> errorInfo = new HashMap<>();
