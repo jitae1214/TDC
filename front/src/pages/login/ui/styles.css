@@ -1,5 +1,19 @@
-/* 겉멋용 */
+/* 로그인 페이지 전용 스타일 변수 */
 :root {
+    --login-primary-color: #3498db;
+    --login-primary-hover: #2980b9;
+    --login-error-color: #e74c3c;
+    --login-error-background: #fdecea;
+    --login-background-gradient-start: #ff0000;
+    --login-background-gradient-end: #1a00ff;
+    --login-card-background: #ffffff;
+    --login-input-background: #f9f9f9;
+    --login-input-focus-border: #3498db;
+    --login-divider-color: #ccc;
+    --login-text-color: #2c3e50;
+    --login-sub-text-color: #555;
+    --login-link-color: #3498db;
+    --login-link-hover-color: #1f6fb2;
     --primary-color: #3498db;
     --primary-hover: #2980b9;
     --error-color: #e74c3c;
@@ -17,18 +31,18 @@
     --link-color: #3498db;
     --link-hover-color: #1f6fb2;
 
-    --max-width: 400px;
-    --card-padding: 40px 35px;
-    --input-padding: 12px 14px;
-    --button-padding: 12px;
-    --gap: 18px;
-    --font-size: 15px;
-    --font-size-large: 16px;
-    --font-size-heading: 26px;
-    --font-size-small: 14px;
+    --login-max-width: 400px;
+    --login-card-padding: 40px 35px;
+    --login-input-padding: 12px 14px;
+    --login-button-padding: 12px;
+    --login-gap: 18px;
+    --login-font-size: 15px;
+    --login-font-size-large: 16px;
+    --login-font-size-heading: 26px;
+    --login-font-size-small: 14px;
 }
 
-/* CSS는 위대하니까 기본 세팅이 필요하다 하하하하하 근데 여기에만 해도 다른 페이지도 다 적용 되는것도 웃김 */
+/* 기본 세팅 */
 body {
     margin: 0;
     padding: 0;
@@ -39,17 +53,17 @@ body {
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background: linear-gradient(135deg, var(--background-gradient-start), var(--background-gradient-end));
+    background: linear-gradient(135deg, var(--login-background-gradient-start), var(--login-background-gradient-end));
     font-family: "Pretendard", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
 }
 
 .login-card {
-    background-color: var(--card-background);
-    padding: var(--card-padding);
+    background-color: var(--login-card-background);
+    padding: var(--login-card-padding);
     border-radius: 16px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: var(--max-width);
+    max-width: var(--login-max-width);
     animation: fadeIn 0.4s ease-in-out;
 }
 
@@ -66,18 +80,18 @@ body {
 
 .login-card h2 {
     margin-bottom: 25px;
-    font-size: var(--font-size-heading);
+    font-size: var(--login-font-size-heading);
     font-weight: 700;
-    color: var(--text-color);
+    color: var(--login-text-color);
     text-align: center;
 }
 
 .login-error {
-    color: var(--error-color);
+    color: var(--login-error-color);
     margin-bottom: 15px;
-    font-size: var(--font-size-small);
+    font-size: var(--login-font-size-small);
     text-align: center;
-    background-color: var(--error-background);
+    background-color: var(--login-error-background);
     padding: 8px;
     border-radius: 6px;
 }
@@ -85,35 +99,35 @@ body {
 .login-form {
     display: flex;
     flex-direction: column;
-    gap: var(--gap);
+    gap: var(--login-gap);
 }
 
 .login-form label {
     font-weight: 600;
-    font-size: var(--font-size-small);
+    font-size: var(--login-font-size-small);
     margin-bottom: 6px;
-    color: var(--sub-text-color);
+    color: var(--login-sub-text-color);
 }
 
 .login-form input {
     width: 100%;
-    padding: var(--input-padding);
-    font-size: var(--font-size);
+    padding: var(--login-input-padding);
+    font-size: var(--login-font-size);
     border: 1px solid #ccc;
     border-radius: 8px;
     box-sizing: border-box;
-    background-color: var(--input-background);
+    background-color: var(--login-input-background);
     transition: all 0.2s;
 }
 
 .login-button {
     width: 100%;
-    padding: var(--button-padding);
-    font-size: var(--font-size);
+    padding: var(--login-button-padding);
+    font-size: var(--login-font-size);
     font-weight: 600;
     border-radius: 8px;
     box-sizing: border-box;
-    background-color: var(--primary-color);
+    background-color: var(--login-primary-color);
     color: white;
     border: none;
     cursor: pointer;
@@ -121,7 +135,7 @@ body {
 }
 
 .login-button:hover {
-    background-color: var(--primary-hover);
+    background-color: var(--login-primary-hover);
     transform: translateY(-1px);
 }
 
@@ -134,7 +148,7 @@ body {
     margin: 24px 0;
     text-align: center;
     color: #888;
-    font-size: var(--font-size-small);
+    font-size: var(--login-font-size-small);
     position: relative;
 }
 
@@ -145,7 +159,7 @@ body {
     top: 50%;
     width: 40%;
     height: 1px;
-    background-color: var(--divider-color);
+    background-color: var(--login-divider-color);
 }
 
 .login-divider::before {
@@ -163,13 +177,13 @@ body {
 
 .login-links a {
     margin: 0 12px;
-    color: var(--link-color);
+    color: var(--login-link-color);
     text-decoration: none;
     font-weight: 500;
     transition: color 0.2s;
 }
 
 .login-links a:hover {
-    color: var(--link-hover-color);
+    color: var(--login-link-hover-color);
     text-decoration: underline;
 }

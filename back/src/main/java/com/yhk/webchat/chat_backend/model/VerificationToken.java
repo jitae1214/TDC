@@ -18,6 +18,9 @@ public class VerificationToken {
     @Column(nullable = false, unique = true)
     private String token;
     
+    @Column(name = "verification_code", length = 6)
+    private String verificationCode;
+    
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -33,9 +36,10 @@ public class VerificationToken {
     }
     
     // 모든 필드 포함 생성자
-    public VerificationToken(Long id, String token, User user, LocalDateTime expiryDate, LocalDateTime createdAt) {
+    public VerificationToken(Long id, String token, String verificationCode, User user, LocalDateTime expiryDate, LocalDateTime createdAt) {
         this.id = id;
         this.token = token;
+        this.verificationCode = verificationCode;
         this.user = user;
         this.expiryDate = expiryDate;
         if (createdAt != null) {
@@ -44,8 +48,9 @@ public class VerificationToken {
     }
     
     // 토큰과 사용자 정보를 포함한 생성자
-    public VerificationToken(String token, User user, LocalDateTime expiryDate) {
+    public VerificationToken(String token, String verificationCode, User user, LocalDateTime expiryDate) {
         this.token = token;
+        this.verificationCode = verificationCode;
         this.user = user;
         this.expiryDate = expiryDate;
         this.createdAt = LocalDateTime.now();
@@ -66,6 +71,14 @@ public class VerificationToken {
 
     public void setToken(String token) {
         this.token = token;
+    }
+    
+    public String getVerificationCode() {
+        return verificationCode;
+    }
+    
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
     }
 
     public User getUser() {
@@ -106,6 +119,7 @@ public class VerificationToken {
     public static class VerificationTokenBuilder {
         private Long id;
         private String token;
+        private String verificationCode;
         private User user;
         private LocalDateTime expiryDate;
         private LocalDateTime createdAt = LocalDateTime.now();
@@ -117,6 +131,11 @@ public class VerificationToken {
         
         public VerificationTokenBuilder token(String token) {
             this.token = token;
+            return this;
+        }
+        
+        public VerificationTokenBuilder verificationCode(String verificationCode) {
+            this.verificationCode = verificationCode;
             return this;
         }
         
@@ -139,6 +158,7 @@ public class VerificationToken {
             VerificationToken token = new VerificationToken();
             token.id = this.id;
             token.token = this.token;
+            token.verificationCode = this.verificationCode;
             token.user = this.user;
             token.expiryDate = this.expiryDate;
             token.createdAt = this.createdAt;

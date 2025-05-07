@@ -41,14 +41,14 @@ public class RegisterController {
     }
 
     /**
-     * 이메일 인증 확인
+     * 이메일 인증 확인 (구 방식 - 레거시 호환용)
      * @param token 인증 토큰
      * @return 인증 결과 페이지
      */
     @GetMapping("/verify")
     public String verifyEmail(@RequestParam String token, Model model) {
         // 이메일 인증 서비스 호출
-        EmailVerificationResponse response = registerService.verifyEmail(token);
+        EmailVerificationResponse response = registerService.verifyEmailByToken(token);
         
         // 모델에 이메일 및 메시지 추가
         model.addAttribute("email", response.getEmail());
@@ -63,11 +63,24 @@ public class RegisterController {
     }
 
     /**
+     * 이메일 인증 처리 (인증 코드 방식)
+     * @param request 이메일과 인증 코드
+     * @return 인증 결과
+     */
+    @PostMapping("/api/auth/verify-code")
+    @ResponseBody
+    public ResponseEntity<EmailVerificationResponse> verifyEmailCode(@RequestBody EmailVerificationRequest request) {
+        // 인증 코드 검증 서비스 호출
+        EmailVerificationResponse response = registerService.verifyEmail(request);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
      * 이메일 인증 요청 (재전송 등)
      * @param request 이메일 인증 요청 정보
      * @return 인증 메일 발송 결과
      */
-    @PostMapping("/api/auth/verify")
+    @PostMapping("/api/auth/resend-verification")
     @ResponseBody
     public ResponseEntity<EmailVerificationResponse> resendVerificationEmail(@RequestBody EmailVerificationRequest request) {
         // 이메일 인증 요청 서비스 호출
@@ -82,7 +95,7 @@ public class RegisterController {
      */
     @PostMapping("/api/auth/check-username")
     @ResponseBody
-    public ResponseEntity<UsernameAvailabilityResponse> checkUsernameAvailability(@RequestBody UsernameAvailabilityRequest request) {
+    public ResponseEntity<UsernameAvailabilityResponse> checkUsername(@RequestBody UsernameAvailabilityRequest request) {
         // 아이디 중복 확인 서비스 호출
         UsernameAvailabilityResponse response = registerService.checkUsernameAvailability(request.getUsername());
         return ResponseEntity.ok(response);
@@ -95,7 +108,7 @@ public class RegisterController {
      */
     @PostMapping("/api/auth/check-email")
     @ResponseBody
-    public ResponseEntity<EmailAvailabilityResponse> checkEmailAvailability(@RequestBody EmailAvailabilityRequest request) {
+    public ResponseEntity<EmailAvailabilityResponse> checkEmail(@RequestBody EmailAvailabilityRequest request) {
         // 이메일 중복 확인 서비스 호출
         EmailAvailabilityResponse response = registerService.checkEmailAvailability(request.getEmail());
         return ResponseEntity.ok(response);

@@ -3,6 +3,7 @@ package com.yhk.webchat.chat_backend.service;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import java.util.Optional;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +43,17 @@ public class RegisterService {
     @Value("${app.verification.host}")
     private String verificationHost;
     
+    private final Random random = new Random();
+    
+    /**
+     * 6자리 인증 코드 생성
+     * @return 생성된 인증 코드
+     */
+    private String generateVerificationCode() {
+        int code = 100000 + random.nextInt(900000); // 100000-999999 사이의 난수
+        return String.valueOf(code);
+    }
+    
     /**
      * 사용자 등록 (회원가입)
      * @param request 회원가입 요청 DTO
@@ -73,30 +85,21 @@ public class RegisterService {
             
             user = userRepository.save(user);
             
-            // 이메일 인증 토큰 생성 및 저장
+            // 이메일 인증 토큰과 인증 코드 생성 및 저장
             String token = UUID.randomUUID().toString();
+            String verificationCode = generateVerificationCode();
+            
             VerificationToken verificationToken = new VerificationToken(
                     token, 
+                    verificationCode,
                     user, 
                     LocalDateTime.now().plusHours(24) // 24시간 유효
             );
             
             tokenRepository.save(verificationToken);
             
-            // 인증 이메일 발송
-            String verificationUrl = verificationHost + "/verify?token=" + token;
-            try {
-                emailService.sendVerificationEmail(
-                    user.getEmail(),
-                    "[채팅 웹] 이메일 인증 안내",
-                    verificationUrl,
-                    user.getUsername(),
-                    user.getFullName()
-                );
-            } catch (Exception e) {
-                System.err.println("이메일 발송 실패: " + e.getMessage());
-                // 이메일 발송 실패해도 회원가입은 진행
-            }
+            // 회원가입 시 자동으로 이메일을 발송하지 않음
+            // 사용자가 이메일 인증 페이지에서 인증코드발송하기 버튼을 클릭할 때만 발송
             
             return new RegisterResponse(user.getId(), false);
             
@@ -107,12 +110,64 @@ public class RegisterService {
     }
     
     /**
-     * 이메일 인증 처리
+     * 이메일 인증 처리 (인증 코드 방식)
+     * @param email 이메일
+     * @param verificationCode 인증 코드
+     * @return 인증 결과
+     */
+    @Transactional
+    public EmailVerificationResponse verifyEmail(EmailVerificationRequest request) {
+        String email = request.getEmail();
+        String verificationCode = request.getVerificationCode();
+        
+        if (email == null || email.isEmpty() || verificationCode == null || verificationCode.isEmpty()) {
+            return new EmailVerificationResponse(false, "이메일과 인증 코드를 모두 입력해주세요.", null);
+        }
+        
+        // 사용자 확인
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            return new EmailVerificationResponse(false, "등록되지 않은 이메일입니다.", email);
+        }
+        
+        User user = userOpt.get();
+        
+        // 이미 인증된 계정인지 확인
+        if (user.isEmailVerified()) {
+            return new EmailVerificationResponse(false, "이미 인증된 이메일입니다.", email);
+        }
+        
+        // 인증 코드로 토큰 찾기
+        Optional<VerificationToken> tokenOpt = tokenRepository.findByUserAndVerificationCode(user, verificationCode);
+        
+        if (tokenOpt.isEmpty()) {
+            return new EmailVerificationResponse(false, "유효하지 않은 인증 코드입니다.", email);
+        }
+        
+        VerificationToken verificationToken = tokenOpt.get();
+        
+        // 인증 코드 만료 확인
+        if (verificationToken.isExpired()) {
+            return new EmailVerificationResponse(false, "만료된 인증 코드입니다. 인증 코드를 재발송해주세요.", email);
+        }
+        
+        // 이메일 인증 완료 처리
+        user.setEmailVerified(true);
+        userRepository.save(user);
+        
+        // 사용된 토큰 삭제
+        tokenRepository.delete(verificationToken);
+        
+        return new EmailVerificationResponse(true, "이메일 인증이 완료되었습니다.", email);
+    }
+    
+    /**
+     * 이메일 인증 처리 (구 URL 토큰 방식 - 레거시 호환용)
      * @param token 인증 토큰
      * @return 인증 결과
      */
     @Transactional
-    public EmailVerificationResponse verifyEmail(String token) {
+    public EmailVerificationResponse verifyEmailByToken(String token) {
         Optional<VerificationToken> verificationTokenOpt = tokenRepository.findByToken(token);
         
         if (verificationTokenOpt.isEmpty()) {
@@ -158,10 +213,13 @@ public class RegisterService {
         // 기존 토큰 삭제
         tokenRepository.deleteByUser(user);
         
-        // 새 토큰 생성
+        // 새 토큰과 인증 코드 생성
         String token = UUID.randomUUID().toString();
+        String verificationCode = generateVerificationCode();
+        
         VerificationToken verificationToken = new VerificationToken(
                 token, 
+                verificationCode,
                 user, 
                 LocalDateTime.now().plusHours(24) // 24시간 유효
         );
@@ -169,12 +227,11 @@ public class RegisterService {
         tokenRepository.save(verificationToken);
         
         // 인증 이메일 재발송
-        String verificationUrl = verificationHost + "/verify?token=" + token;
         try {
             emailService.sendVerificationEmail(
                 user.getEmail(),
                 "[채팅 웹] 이메일 인증 안내",
-                verificationUrl,
+                verificationCode,
                 user.getUsername(),
                 user.getFullName()
             );
@@ -190,13 +247,8 @@ public class RegisterService {
      * @return 중복 확인 결과
      */
     public UsernameAvailabilityResponse checkUsernameAvailability(String username) {
-        boolean isAvailable = !userRepository.existsByUsername(username);
-        
-        if (isAvailable) {
-            return new UsernameAvailabilityResponse(true, "사용 가능한 아이디입니다.");
-        } else {
-            return new UsernameAvailabilityResponse(false, "이미 사용 중인 아이디입니다.");
-        }
+        boolean exists = userRepository.existsByUsername(username);
+        return new UsernameAvailabilityResponse(!exists);
     }
     
     /**
@@ -205,12 +257,7 @@ public class RegisterService {
      * @return 중복 확인 결과
      */
     public EmailAvailabilityResponse checkEmailAvailability(String email) {
-        boolean isAvailable = !userRepository.existsByEmail(email);
-        
-        if (isAvailable) {
-            return new EmailAvailabilityResponse(true, "사용 가능한 이메일입니다.");
-        } else {
-            return new EmailAvailabilityResponse(false, "이미 사용 중인 이메일입니다.");
-        }
+        boolean exists = userRepository.existsByEmail(email);
+        return new EmailAvailabilityResponse(!exists);
     }
 } 

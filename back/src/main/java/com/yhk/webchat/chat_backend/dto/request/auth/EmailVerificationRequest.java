@@ -7,12 +7,19 @@ package com.yhk.webchat.chat_backend.dto.request.auth;
  */
 public class EmailVerificationRequest {
     private String email; // 인증할 이메일 주소
+    private String verificationCode; // 인증 코드
     
     // 기본 생성자
     public EmailVerificationRequest() {
     }
     
     // 모든 필드를 포함한 생성자
+    public EmailVerificationRequest(String email, String verificationCode) {
+        this.email = email;
+        this.verificationCode = verificationCode;
+    }
+    
+    // 이메일만 포함한 생성자
     public EmailVerificationRequest(String email) {
         this.email = email;
     }
@@ -24,5 +31,13 @@ public class EmailVerificationRequest {
     
     public void setEmail(String email) {
         this.email = email;
+    }
+    
+    public String getVerificationCode() {
+        return verificationCode;
+    }
+    
+    public void setVerificationCode(String verificationCode) {
+        this.verificationCode = verificationCode;
     }
 } 

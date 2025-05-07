@@ -27,6 +27,21 @@ public interface VerificationTokenRepository extends JpaRepository<VerificationT
     Optional<VerificationToken> findByToken(String token);
     
     /**
+     * 인증 코드로 인증 정보 찾기
+     * @param verificationCode 인증 코드
+     * @return 인증 토큰 정보
+     */
+    Optional<VerificationToken> findByVerificationCode(String verificationCode);
+    
+    /**
+     * 사용자와 인증 코드로 인증 정보 찾기
+     * @param user 사용자
+     * @param verificationCode 인증 코드
+     * @return 인증 토큰 정보
+     */
+    Optional<VerificationToken> findByUserAndVerificationCode(User user, String verificationCode);
+    
+    /**
      * 사용자로 인증 정보 찾기
      * @param user 사용자
      * @return 인증 토큰 정보

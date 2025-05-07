@@ -26,16 +26,16 @@ public class EmailService {
     private TemplateEngine templateEngine;
     
     /**
-     * 이메일 인증 메일 발송
+     * 이메일 인증 메일 발송 (인증 코드 방식)
      * @param to 수신자 이메일
      * @param subject 메일 제목
-     * @param verificationUrl 인증 URL
+     * @param verificationCode 인증 코드
      * @param username 사용자 아이디
      * @param fullName 사용자 이름
      * @throws MessagingException
      */
-    public void sendVerificationEmail(String to, String subject, String verificationUrl, String username, String fullName) throws MessagingException {
-        System.out.println("이메일 인증 메일 발송: " + to + ", 인증 URL: " + verificationUrl);
+    public void sendVerificationEmail(String to, String subject, String verificationCode, String username, String fullName) throws MessagingException {
+        System.out.println("이메일 인증 메일 발송: " + to + ", 인증 코드: " + verificationCode);
         
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
@@ -44,10 +44,10 @@ public class EmailService {
         Context context = new Context();
         context.setVariable("username", username);
         context.setVariable("fullName", fullName);
-        context.setVariable("verificationUrl", verificationUrl);
+        context.setVariable("verificationCode", verificationCode);
         
         // 템플릿 처리
-        String emailContent = templateEngine.process("email/verification", context);
+        String emailContent = templateEngine.process("email/verification-code", context);
         
         // 메일 설정 및 발송
         helper.setTo(to);
@@ -55,14 +55,14 @@ public class EmailService {
         helper.setText(emailContent, true);
         
         mailSender.send(message);
-        System.out.println("인증 메일이 성공적으로 발송되었습니다: " + to);
+        System.out.println("인증 코드 메일이 성공적으로 발송되었습니다: " + to);
     }
     
     /**
      * 이메일 인증 메일 발송 (이전 버전과의 호환성 유지)
      */
-    public void sendVerificationEmail(String to, String subject, String verificationUrl, String username) throws MessagingException {
-        sendVerificationEmail(to, subject, verificationUrl, username, username);
+    public void sendVerificationEmail(String to, String subject, String verificationInfo, String username) throws MessagingException {
+        sendVerificationEmail(to, subject, verificationInfo, username, username);
     }
     
     /**

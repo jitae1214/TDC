@@ -1,0 +1,56 @@
+:root {
+  --verification-primary-color: #3498db;
+  --verification-primary-hover: #2980b9;
+  --verification-error-color: #e74c3c;
+  --verification-error-background: #fdecea;
+  --verification-background-gradient-start: #ff0000;
+  --verification-background-gradient-end: #1a00ff;
+  --verification-card-background: #ffffff;
+  --verification-input-background: #f9f9f9;
+  --verification-input-focus-border: #3498db;
+  --verification-divider-color: #ccc;
+  --verification-text-color: #2c3e50;
+  --verification-sub-text-color: #555;
+  --verification-link-color: #3498db;
+  --verification-link-hover-color: #1f6fb2;
+
+  --verification-max-width: 400px;
+  --verification-card-padding: 40px 35px;
+  --verification-input-padding: 12px 14px;
+  --verification-button-padding: 12px;
+  --verification-gap: 18px;
+  --verification-font-size: 15px;
+  --verification-font-size-large: 16px;
+  --verification-font-size-heading: 26px;
+  --verification-font-size-small: 14px;
+}
+
+.verification-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(135deg, var(--verification-background-gradient-start), var(--verification-background-gradient-end));
+  font-family: "Pretendard", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.verification-page-container {
+  background-color: var(--verification-card-background);
+  padding: var(--verification-card-padding);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: var(--verification-max-width);
+  animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 
