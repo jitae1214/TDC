@@ -24,6 +24,7 @@ export interface SocialLoginResponse {
   socialId?: string;
   provider?: SocialProvider;
   redirectUrl?: string;
+  profileImage?: string;
 }
 
 // 소셜 인증 코드 요청 파라미터

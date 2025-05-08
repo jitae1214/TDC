@@ -60,7 +60,7 @@ public class SocialLoginController {
         log.info("소셜 로그인 요청: provider={}, code={}", request.getProvider(), request.getCode().substring(0, 10) + "...");
         
         try {
-            // 지원하는 소셜 로그인 제공자 확인
+            // 지원하는 소셜 로그인 사용자 확인
             if (!"kakao".equals(request.getProvider()) && 
                 !"google".equals(request.getProvider()) && 
                 !"naver".equals(request.getProvider())) {
@@ -108,13 +108,16 @@ public class SocialLoginController {
             // JWT 토큰 생성
             String jwtToken = socialLoginService.generateToken(user.getUsername());
             
-            // 로그인 성공 응답에 리다이렉트 URL 추가
+            // 로그인 성공 응답에 프로필 이미지 URL 추가
             return ResponseEntity.ok(new LoginResponse(
                 true,
                 "소셜 로그인 성공",
                 jwtToken,
                 user.getUsername(),
-                "/main" // 리다이렉트 URL 추가
+                user.getSocialId(),
+                request.getProvider(),
+                "/main",
+                userInfo.getProfileImage() // 프로필 이미지 URL 추가
             ));
         } catch (Exception e) {
             log.error("소셜 로그인 처리 중 오류 발생", e);

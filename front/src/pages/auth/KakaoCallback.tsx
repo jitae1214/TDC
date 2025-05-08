@@ -58,6 +58,11 @@ const KakaoCallback: React.FC = () => {
           if (response.username) {
             localStorage.setItem('username', response.username);
           }
+
+          // 프로필 이미지 URL 저장
+          if (response.profileImage) {
+            localStorage.setItem('profileImage', response.profileImage);
+          }
         }
         
         // 토큰 저장 확인

@@ -12,6 +12,7 @@ public class LoginResponse {
     private String socialId;
     private String provider;
     private String redirectUrl;
+    private String profileImage;
 
     // 기본 생성자
     public LoginResponse() {
@@ -34,18 +35,9 @@ public class LoginResponse {
         this.redirectUrl = redirectUrl;
     }
 
-    // 소셜 로그인용 생성자
-    public LoginResponse(boolean success, String message, String token, String username, String socialId, String provider) {
-        this.success = success;
-        this.message = message;
-        this.token = token;
-        this.username = username;
-        this.socialId = socialId;
-        this.provider = provider;
-    }
-
-    // 소셜 로그인 + 리다이렉트 URL 생성자
-    public LoginResponse(boolean success, String message, String token, String username, String socialId, String provider, String redirectUrl) {
+    // 소셜 로그인 통합 생성자 (모든 필드 포함)
+    public LoginResponse(boolean success, String message, String token, String username, 
+                        String socialId, String provider, String redirectUrl, String profileImage) {
         this.success = success;
         this.message = message;
         this.token = token;
@@ -53,6 +45,7 @@ public class LoginResponse {
         this.socialId = socialId;
         this.provider = provider;
         this.redirectUrl = redirectUrl;
+        this.profileImage = profileImage;
     }
 
     // Getter 및 Setter
@@ -110,5 +103,13 @@ public class LoginResponse {
     
     public void setRedirectUrl(String redirectUrl) {
         this.redirectUrl = redirectUrl;
+    }
+
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 } 
