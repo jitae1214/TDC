@@ -1,16 +1,34 @@
 package com.yhk.webchat.chat_backend.dto.request.auth;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.AssertTrue;
+
 /**
  * 회원가입 요청 DTO
  * 사용자 회원가입 시 필요한 정보를 담고 있음
  */
 public class RegisterRequest {
+    @NotBlank(message = "사용자 아이디는 필수 입력 항목입니다")
+    @Size(min = 4, max = 20, message = "아이디는 4자 이상 20자 이하여야 합니다")
     private String username;      // 사용자 아이디
+    
+    @NotBlank(message = "비밀번호는 필수 입력 항목입니다")
+    @Size(min = 8, max = 20, message = "비밀번호는 8자 이상 20자 이하여야 합니다")
     private String password;      // 비밀번호
+    
+    @NotBlank(message = "이메일은 필수 입력 항목입니다")
+    @Email(message = "유효한 이메일 형식이 아닙니다")
     private String email;         // 이메일
+    
+    @NotBlank(message = "이름은 필수 입력 항목입니다")
     private String fullName;      // 이름 (실명)
+    
     private String nickname;      // 닉네임 (선택)
     private String profileImage;  // 프로필 이미지 URL (선택)
+    
+    @AssertTrue(message = "이용약관에 동의해야 합니다")
     private boolean agreeToTerms; // 이용약관 동의 여부
 
     // 기본 생성자

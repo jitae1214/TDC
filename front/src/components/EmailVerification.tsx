@@ -40,7 +40,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ onSuccess }) => {
       setIsLoading(true);
       setMessage({ text: '인증 코드 발송 중...', type: 'info' });
 
-      const response = await axios.post(`${BASE_URL}/auth/resend-verification`, { email });
+      const response = await axios.post(`${BASE_URL}/register/resend-verification`, { email });
 
       if (response.data.success) {
         setMessage({ text: '인증 코드가 이메일로 발송되었습니다.', type: 'success' });

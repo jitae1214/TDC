@@ -1,5 +1,7 @@
 package com.yhk.webchat.chat_backend.dto.response.auth;
 
+import java.util.Map;
+
 /**
  * 로그인 응답 DTO
  * 로그인 결과 정보를 담는 클래스
@@ -9,54 +11,51 @@ public class LoginResponse {
     // 성공 여부
     private boolean success;
     
+    // 인증 토큰 (JWT 등)
+    private String token;
+    
+    // 사용자 정보 맵 (id, username, email 등)
+    private Map<String, Object> userInfo;
+    
     // 응답 메시지
     private String message;
     
-    // 사용자 ID
-    private Long userId;
-    
-    // 사용자 정보 (이름, 닉네임 등)
-    private String username;
-    private String nickname;
-    
-    // 이메일 인증 여부
-    private boolean emailVerified;
-    
-    // 인증 토큰 (JWT 등)
-    private String token;
+    // 오류 세부 정보
+    private String error;
     
     // 기본 생성자
     public LoginResponse() {
     }
     
     // 실패 응답용 생성자
-    public LoginResponse(boolean success, String message) {
+    public LoginResponse(boolean success, String message, String error) {
         this.success = success;
         this.message = message;
+        this.error = error;
     }
     
-    // 성공 응답용 생성자
-    public LoginResponse(boolean success, String message, Long userId, String username, 
-                        String nickname, boolean emailVerified, String token) {
+    // 모든 필드 생성자
+    public LoginResponse(boolean success, String token, Map<String, Object> userInfo, String message, String error) {
         this.success = success;
-        this.message = message;
-        this.userId = userId;
-        this.username = username;
-        this.nickname = nickname;
-        this.emailVerified = emailVerified;
         this.token = token;
+        this.userInfo = userInfo;
+        this.message = message;
+        this.error = error;
     }
     
     // 간편 성공 응답 생성 메서드
-    public static LoginResponse success(Long userId, String username, String nickname, 
-                                      boolean emailVerified, String token) {
-        return new LoginResponse(true, "로그인이 성공했습니다.", userId, username, 
-                                nickname, emailVerified, token);
+    public static LoginResponse success(String token, Map<String, Object> userInfo) {
+        return new LoginResponse(true, token, userInfo, "로그인이 성공했습니다.", null);
     }
     
     // 간편 실패 응답 생성 메서드
     public static LoginResponse fail(String message) {
-        return new LoginResponse(false, message);
+        return new LoginResponse(false, null, null, message, null);
+    }
+    
+    // 상세 오류가 포함된 실패 응답 생성 메서드
+    public static LoginResponse fail(String message, String error) {
+        return new LoginResponse(false, null, null, message, error);
     }
     
     // Getter와 Setter
@@ -68,6 +67,22 @@ public class LoginResponse {
         this.success = success;
     }
     
+    public String getToken() {
+        return token;
+    }
+    
+    public void setToken(String token) {
+        this.token = token;
+    }
+    
+    public Map<String, Object> getUserInfo() {
+        return userInfo;
+    }
+    
+    public void setUserInfo(Map<String, Object> userInfo) {
+        this.userInfo = userInfo;
+    }
+    
     public String getMessage() {
         return message;
     }
@@ -76,43 +91,11 @@ public class LoginResponse {
         this.message = message;
     }
     
-    public Long getUserId() {
-        return userId;
+    public String getError() {
+        return error;
     }
     
-    public void setUserId(Long userId) {
-        this.userId = userId;
-    }
-    
-    public String getUsername() {
-        return username;
-    }
-    
-    public void setUsername(String username) {
-        this.username = username;
-    }
-    
-    public String getNickname() {
-        return nickname;
-    }
-    
-    public void setNickname(String nickname) {
-        this.nickname = nickname;
-    }
-    
-    public boolean isEmailVerified() {
-        return emailVerified;
-    }
-    
-    public void setEmailVerified(boolean emailVerified) {
-        this.emailVerified = emailVerified;
-    }
-    
-    public String getToken() {
-        return token;
-    }
-    
-    public void setToken(String token) {
-        this.token = token;
+    public void setError(String error) {
+        this.error = error;
     }
 } 

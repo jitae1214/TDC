@@ -1,5 +1,7 @@
 package com.yhk.webchat.chat_backend.dto.request.auth;
 
+import jakarta.validation.constraints.NotBlank;
+
 /**
  * 로그인 요청 DTO
  * 사용자 인증에 필요한 정보를 담는 클래스
@@ -7,9 +9,11 @@ package com.yhk.webchat.chat_backend.dto.request.auth;
 public class LoginRequest {
     
     // 사용자 아이디
+    @NotBlank(message = "사용자 아이디는 필수 입력 항목입니다")
     private String username;
     
     // 비밀번호
+    @NotBlank(message = "비밀번호는 필수 입력 항목입니다")
     private String password;
     
     // 기본 생성자

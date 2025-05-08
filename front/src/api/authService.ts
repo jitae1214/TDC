@@ -3,6 +3,7 @@ import apiClient, { setAuthToken, getAuthToken } from './apiClient';
 // 상수 정의
 // 엔드포인트 경로나 키 이름 변경 되어야 할 때 상수 정의 부분만 고치면 됨
 const AUTH_URL = '/api/auth';
+const REGISTER_URL = '/api/register'; // 회원가입 관련 새로운 URL 추가
 const AUTH_USERNAME_KEY = 'username';
 
 /* -- Request : 프론트엔드에서 뱍엔드로 데이터를 보낼 때 사용 */
@@ -110,7 +111,7 @@ export const login = async (loginData: LoginRequest): Promise<LoginResponse> => 
 // 회원가입 API 호출
 export const register = async (registerData: RegisterRequest): Promise<RegisterResponse> => {
   try {
-    const response = await apiClient.post<RegisterResponse>(`${AUTH_URL}/register`, registerData);
+    const response = await apiClient.post<RegisterResponse>(`${REGISTER_URL}/signup`, registerData);
     return response.data;
   } catch (error) {
     console.error('회원가입 오류:', error);
@@ -125,7 +126,7 @@ export const register = async (registerData: RegisterRequest): Promise<RegisterR
 export const checkUsernameAvailability = async (username: string): Promise<AvailabilityResponse> => {
   try {
     const response = await apiClient.post<AvailabilityResponse>(
-      `${AUTH_URL}/check-username`, 
+      `${REGISTER_URL}/check-username`, 
       { username }
     );
     return response.data;
@@ -142,7 +143,7 @@ export const checkUsernameAvailability = async (username: string): Promise<Avail
 export const checkEmailAvailability = async (email: string): Promise<AvailabilityResponse> => {
   try {
     const response = await apiClient.post<AvailabilityResponse>(
-      `${AUTH_URL}/check-email`, 
+      `${REGISTER_URL}/check-email`, 
       { email }
     );
     return response.data;

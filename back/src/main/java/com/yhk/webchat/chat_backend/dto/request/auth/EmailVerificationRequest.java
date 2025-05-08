@@ -1,11 +1,16 @@
 package com.yhk.webchat.chat_backend.dto.request.auth;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+
 /**
  * 이메일 인증 요청 DTO
  * 이메일 인증 요청 시 필요한 정보를 담고 있음 
  * (인증 메일 재전송 등에 사용)
  */
 public class EmailVerificationRequest {
+    @NotBlank(message = "이메일은 필수 입력 항목입니다")
+    @Email(message = "유효한 이메일 형식이 아닙니다")
     private String email; // 인증할 이메일 주소
     private String verificationCode; // 인증 코드
     

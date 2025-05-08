@@ -2,7 +2,8 @@ import apiClient from "../../../api/apiClient";
 import { RegisterRequest } from "../model";
 
 // API 경로 변경 (프로젝트의 컨트롤러 매핑에 맞게)
-const API_BASE_URL = "/api/auth";
+const AUTH_BASE_URL = "/api/auth";
+const REGISTER_BASE_URL = "/api/register";
 
 /**
  * 회원가입 API 요청
@@ -11,7 +12,7 @@ const API_BASE_URL = "/api/auth";
  */
 export const register = async (data: RegisterRequest) => {
     try {
-        console.log("회원가입 API 호출:", `${API_BASE_URL}/register`, data);
+        console.log("회원가입 API 호출:", `${REGISTER_BASE_URL}/signup`, data);
         
         // 프로필 이미지 데이터 크기 확인
         if (data.profileImage) {
@@ -28,7 +29,7 @@ export const register = async (data: RegisterRequest) => {
             }
         }
         
-        const response = await apiClient.post(`${API_BASE_URL}/register`, data);
+        const response = await apiClient.post(`${REGISTER_BASE_URL}/signup`, data);
         console.log("회원가입 API 응답:", response.data);
         return response.data;
     } catch (error: any) {
@@ -65,9 +66,9 @@ export const checkUsernameAvailability = async (username: string) => {
     try {
         // UsernameAvailabilityRequest 형식에 맞게 요청 객체 생성
         const requestData = { username };
-        console.log("아이디 중복 확인 요청:", requestData, `${API_BASE_URL}/check-username`);
+        console.log("아이디 중복 확인 요청:", requestData, `${REGISTER_BASE_URL}/check-username`);
         
-        const response = await apiClient.post(`${API_BASE_URL}/check-username`, requestData);
+        const response = await apiClient.post(`${REGISTER_BASE_URL}/check-username`, requestData);
         console.log("아이디 중복 확인 응답:", response.data);
         return response.data;
     } catch (error) {
@@ -88,9 +89,9 @@ export const checkEmailAvailability = async (email: string) => {
     try {
         // EmailAvailabilityRequest 형식에 맞게 요청 객체 생성
         const requestData = { email };
-        console.log("이메일 중복 확인 요청:", requestData, `${API_BASE_URL}/check-email`);
+        console.log("이메일 중복 확인 요청:", requestData, `${REGISTER_BASE_URL}/check-email`);
         
-        const response = await apiClient.post(`${API_BASE_URL}/check-email`, requestData);
+        const response = await apiClient.post(`${REGISTER_BASE_URL}/check-email`, requestData);
         console.log("이메일 중복 확인 응답:", response.data);
         return response.data;
     } catch (error) {

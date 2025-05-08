@@ -5,8 +5,9 @@ import com.yhk.webchat.chat_backend.dto.SocialLoginRequest;
 import com.yhk.webchat.chat_backend.dto.SocialUserInfo;
 import com.yhk.webchat.chat_backend.model.User;
 import com.yhk.webchat.chat_backend.service.SocialLoginService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,11 +25,11 @@ import java.util.Map;
  * 소셜 로그인 컨트롤러
  * 소셜 로그인 처리를 담당
  */
-@Slf4j
 @RestController
 @RequestMapping("/api/auth")
-@RequiredArgsConstructor
 public class SocialLoginController {
+    
+    private static final Logger log = LoggerFactory.getLogger(SocialLoginController.class);
     
     private final SocialLoginService socialLoginService;
     
@@ -49,6 +50,11 @@ public class SocialLoginController {
     
     @Value("${spring.security.oauth2.client.registration.naver.redirect-uri}")
     private String naverRedirectUri;
+    
+    @Autowired
+    public SocialLoginController(SocialLoginService socialLoginService) {
+        this.socialLoginService = socialLoginService;
+    }
     
     /**
      * 소셜 로그인 처리

@@ -1,11 +1,19 @@
 package com.yhk.webchat.chat_backend.service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.yhk.webchat.chat_backend.dto.request.auth.LoginRequest;
 import com.yhk.webchat.chat_backend.dto.response.auth.LoginResponse;
@@ -14,11 +22,11 @@ import com.yhk.webchat.chat_backend.repository.UserRepository;
 import com.yhk.webchat.chat_backend.security.JwtTokenProvider;
 
 /**
- * 로그인 처리를 위한 서비스
+ * 로그인 관련 비즈니스 로직을 담당하는 서비스
  */
 @Service
 public class LoginService {
-
+    
     @Autowired
     private UserRepository userRepository;
     
@@ -28,51 +36,73 @@ public class LoginService {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
     
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    
     /**
-     * 로그인 처리
+     * 사용자 로그인 처리
      * @param loginRequest 로그인 요청 정보
-     * @return 로그인 결과
+     * @return 로그인 결과 정보
      */
+    @Transactional
     public LoginResponse login(LoginRequest loginRequest) {
-        // 사용자 조회
-        User user = userRepository.findByUsername(loginRequest.getUsername())
-                .orElseThrow(() -> new BadCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다."));
-        
-        // 비밀번호 검증
-        if (!passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다.");
+        try {
+            // Spring Security를 통한 인증 처리
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    loginRequest.getUsername(),
+                    loginRequest.getPassword()
+                )
+            );
+            
+            // 인증 정보를 SecurityContext에 저장
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            // 로그인 성공 시 사용자 정보 업데이트
+            User user = userRepository.findByUsername(loginRequest.getUsername())
+                    .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+            
+            // 마지막 로그인 시간 업데이트
+            user.setLastLoginAt(LocalDateTime.now());
+            
+            // 사용자 상태 온라인으로 변경
+            user.setStatus("ONLINE");
+            userRepository.save(user);
+            
+            // JWT 토큰 생성
+            String token = jwtTokenProvider.generateToken(user.getUsername());
+            
+            // 응답 생성
+            Map<String, Object> userInfo = new HashMap<>();
+            userInfo.put("id", user.getId());
+            userInfo.put("username", user.getUsername());
+            userInfo.put("email", user.getEmail());
+            userInfo.put("nickname", user.getNickname());
+            userInfo.put("profileImageUrl", user.getProfileImageUrl());
+            
+            return new LoginResponse(true, token, userInfo, "로그인 성공", null);
+        } catch (BadCredentialsException e) {
+            return new LoginResponse(false, null, null, "아이디 또는 비밀번호가 일치하지 않습니다.", null);
+        } catch (Exception e) {
+            return new LoginResponse(false, null, null, "로그인 처리 중 오류가 발생했습니다.", e.getMessage());
         }
-        
-        // 이메일 인증 여부 확인
-        if (!user.isEmailVerified()) {
-            return LoginResponse.fail("이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.");
-        }
-        
-        // 마지막 로그인 시간 업데이트
-        user.setLastLoginAt(LocalDateTime.now());
-        // 상태 업데이트
-        user.setStatus("ONLINE");
-        userRepository.save(user);
-        
-        // JWT 토큰 생성
-        String token = generateToken(user.getUsername());
-        
-        // 로그인 응답 생성
-        return LoginResponse.success(
-            user.getId(), 
-            user.getUsername(), 
-            user.getNickname(), 
-            user.isEmailVerified(),
-            token
-        );
     }
     
     /**
-     * 사용자 이름으로 JWT 토큰 생성
-     * @param username 사용자 이름
-     * @return JWT 토큰
+     * JWT 토큰 검증
+     * @param token JWT 토큰
+     * @return 유효성 여부
      */
-    public String generateToken(String username) {
-        return jwtTokenProvider.generateToken(username);
+    public boolean validateToken(String token) {
+        return jwtTokenProvider.validateToken(token);
+    }
+    
+    /**
+     * 토큰에서 사용자 이름 추출
+     * @param token JWT 토큰
+     * @return 사용자 이름
+     */
+    public String getUsernameFromToken(String token) {
+        return jwtTokenProvider.getUsernameFromToken(token);
     }
 } 

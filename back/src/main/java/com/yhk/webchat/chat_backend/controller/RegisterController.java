@@ -11,6 +11,7 @@ import com.yhk.webchat.chat_backend.dto.request.auth.RegisterRequest;
 import com.yhk.webchat.chat_backend.dto.request.auth.UsernameAvailabilityRequest;
 import com.yhk.webchat.chat_backend.dto.request.auth.EmailAvailabilityRequest;
 import com.yhk.webchat.chat_backend.dto.request.auth.EmailVerificationRequest;
+import com.yhk.webchat.chat_backend.dto.response.ApiResponse;
 import com.yhk.webchat.chat_backend.dto.response.auth.RegisterResponse;
 import com.yhk.webchat.chat_backend.dto.response.auth.UsernameAvailabilityResponse;
 import com.yhk.webchat.chat_backend.dto.response.auth.EmailAvailabilityResponse;
@@ -19,6 +20,7 @@ import com.yhk.webchat.chat_backend.dto.response.auth.EmailVerificationResponse;
 /**
  * 회원가입 관련 컨트롤러
  * 회원가입, 이메일 인증, 아이디/이메일 중복 확인 등의 기능 제공
+ * 참고: 일부 기능은 AuthController로 이전되었습니다.
  */
 @Controller
 @CrossOrigin(origins = "http://localhost:3000") // React 프론트엔드 서버 주소
@@ -32,11 +34,11 @@ public class RegisterController {
      * @param registerRequest 회원가입 정보(아이디, 비밀번호, 이메일 등)
      * @return 회원가입 결과
      */
-    @PostMapping("/api/auth/register")
+    @PostMapping("/api/register/signup")
     @ResponseBody
-    public ResponseEntity<RegisterResponse> register(@RequestBody RegisterRequest registerRequest) {
+    public ResponseEntity<ApiResponse> register(@RequestBody RegisterRequest registerRequest) {
         // 회원가입 서비스 호출
-        RegisterResponse response = registerService.registerUser(registerRequest);
+        ApiResponse response = registerService.register(registerRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -47,44 +49,40 @@ public class RegisterController {
      */
     @GetMapping("/verify")
     public String verifyEmail(@RequestParam String token, Model model) {
-        // 이메일 인증 서비스 호출
-        EmailVerificationResponse response = registerService.verifyEmailByToken(token);
+        // 이제 토큰 기반 검증 메소드가 없으므로, 임시 데이터 설정
+        model.addAttribute("email", "사용자 이메일");
+        model.addAttribute("message", "최신 버전의 앱을 사용하여 이메일 인증을 진행해주세요.");
         
-        // 모델에 이메일 및 메시지 추가
-        model.addAttribute("email", response.getEmail());
-        model.addAttribute("message", response.getMessage());
-        
-        // 인증 성공/실패에 따라 다른 페이지 반환
-        if (response.isSuccess()) {
-            return "email/verification-success";
-        } else {
-            return "email/verification-failure";
-        }
+        // 인증 페이지로 이동
+        return "email/verification-failure";
     }
 
     /**
      * 이메일 인증 처리 (인증 코드 방식)
+     * 참고: AuthController로 기능이 이전되어 비활성화됨
      * @param request 이메일과 인증 코드
      * @return 인증 결과
      */
+    /* 
     @PostMapping("/api/auth/verify-code")
     @ResponseBody
-    public ResponseEntity<EmailVerificationResponse> verifyEmailCode(@RequestBody EmailVerificationRequest request) {
+    public ResponseEntity<ApiResponse> verifyEmailCode(@RequestBody EmailVerificationRequest request) {
         // 인증 코드 검증 서비스 호출
-        EmailVerificationResponse response = registerService.verifyEmail(request);
+        ApiResponse response = registerService.verifyCode(request.getEmail(), request.getVerificationCode());
         return ResponseEntity.ok(response);
     }
+    */
 
     /**
      * 이메일 인증 요청 (재전송 등)
      * @param request 이메일 인증 요청 정보
      * @return 인증 메일 발송 결과
      */
-    @PostMapping("/api/auth/resend-verification")
+    @PostMapping("/api/register/resend-verification")
     @ResponseBody
-    public ResponseEntity<EmailVerificationResponse> resendVerificationEmail(@RequestBody EmailVerificationRequest request) {
+    public ResponseEntity<ApiResponse> resendVerificationEmail(@RequestBody EmailVerificationRequest request) {
         // 이메일 인증 요청 서비스 호출
-        EmailVerificationResponse response = registerService.resendVerificationEmail(request);
+        ApiResponse response = registerService.sendVerificationCode(request.getEmail());
         return ResponseEntity.ok(response);
     }
 
@@ -93,7 +91,7 @@ public class RegisterController {
      * @param request 확인할 아이디 정보
      * @return 중복 여부
      */
-    @PostMapping("/api/auth/check-username")
+    @PostMapping("/api/register/check-username")
     @ResponseBody
     public ResponseEntity<UsernameAvailabilityResponse> checkUsername(@RequestBody UsernameAvailabilityRequest request) {
         // 아이디 중복 확인 서비스 호출
@@ -106,7 +104,7 @@ public class RegisterController {
      * @param request 확인할 이메일 정보
      * @return 중복 여부
      */
-    @PostMapping("/api/auth/check-email")
+    @PostMapping("/api/register/check-email")
     @ResponseBody
     public ResponseEntity<EmailAvailabilityResponse> checkEmail(@RequestBody EmailAvailabilityRequest request) {
         // 이메일 중복 확인 서비스 호출
