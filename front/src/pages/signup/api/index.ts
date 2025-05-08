@@ -1,63 +1,103 @@
-import axios from 'axios';
-import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
-import {AvailabilityResponse, RegisterRequest, RegisterResponse} from "../model";
+import apiClient from "../../../api/apiClient";
+import { RegisterRequest } from "../model";
 
-// API 기본 URL 설정
-const BASE_URL = 'http://localhost:8080/api';
-const AUTH_URL = '/auth';
+// API 경로 변경 (프로젝트의 컨트롤러 매핑에 맞게)
+const API_BASE_URL = "/api/auth";
 
-// axios 인스턴스 생성
-const apiClient: AxiosInstance = axios.create({
-    baseURL: BASE_URL,
-    headers: {
-        'Content-Type': 'application/json',
-    },
-    timeout: 10000, // 요청 타임아웃: 10초
-});
-
-// 회원가입 API 호출
-export const register = async (registerData: RegisterRequest): Promise<RegisterResponse> => {
+/**
+ * 회원가입 API 요청
+ * @param data 회원가입 정보
+ * @returns 회원가입 결과
+ */
+export const register = async (data: RegisterRequest) => {
     try {
-        const response = await apiClient.post<RegisterResponse>(`${AUTH_URL}/register`, registerData);
+        console.log("회원가입 API 호출:", `${API_BASE_URL}/register`, data);
+        
+        // 프로필 이미지 데이터 크기 확인
+        if (data.profileImage) {
+            const sizeInBytes = new Blob([data.profileImage]).size;
+            const sizeInMB = sizeInBytes / (1024 * 1024);
+            console.log(`프로필 이미지 크기: ${sizeInMB.toFixed(2)}MB`);
+            
+            // 이미지가 5MB를 초과하는 경우
+            if (sizeInMB > 5) {
+                return {
+                    success: false,
+                    message: "프로필 이미지 크기가 5MB를 초과합니다."
+                };
+            }
+        }
+        
+        const response = await apiClient.post(`${API_BASE_URL}/register`, data);
+        console.log("회원가입 API 응답:", response.data);
         return response.data;
-    } catch (error) {
-        console.error('회원가입 오류:', error);
+    } catch (error: any) {
+        console.error("회원가입 오류:", error);
+        
+        // 상세 오류 정보 로깅
+        if (error.response) {
+            console.error("오류 응답 데이터:", error.response.data);
+            console.error("오류 상태 코드:", error.response.status);
+            console.error("오류 헤더:", error.response.headers);
+            
+            // 서버에서 오류 메시지를 보내는 경우
+            if (error.response.data && error.response.data.message) {
+                return {
+                    success: false,
+                    message: `서버 오류: ${error.response.data.message}`
+                };
+            }
+        }
+        
         return {
             success: false,
-            message: '서버 연결 중 오류'
-        };
-    }
-};
-// 아이디 중복 확인 API 호출
-export const checkUsernameAvailability = async (username: string): Promise<AvailabilityResponse> => {
-    try {
-        const response = await apiClient.post<AvailabilityResponse>(
-            `${AUTH_URL}/check-username`,
-            { username }
-        );
-        return response.data;
-    } catch (error) {
-        console.error('아이디 중복 확인 오류:', error);
-        return {
-            available: false,
-            message: '서버 연결 중 오류가 발생했습니다.'
+            message: "서버 연결 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요."
         };
     }
 };
 
-// 이메일 중복 확인 API 호출
-export const checkEmailAvailability = async (email: string): Promise<AvailabilityResponse> => {
+/**
+ * 아이디 중복 확인
+ * @param username 확인할 아이디
+ * @returns 사용 가능 여부
+ */
+export const checkUsernameAvailability = async (username: string) => {
     try {
-        const response = await apiClient.post<AvailabilityResponse>(
-            `${AUTH_URL}/check-email`,
-            { email }
-        );
+        // UsernameAvailabilityRequest 형식에 맞게 요청 객체 생성
+        const requestData = { username };
+        console.log("아이디 중복 확인 요청:", requestData, `${API_BASE_URL}/check-username`);
+        
+        const response = await apiClient.post(`${API_BASE_URL}/check-username`, requestData);
+        console.log("아이디 중복 확인 응답:", response.data);
         return response.data;
     } catch (error) {
-        console.error('이메일 중복 확인 오류:', error);
+        console.error("아이디 중복 확인 오류:", error);
         return {
             available: false,
-            message: '서버 연결 중 오류가 발생했습니다.'
+            message: "서버 연결 중 오류가 발생했습니다."
+        };
+    }
+};
+
+/**
+ * 이메일 중복 확인
+ * @param email 확인할 이메일
+ * @returns 사용 가능 여부
+ */
+export const checkEmailAvailability = async (email: string) => {
+    try {
+        // EmailAvailabilityRequest 형식에 맞게 요청 객체 생성
+        const requestData = { email };
+        console.log("이메일 중복 확인 요청:", requestData, `${API_BASE_URL}/check-email`);
+        
+        const response = await apiClient.post(`${API_BASE_URL}/check-email`, requestData);
+        console.log("이메일 중복 확인 응답:", response.data);
+        return response.data;
+    } catch (error) {
+        console.error("이메일 중복 확인 오류:", error);
+        return {
+            available: false,
+            message: "서버 연결 중 오류가 발생했습니다."
         };
     }
 };

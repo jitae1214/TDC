@@ -2,7 +2,7 @@ import apiClient, { setAuthToken, getAuthToken } from './apiClient';
 
 // 상수 정의
 // 엔드포인트 경로나 키 이름 변경 되어야 할 때 상수 정의 부분만 고치면 됨
-const AUTH_URL = '/auth';
+const AUTH_URL = '/api/auth';
 const AUTH_USERNAME_KEY = 'username';
 
 /* -- Request : 프론트엔드에서 뱍엔드로 데이터를 보낼 때 사용 */
@@ -29,6 +29,7 @@ export interface RegisterRequest {
   email: string;
   fullName: string;
   nickname?: string;
+  profileImage?: string;
   agreeToTerms: boolean;
 }
 
@@ -70,7 +71,9 @@ export const getUsername = (): string | null => {
 // 로그인 API 호출
 export const login = async (loginData: LoginRequest): Promise<LoginResponse> => {
   try {
+    console.log("로그인 API 호출:", `${AUTH_URL}/login`, loginData);
     const response = await apiClient.post<LoginResponse>(`${AUTH_URL}/login`, loginData);
+    console.log("로그인 API 응답:", response.data);
     
     // 로그인 성공 시 토큰과 사용자 이름 저장
     if (response.data.success && response.data.token) {
@@ -79,11 +82,27 @@ export const login = async (loginData: LoginRequest): Promise<LoginResponse> => 
     }
     
     return response.data;
-  } catch (error) {
+  } catch (error: any) {
     console.error('로그인 오류:', error);
+    
+    // 상세 오류 정보 로깅
+    if (error.response) {
+      console.error("오류 응답 데이터:", error.response.data);
+      console.error("오류 상태 코드:", error.response.status);
+      console.error("오류 헤더:", error.response.headers);
+      
+      // 서버에서 오류 메시지를 보내는 경우
+      if (error.response.data && error.response.data.message) {
+        return {
+          success: false,
+          message: `서버 오류: ${error.response.data.message}`
+        };
+      }
+    }
+    
     return {
       success: false,
-      message: '서버 연결 중 오류'
+      message: '서버 연결 중 오류가 발생했습니다.'
     };
   }
 };

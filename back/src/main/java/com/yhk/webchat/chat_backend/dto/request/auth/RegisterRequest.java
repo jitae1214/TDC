@@ -10,6 +10,7 @@ public class RegisterRequest {
     private String email;         // 이메일
     private String fullName;      // 이름 (실명)
     private String nickname;      // 닉네임 (선택)
+    private String profileImage;  // 프로필 이미지 URL (선택)
     private boolean agreeToTerms; // 이용약관 동의 여부
 
     // 기본 생성자
@@ -18,12 +19,13 @@ public class RegisterRequest {
 
     // 모든 필드를 포함한 생성자
     public RegisterRequest(String username, String password, String email, String fullName, 
-                          String nickname, boolean agreeToTerms) {
+                          String nickname, String profileImage, boolean agreeToTerms) {
         this.username = username;
         this.password = password;
         this.email = email;
         this.fullName = fullName;
         this.nickname = nickname;
+        this.profileImage = profileImage;
         this.agreeToTerms = agreeToTerms;
     }
 
@@ -66,6 +68,14 @@ public class RegisterRequest {
 
     public void setNickname(String nickname) {
         this.nickname = nickname;
+    }
+    
+    public String getProfileImage() {
+        return profileImage;
+    }
+
+    public void setProfileImage(String profileImage) {
+        this.profileImage = profileImage;
     }
 
     public boolean isAgreeToTerms() {

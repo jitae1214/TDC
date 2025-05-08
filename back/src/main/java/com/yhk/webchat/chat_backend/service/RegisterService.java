@@ -78,6 +78,7 @@ public class RegisterService {
                     .email(request.getEmail())
                     .fullName(request.getFullName())
                     .nickname(request.getNickname())
+                    .profileImageUrl(request.getProfileImage()) // 프로필 이미지 URL 설정
                     .status("OFFLINE")
                     .emailVerified(false)
                     .createdAt(LocalDateTime.now())

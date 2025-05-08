@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useState, useRef} from "react";
 import {Link, useNavigate} from "react-router-dom";
 import {register, checkUsernameAvailability, checkEmailAvailability} from "../api";
 import "./styles.css";
@@ -26,6 +26,7 @@ const validate = {
 
 const Signup = () => {
     const navigate = useNavigate();
+    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState({
         username: "",
@@ -34,6 +35,7 @@ const Signup = () => {
         email: "",
         fullName: "",
         nickname: "",
+        profileImage: "",
         agreeToTerms: false,
     });
 
@@ -51,9 +53,39 @@ const Signup = () => {
     });
 
     const [isLoading, setIsLoading] = useState(false);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     const handleChange = (field: string, value: any) => {
         setForm({...form, [field]: value});
+    };
+
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        
+        // 파일 크기 검사 (5MB 이하)
+        if (file.size > 5 * 1024 * 1024) {
+            setMessages({...messages, error: "이미지 크기는 5MB 이하여야 합니다."});
+            return;
+        }
+        
+        // 파일 형식 검사
+        if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
+            setMessages({...messages, error: "JPG, PNG, GIF, WEBP 형식만 지원합니다."});
+            return;
+        }
+        
+        // 이미지 미리보기
+        const reader = new FileReader();
+        reader.onloadend = () => {
+            const result = reader.result as string;
+            setPreviewImage(result);
+            handleChange('profileImage', result);
+            
+            // 일반 회원가입 프로필 이미지를 별도의 키로 로컬 스토리지에 저장
+            localStorage.setItem('signupProfileImage', result);
+        };
+        reader.readAsDataURL(file);
     };
 
     const checkUsername = async () => {
@@ -70,7 +102,8 @@ const Signup = () => {
             }
             setErrors(prev => ({...prev, username: ""}));
             return true;
-        } catch {
+        } catch (error) {
+            console.error("아이디 중복 확인 오류:", error);
             setErrors(prev => ({...prev, username: "서버 연결 중 오류가 발생했습니다."}));
             return false;
         }
@@ -90,7 +123,8 @@ const Signup = () => {
             }
             setErrors(prev => ({...prev, email: ""}));
             return true;
-        } catch {
+        } catch (error) {
+            console.error("이메일 중복 확인 오류:", error);
             setErrors(prev => ({...prev, email: "서버 연결 오류가 발생했습니다."}));
             return false;
         }
@@ -123,14 +157,36 @@ const Signup = () => {
             setIsLoading(true);
             setMessages({error: "", success: ""});
 
-            const res = await register({
+            // 요청 데이터 준비 - 프로필 이미지 처리 최적화
+            let profileImageToSend = undefined;
+            if (form.profileImage && form.profileImage.length > 0) {
+                // 프로필 이미지가 있는 경우 Base64 데이터 길이 체크
+                if (form.profileImage.length > 5 * 1024 * 1024) { // 대략적인 5MB 체크
+                    setMessages({error: "프로필 이미지가 너무 큽니다. 5MB 이하의 이미지를 사용해주세요.", success: ""});
+                    setIsLoading(false);
+                    return;
+                }
+                profileImageToSend = form.profileImage;
+            }
+            
+            // 요청 데이터 로깅
+            const requestData = {
                 username: form.username,
                 password: form.password,
                 email: form.email,
                 fullName: form.fullName,
                 nickname: form.nickname || undefined,
+                profileImage: profileImageToSend,
                 agreeToTerms: form.agreeToTerms,
+            };
+            console.log("회원가입 요청 데이터:", {...requestData, profileImage: profileImageToSend ? "이미지 데이터 (생략)" : undefined});
+
+            // 먼저 프로필 이미지 없이 시도
+            const res = await register({
+                ...requestData,
+                profileImage: undefined // 우선 프로필 이미지 없이 시도
             });
+            console.log("회원가입 응답:", res);
 
             if (res.success) {
                 setMessages({success: "회원가입이 완료되었습니다. 이메일 인증 페이지로 이동합니다.", error: ""});
@@ -144,6 +200,24 @@ const Signup = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    // 파일 선택 다이얼로그 열기
+    const openFileDialog = () => {
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    // 프로필 이미지 제거
+    const removeProfileImage = () => {
+        setPreviewImage(null);
+        handleChange('profileImage', '');
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+        // 로컬 스토리지에서도 제거
+        localStorage.removeItem('signupProfileImage');
     };
 
     return (
@@ -161,6 +235,45 @@ const Signup = () => {
                 {messages.success && <div className="signup-message success">{messages.success}</div>}
 
                 <form onSubmit={handleSubmit} className="signup-form">
+                    {/* 프로필 이미지 업로드 영역 */}
+                    <div className="profile-image-upload">
+                        <label>프로필 이미지 (선택)</label>
+                        <div className="profile-image-container">
+                            {previewImage ? (
+                                <div className="profile-preview">
+                                    <img 
+                                        src={previewImage} 
+                                        alt="프로필 미리보기" 
+                                        className="profile-preview-image"
+                                    />
+                                    <button 
+                                        type="button" 
+                                        className="remove-image-btn"
+                                        onClick={removeProfileImage}
+                                    >
+                                        ✕
+                                    </button>
+                                </div>
+                            ) : (
+                                <div 
+                                    className="profile-placeholder"
+                                    onClick={openFileDialog}
+                                >
+                                    <span className="upload-icon">➕</span>
+                                    <span>이미지 선택</span>
+                                </div>
+                            )}
+                        </div>
+                        <input 
+                            type="file" 
+                            ref={fileInputRef}
+                            style={{ display: 'none' }} 
+                            accept="image/jpeg, image/png, image/gif, image/webp"
+                            onChange={handleImageUpload}
+                        />
+                        <div className="extra">JPG, PNG, GIF, WEBP 형식, 최대 5MB</div>
+                    </div>
+
                     {[
                         {label: "아이디 *", name: "username", type: "text", onBlur: checkUsername, error: errors.username},
                         {label: "비밀번호 *", name: "password", type: "password", extra: "8자 이상 입력."},

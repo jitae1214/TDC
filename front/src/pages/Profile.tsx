@@ -8,13 +8,33 @@ const Profile: React.FC = () => {
     const [nickname, setNickname] = useState<string | null>(null);
     
     useEffect(() => {
-        // 로컬 스토리지에서 프로필 이미지 URL과 닉네임 가져오기
+        // 현재 로그인 사용자가 소셜 로그인 사용자인지 확인
+        const isSocialLogin = username && (
+            username.startsWith('K_') || 
+            username.startsWith('G_') || 
+            username.startsWith('N_')
+        );
+        
+        // 프로필 이미지 로드
         const storedProfileImage = localStorage.getItem('profileImage');
         const storedNickname = localStorage.getItem('userNickname');
         
-        if (storedProfileImage) {
+        // 소셜 로그인이 아닌 경우, 일반 회원가입 시 설정한 프로필 이미지 사용
+        if (!isSocialLogin) {
+            // 회원가입 시 설정한 프로필 이미지 키
+            const signupProfileImage = localStorage.getItem('signupProfileImage');
+            if (signupProfileImage) {
+                setProfileImage(signupProfileImage);
+                console.log('일반 회원 프로필 이미지 로드:', signupProfileImage);
+            } else if (storedProfileImage) {
+                // 기존 프로필 이미지가 있지만 소셜 로그인이 아니면 제거
+                localStorage.removeItem('profileImage');
+                console.log('소셜 로그인 프로필 이미지 제거');
+            }
+        } else if (storedProfileImage) {
+            // 소셜 로그인인 경우 소셜 프로필 이미지 사용
             setProfileImage(storedProfileImage);
-            console.log('프로필 이미지 로드:', storedProfileImage);
+            console.log('소셜 로그인 프로필 이미지 로드:', storedProfileImage);
         } else {
             console.log('저장된 프로필 이미지 없음');
         }
@@ -25,7 +45,7 @@ const Profile: React.FC = () => {
         } else {
             console.log('저장된 닉네임 없음');
         }
-    }, []);
+    }, [username]);
 
     // 사용자 ID에서 소셜 로그인 제공자 추출
     const getSocialProvider = (userId: string | null): string => {

@@ -5,6 +5,7 @@ export interface RegisterRequest {
     email: string;
     fullName: string;
     nickname?: string;
+    profileImage?: string;
     agreeToTerms: boolean;
 }
 
