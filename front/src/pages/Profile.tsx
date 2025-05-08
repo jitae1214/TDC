@@ -11,8 +11,22 @@ const Profile: React.FC = () => {
         const storedProfileImage = localStorage.getItem('profileImage');
         if (storedProfileImage) {
             setProfileImage(storedProfileImage);
+            console.log('프로필 이미지 로드:', storedProfileImage);
+        } else {
+            console.log('저장된 프로필 이미지 없음');
         }
     }, []);
+
+    // 사용자 ID에서 소셜 로그인 제공자 추출
+    const getSocialProvider = (userId: string | null): string => {
+        if (!userId) return '알 수 없음';
+        
+        if (userId.startsWith('K_')) return '카카오';
+        if (userId.startsWith('G_')) return '구글';
+        if (userId.startsWith('N_')) return '네이버';
+        
+        return '일반 로그인';
+    };
     
     return (
         <div style={{
@@ -82,11 +96,34 @@ const Profile: React.FC = () => {
                             color: '#333'
                         }}>사용자 정보</h2>
                         <p style={{
-                            margin: '0',
+                            margin: '0 0 5px 0',
                             color: '#666'
                         }}><strong>아이디:</strong> {username}</p>
+                        <p style={{
+                            margin: '0 0 5px 0',
+                            color: '#666'
+                        }}><strong>로그인 방식:</strong> {getSocialProvider(username)}</p>
                     </div>
                 </div>
+                
+                {profileImage && (
+                    <div style={{
+                        backgroundColor: '#f9f9f9',
+                        padding: '10px',
+                        borderRadius: '4px',
+                        marginTop: '20px',
+                        fontSize: '12px'
+                    }}>
+                        <p style={{ margin: '0 0 5px 0' }}>
+                            <strong>프로필 이미지 출처:</strong> {profileImage.includes('kakao') ? '카카오' : 
+                                                             profileImage.includes('google') ? '구글' : 
+                                                             profileImage.includes('naver') ? '네이버' : '기타'}
+                        </p>
+                        <p style={{ margin: '0', wordBreak: 'break-all' }}>
+                            <strong>이미지 URL:</strong> {profileImage}
+                        </p>
+                    </div>
+                )}
                 
                 {!profileImage && (
                     <p style={{

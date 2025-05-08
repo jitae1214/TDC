@@ -63,6 +63,9 @@ const NaverCallback: React.FC = () => {
         // 로그인 성공 여부와 관계없이 항상 토큰 저장 시도 및 리다이렉트
         console.log('네이버 로그인 처리 완료:', response);
         
+        // 로그인 시 이전 소셜 로그인 프로필 이미지 제거 (중요)
+        localStorage.removeItem('profileImage');
+        
         // 토큰이 있으면 저장
         if (response.success && response.token) {
           localStorage.setItem('token', response.token);
@@ -71,12 +74,21 @@ const NaverCallback: React.FC = () => {
           if (response.username) {
             localStorage.setItem('username', response.username);
           }
+          
+          // 프로필 이미지 URL 저장
+          if (response.profileImage) {
+            localStorage.setItem('profileImage', response.profileImage);
+            console.log('네이버 프로필 이미지 저장:', response.profileImage);
+          } else {
+            console.log('네이버 프로필 이미지가 응답에 없습니다.');
+          }
         }
         
         // 토큰 저장 확인
         console.log('토큰 저장 상태:', {
           localStorage: !!localStorage.getItem('token'),
-          sessionStorage: !!sessionStorage.getItem('token')
+          sessionStorage: !!sessionStorage.getItem('token'),
+          profileImage: localStorage.getItem('profileImage')
         });
         
         // 토큰 저장 후 짧은 지연 시간을 두고 리다이렉트

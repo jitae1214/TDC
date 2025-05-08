@@ -108,6 +108,26 @@ public class SocialLoginController {
             // JWT 토큰 생성
             String jwtToken = socialLoginService.generateToken(user.getUsername());
             
+            // 디버그 로그 추가
+            log.info("소셜 로그인 성공: provider={}, username={}, userInfo.profileImage={}, user.profileImageUrl={}",
+                    request.getProvider(),
+                    user.getUsername(),
+                    userInfo.getProfileImage(),
+                    user.getProfileImageUrl());
+            
+            // 프로필 이미지 URL 결정
+            String profileImageUrl = user.getProfileImageUrl();
+            
+            // User 엔티티에 이미지가 없고 userInfo에 이미지가 있으면 userInfo의 이미지 사용
+            if ((profileImageUrl == null || profileImageUrl.isEmpty()) && 
+                userInfo.getProfileImage() != null && !userInfo.getProfileImage().isEmpty()) {
+                profileImageUrl = userInfo.getProfileImage();
+                
+                // User 엔티티에도 저장
+                user.setProfileImageUrl(profileImageUrl);
+                socialLoginService.updateUser(user);
+            }
+            
             // 로그인 성공 응답에 프로필 이미지 URL 추가
             return ResponseEntity.ok(new LoginResponse(
                 true,
@@ -117,7 +137,7 @@ public class SocialLoginController {
                 user.getSocialId(),
                 request.getProvider(),
                 "/main",
-                userInfo.getProfileImage() // 프로필 이미지 URL 추가
+                profileImageUrl // 결정된 프로필 이미지 URL 사용
             ));
         } catch (Exception e) {
             log.error("소셜 로그인 처리 중 오류 발생", e);
