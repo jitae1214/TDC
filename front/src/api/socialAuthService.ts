@@ -25,6 +25,7 @@ export interface SocialLoginResponse {
   provider?: SocialProvider;
   redirectUrl?: string;
   profileImage?: string;
+  nickname?: string;
 }
 
 // 소셜 인증 코드 요청 파라미터
@@ -147,6 +148,12 @@ export const loginWithSocialAuthCode = async (
         console.log('사용자 이름 저장:', response.data.username);
         localStorage.setItem('username', response.data.username);
         setUsername(response.data.username);
+      }
+      
+      // 닉네임 저장 (백엔드에서 제공하는 경우)
+      if (response.data.nickname) {
+        console.log('닉네임 저장:', response.data.nickname);
+        localStorage.setItem('userNickname', response.data.nickname);
       }
     } else {
       console.log('소셜 로그인 실패:', response.data.message);

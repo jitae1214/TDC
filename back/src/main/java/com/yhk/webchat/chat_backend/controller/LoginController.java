@@ -33,9 +33,9 @@ public class LoginController {
             LoginResponse response = loginService.login(loginRequest);
             return ResponseEntity.ok(response);
         } catch (BadCredentialsException e) {
-            return ResponseEntity.ok(LoginResponse.fail("아이디 또는 비밀번호가 일치하지 않습니다."));
+            return ResponseEntity.ok(LoginResponse.fail("아이디 또는 비밀번호가 일치하지 않아요."));
         } catch (Exception e) {
-            return ResponseEntity.ok(LoginResponse.fail("로그인 중 오류가 발생했습니다: " + e.getMessage()));
+            return ResponseEntity.ok(LoginResponse.fail("로그인 중 오류가 발생: " + e.getMessage()));
         }
     }
 } 

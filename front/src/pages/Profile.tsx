@@ -5,15 +5,25 @@ import { getCurrentUser } from '../api/authService';
 const Profile: React.FC = () => {
     const username = getCurrentUser();
     const [profileImage, setProfileImage] = useState<string | null>(null);
+    const [nickname, setNickname] = useState<string | null>(null);
     
     useEffect(() => {
-        // 로컬 스토리지에서 프로필 이미지 URL 가져오기
+        // 로컬 스토리지에서 프로필 이미지 URL과 닉네임 가져오기
         const storedProfileImage = localStorage.getItem('profileImage');
+        const storedNickname = localStorage.getItem('userNickname');
+        
         if (storedProfileImage) {
             setProfileImage(storedProfileImage);
             console.log('프로필 이미지 로드:', storedProfileImage);
         } else {
             console.log('저장된 프로필 이미지 없음');
+        }
+        
+        if (storedNickname) {
+            setNickname(storedNickname);
+            console.log('닉네임 로드:', storedNickname);
+        } else {
+            console.log('저장된 닉네임 없음');
         }
     }, []);
 
@@ -87,7 +97,7 @@ const Profile: React.FC = () => {
                             fontSize: '40px',
                             color: '#999'
                         }}>
-                            {username ? username[0].toUpperCase() : '?'}
+                            {nickname ? nickname[0].toUpperCase() : username ? username[0].toUpperCase() : '?'}
                         </div>
                     )}
                     <div>
@@ -98,6 +108,11 @@ const Profile: React.FC = () => {
                         <p style={{
                             margin: '0 0 5px 0',
                             color: '#666'
+                        }}><strong>닉네임:</strong> {nickname || '설정된 닉네임 없음'}</p>
+                        <p style={{
+                            margin: '0 0 5px 0',
+                            fontSize: '12px',
+                            color: '#999'
                         }}><strong>아이디:</strong> {username}</p>
                         <p style={{
                             margin: '0 0 5px 0',
@@ -105,25 +120,6 @@ const Profile: React.FC = () => {
                         }}><strong>로그인 방식:</strong> {getSocialProvider(username)}</p>
                     </div>
                 </div>
-                
-                {profileImage && (
-                    <div style={{
-                        backgroundColor: '#f9f9f9',
-                        padding: '10px',
-                        borderRadius: '4px',
-                        marginTop: '20px',
-                        fontSize: '12px'
-                    }}>
-                        <p style={{ margin: '0 0 5px 0' }}>
-                            <strong>프로필 이미지 출처:</strong> {profileImage.includes('kakao') ? '카카오' : 
-                                                             profileImage.includes('google') ? '구글' : 
-                                                             profileImage.includes('naver') ? '네이버' : '기타'}
-                        </p>
-                        <p style={{ margin: '0', wordBreak: 'break-all' }}>
-                            <strong>이미지 URL:</strong> {profileImage}
-                        </p>
-                    </div>
-                )}
                 
                 {!profileImage && (
                     <p style={{

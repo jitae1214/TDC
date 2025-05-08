@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Main from "../../pages/main/ui";
 import Login from "../../pages/login/ui";
 import Signup from "../../pages/signup/ui/SignupForm";
-import ApiTest from "../../pages/ApiTest";
 import Profile from "../../pages/Profile";
 import ProtectedRoute from "./ProtectedRoute";
 import KakaoCallback from "../../pages/auth/KakaoCallback";
@@ -27,11 +26,6 @@ const AppRoutes = () => {
                 <Route path="/auth/kakao/callback" element={<KakaoCallback/>}/>
                 <Route path="/auth/google/callback" element={<GoogleCallback/>}/>
                 <Route path="/auth/naver/callback" element={<NaverCallback/>}/>
-                <Route path="/api-test" element={
-                    <ProtectedRoute>
-                        <ApiTest/>
-                    </ProtectedRoute>
-                }/>
                 <Route path="/profile" element={
                     <ProtectedRoute>
                         <Profile/>

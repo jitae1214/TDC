@@ -65,7 +65,7 @@ public class SocialLoginController {
                 !"google".equals(request.getProvider()) && 
                 !"naver".equals(request.getProvider())) {
                 return ResponseEntity.badRequest().body(
-                    new LoginResponse(false, "지원하지 않는 소셜 로그인 제공자입니다.", null, null)
+                    new LoginResponse(false, "지원하지 않는 소셜 로그인 사용자.", null, null)
                 );
             }
             
@@ -128,7 +128,7 @@ public class SocialLoginController {
                 socialLoginService.updateUser(user);
             }
             
-            // 로그인 성공 응답에 프로필 이미지 URL 추가
+            // 로그인 성공 응답에 프로필 이미지 URL과 닉네임 추가
             return ResponseEntity.ok(new LoginResponse(
                 true,
                 "소셜 로그인 성공",
@@ -137,7 +137,8 @@ public class SocialLoginController {
                 user.getSocialId(),
                 request.getProvider(),
                 "/main",
-                profileImageUrl // 결정된 프로필 이미지 URL 사용
+                profileImageUrl,
+                user.getNickname() // 닉네임 추가
             ));
         } catch (Exception e) {
             log.error("소셜 로그인 처리 중 오류 발생", e);

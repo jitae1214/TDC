@@ -20,9 +20,6 @@ const Main = () => {
                     <p><strong>{username}</strong>님 환영합니다!</p>
                     <button onClick={handleLogout}>로그아웃</button>
                     <div>
-                        <Link to="/api-test">API 테스트 페이지로 이동</Link>
-                    </div>
-                    <div>
                         <Link to="/profile">내 프로필 보기</Link>
                     </div>
                 </div>

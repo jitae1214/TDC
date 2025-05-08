@@ -13,6 +13,7 @@ public class LoginResponse {
     private String provider;
     private String redirectUrl;
     private String profileImage;
+    private String nickname;
 
     // 기본 생성자
     public LoginResponse() {
@@ -46,6 +47,20 @@ public class LoginResponse {
         this.provider = provider;
         this.redirectUrl = redirectUrl;
         this.profileImage = profileImage;
+    }
+    
+    // 닉네임을 포함한 소셜 로그인 생성자
+    public LoginResponse(boolean success, String message, String token, String username,
+                        String socialId, String provider, String redirectUrl, String profileImage, String nickname) {
+        this.success = success;
+        this.message = message;
+        this.token = token;
+        this.username = username;
+        this.socialId = socialId;
+        this.provider = provider;
+        this.redirectUrl = redirectUrl;
+        this.profileImage = profileImage;
+        this.nickname = nickname;
     }
 
     // Getter 및 Setter
@@ -111,5 +126,13 @@ public class LoginResponse {
 
     public void setProfileImage(String profileImage) {
         this.profileImage = profileImage;
+    }
+    
+    public String getNickname() {
+        return nickname;
+    }
+    
+    public void setNickname(String nickname) {
+        this.nickname = nickname;
     }
 } 
