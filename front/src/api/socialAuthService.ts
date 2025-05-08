@@ -37,8 +37,25 @@ export interface SocialAuthCodeParams {
 /**
  * 카카오 로그인 링크 반환
  */
-export const getKakaoLoginUrl = (): string => {
-  return KAKAO_AUTH_URL;
+export const getKakaoLoginUrl = async (): Promise<string> => {
+  try {
+    // 백엔드에서 클라이언트 ID와 리디렉션 URI 가져오기
+    const response = await apiClient.get('/api/auth/kakao-info');
+    const { clientId, redirectUri } = response.data;
+    
+    // 카카오 로그인 URL 생성
+    const kakaoParams = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: 'code'
+    });
+    
+    return `https://kauth.kakao.com/oauth/authorize?${kakaoParams.toString()}`;
+  } catch (error) {
+    console.error('카카오 로그인 URL 생성 중 오류 발생:', error);
+    // 오류 발생 시 하드코딩된 URL 사용 (폴백)
+    return KAKAO_AUTH_URL;
+  }
 };
 
 /**
@@ -47,7 +64,7 @@ export const getKakaoLoginUrl = (): string => {
 export const getGoogleLoginUrl = async (): Promise<string> => {
   try {
     // 백엔드에서 클라이언트 ID와 리디렉션 URI 가져오기
-    const response = await apiClient.get('/auth/google-info');
+    const response = await apiClient.get('/api/auth/google-info');
     const { clientId, redirectUri } = response.data;
     
     // 구글 로그인 URL 생성
@@ -73,7 +90,7 @@ export const getGoogleLoginUrl = async (): Promise<string> => {
 export const getNaverLoginUrl = async (): Promise<string> => {
   try {
     // 백엔드에서 클라이언트 ID와 리디렉션 URI 가져오기
-    const response = await apiClient.get('/auth/naver-info');
+    const response = await apiClient.get('/api/auth/naver-info');
     const { clientId, redirectUri } = response.data;
     
     // 무작위 상태 값 생성 (CSRF 방지) - 더 강화된 방식
@@ -113,7 +130,7 @@ export const loginWithSocialAuthCode = async (
     console.log('소셜 로그인 요청 시작:', params.provider);
     
     const response = await apiClient.post<SocialLoginResponse>(
-      '/auth/social-login',
+      '/api/auth/social-login',
       params
     );
     

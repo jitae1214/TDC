@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { getKakaoLoginUrl } from '../api/socialAuthService';
 
 interface KakaoLoginButtonProps {
@@ -10,15 +10,30 @@ const KakaoLoginButton: React.FC<KakaoLoginButtonProps> = ({
   className = '',
   buttonText = '카카오로 로그인'
 }) => {
+  const [isLoading, setIsLoading] = useState(false);
+
   // 카카오 로그인 페이지로 이동
-  const handleKakaoLogin = () => {
-    window.location.href = getKakaoLoginUrl();
+  const handleKakaoLogin = async () => {
+    try {
+      setIsLoading(true);
+      const url = await getKakaoLoginUrl();
+      if (url) {
+        window.location.href = url;
+      } else {
+        console.error('카카오 로그인 URL을 가져오는 데 실패했습니다.');
+      }
+    } catch (error) {
+      console.error('카카오 로그인 처리 중 오류:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <button
       type="button"
       onClick={handleKakaoLogin}
+      disabled={isLoading}
       className={`kakao-login-btn ${className}`}
       style={{
         backgroundColor: '#FEE500',
@@ -26,13 +41,14 @@ const KakaoLoginButton: React.FC<KakaoLoginButtonProps> = ({
         border: 'none',
         borderRadius: '4px',
         padding: '10px 16px',
-        cursor: 'pointer',
+        cursor: isLoading ? 'wait' : 'pointer',
         fontWeight: 'bold',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         fontSize: '14px',
         width: '100%',
+        opacity: isLoading ? 0.7 : 1,
       }}
     >
       {/* 카카오 아이콘 */}
@@ -51,7 +67,7 @@ const KakaoLoginButton: React.FC<KakaoLoginButtonProps> = ({
           />
         </svg>
       </span>
-      {buttonText}
+      {isLoading ? '로딩 중...' : buttonText}
     </button>
   );
 };
