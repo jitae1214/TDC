@@ -69,7 +69,7 @@ const EmailVerification: React.FC<EmailVerificationProps> = ({ onSuccess }) => {
 
       const response = await axios.post(`${BASE_URL}/auth/verify-code`, {
         email,
-        verificationCode
+        code: verificationCode
       });
 
       if (response.data.success) {

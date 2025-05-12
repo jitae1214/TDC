@@ -94,6 +94,12 @@ public class SecurityConfig {
                 .requestMatchers("/api/test/info").permitAll()   // 인포 테스트 API 허용
                 .requestMatchers("/h2-console/**").permitAll()   // H2 콘솔 허용
                 
+                // 회원가입 관련 API 허용 추가
+                .requestMatchers("/api/register/**").permitAll()  // 회원가입 관련 API는 모두 허용
+                
+                // 이메일 인증 관련 URL 허용 추가
+                .requestMatchers("/api/auth/verify-code").permitAll()  // 이메일 인증 코드 확인 API 허용
+                
                 // 워크스페이스 관련 API는 인증 필요
                 .requestMatchers("/api/workspaces/**").authenticated()
                 
