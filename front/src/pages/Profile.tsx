@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getCurrentUser } from '../api/authService';
+import {getCurrentUser, logout} from '../api/authService';
 
 const Profile: React.FC = () => {
     // 모든 가능한 방법으로 사용자 이름 가져오기 시도
@@ -120,7 +120,12 @@ const Profile: React.FC = () => {
     
     // 화면에 표시할 최종 사용자 ID 결정 (더 이상 'hello' 기본값 사용 안함)
     const displayUserId = userId || '로그인 필요';
-    
+
+    const handleLogout = () => {
+        logout();
+        window.location.href = '/login';
+    };
+
     return (
         <div style={{
             maxWidth: '600px',
@@ -216,6 +221,19 @@ const Profile: React.FC = () => {
                             margin: '10px 0 5px 0',
                             color: '#666'
                         }}><strong>로그인 방식:</strong> {getSocialProvider(displayUserId)}</p>
+                        <button style={{
+                            width: '100px',
+                            margin: '0',
+                            textDecoration: 'none',
+                            fontWeight: 600,
+                            padding: '8px 14px',
+                            borderRadius: '6px',
+                            fontSize: '14px',
+                            backgroundColor: '#ffdddd',
+                            color: '#4B0082',
+                            border: 'none',
+                            cursor: 'pointer'
+                        }} onClick={handleLogout}>로그아웃</button>
                     </div>
                 </div>
                 
