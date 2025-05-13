@@ -36,6 +36,16 @@ const Login = () => {
             const response = await loginApi({ username, password });
 
             if (response.success) {
+                // 확실하게 로컬 스토리지에 사용자 이름 저장
+                if (response.username) {
+                    localStorage.setItem('username', response.username);
+                    console.log('로그인 성공: 응답에서 사용자 이름 저장됨', response.username);
+                } else {
+                    // 응답에 사용자 이름이 없는 경우 입력한 사용자 이름 사용
+                    localStorage.setItem('username', username);
+                    console.log('로그인 성공: 입력된 사용자 이름 저장됨', username);
+                }
+                
                 navigate("/main");
             } else {
                 setErrorMessage(response.message || "로그인에 실패했습니다.");

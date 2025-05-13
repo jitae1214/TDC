@@ -4,6 +4,7 @@ import Main from "../../pages/main/ui";
 import Login from "../../pages/login/ui";
 import Signup from "../../pages/signup/ui/SignupForm";
 import Profile from "../../pages/Profile";
+import WorkspaceCreate from "../../pages/workspace/create";
 import ProtectedRoute from "./ProtectedRoute";
 import KakaoCallback from "../../pages/auth/KakaoCallback";
 import GoogleCallback from "../../pages/auth/GoogleCallback";
@@ -26,6 +27,11 @@ const AppRoutes = () => {
                 <Route path="/auth/kakao/callback" element={<KakaoCallback/>}/>
                 <Route path="/auth/google/callback" element={<GoogleCallback/>}/>
                 <Route path="/auth/naver/callback" element={<NaverCallback/>}/>
+                <Route path="/workspace/create" element={
+                    <ProtectedRoute>
+                        <WorkspaceCreate/>
+                    </ProtectedRoute>
+                }/>
                 <Route path="/profile" element={
                     <ProtectedRoute>
                         <Profile/>

@@ -1,15 +1,55 @@
-import React from "react";
-import {Link} from "react-router-dom";
-import {isAuthenticated, getCurrentUser, logout} from "../../../api/authService";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { isAuthenticated, getCurrentUser, logout } from "../../../api/authService";
+import { getWorkspaces } from "../../../api/workspaceService";
 import "./styles.css";
 
 const Main = () => {
     const isLoggedIn = isAuthenticated();
     const username = getCurrentUser();
+    const navigate = useNavigate();
+    const [workspaces, setWorkspaces] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        // 로그인 확인
+        if (!isLoggedIn) {
+            navigate('/login');
+            return;
+        }
+
+        // 워크스페이스 목록 가져오기
+        const fetchWorkspaces = async () => {
+            try {
+                setLoading(true);
+                const response = await getWorkspaces('all');
+                setWorkspaces(response.workspaces);
+                setError(null);
+            } catch (err) {
+                console.error('워크스페이스 목록을 가져오는데 실패했습니다:', err);
+                setError('워크스페이스 목록을 가져오는데 실패했습니다.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchWorkspaces();
+    }, [isLoggedIn, navigate]);
 
     const handleLogout = () => {
         logout();
         window.location.href = '/login';
+    };
+
+    const handleLaunchWorkspace = (workspaceId) => {
+        // SLACK 실행 로직 구현 (예: 채팅 페이지로 이동)
+        navigate(`/workspace/${workspaceId}/chat`);
+    };
+    
+    const handleCreateWorkspace = () => {
+        // 새 워크스페이스 생성 페이지로 이동
+        navigate('/workspace/create');
     };
 
     return (
@@ -19,7 +59,7 @@ const Main = () => {
                 <div className="main-header-logo">logo</div>
                 <span className="main-welcome-text">{username}님 환영합니다!</span>
                 <Link to="/profile" className="main-link">내 프로필</Link>
-                <Link to="/workspace/create" className="main-create-btn">새 워크스페이스 개설</Link>
+                <button onClick={handleCreateWorkspace} className="main-create-btn">새 워크스페이스 개설</button>
                 <button className="main-logout-btn" onClick={handleLogout}>로그아웃</button>
             </header>
 
@@ -31,39 +71,37 @@ const Main = () => {
                         {username}의 워크스페이스
                     </div>
 
-                    {/* 워크스페이스 항목들 */}
-                    <div className="main-workspace-item">
-                        <div className="main-workspace-info">
-                            <div className="main-workspace-img"/>
-                            <div>
-                                <div className="main-workspace-name">새 워크스페이스</div>
-                                <div className="main-workspace-members">0명의 멤버</div>
-                            </div>
+                    {loading ? (
+                        <div className="main-workspace-loading">워크스페이스 로딩 중...</div>
+                    ) : error ? (
+                        <div className="main-workspace-error">{error}</div>
+                    ) : workspaces.length === 0 ? (
+                        <div className="main-workspace-empty">
+                            <p>아직 워크스페이스가 없습니다.</p>
+                            <button onClick={handleCreateWorkspace} className="main-create-btn">새 워크스페이스 개설하기</button>
                         </div>
-                        <button className="main-launch-btn">SLACK 실행하기</button>
-                    </div>
-
-                    <div className="main-workspace-item">
-                        <div className="main-workspace-info">
-                            <div className="main-workspace-img"/>
-                            <div>
-                                <div className="main-workspace-name">TDC프로젝트</div>
-                                <div className="main-workspace-members">0명의 멤버</div>
+                    ) : (
+                        workspaces.map(workspace => (
+                            <div className="main-workspace-item" key={workspace.id}>
+                                <div className="main-workspace-info">
+                                    <div 
+                                        className="main-workspace-img" 
+                                        style={{ backgroundColor: workspace.iconColor || '#e0e0e0' }}
+                                    />
+                                    <div>
+                                        <div className="main-workspace-name">{workspace.name}</div>
+                                        <div className="main-workspace-members">{workspace.memberCount}명의 멤버</div>
+                                    </div>
+                                </div>
+                                <button 
+                                    className="main-launch-btn"
+                                    onClick={() => handleLaunchWorkspace(workspace.id)}
+                                >
+                                    SLACK 실행하기
+                                </button>
                             </div>
-                        </div>
-                        <button className="main-launch-btn">SLACK 실행하기</button>
-                    </div>
-
-                    <div className="main-workspace-item">
-                        <div className="main-workspace-info">
-                            <div className="main-workspace-img"/>
-                            <div>
-                                <div className="main-workspace-name">새 워크스페이스</div>
-                                <div className="main-workspace-members">0명의 멤버</div>
-                            </div>
-                        </div>
-                        <button className="main-launch-btn">SLACK 실행하기</button>
-                    </div>
+                        ))
+                    )}
                 </div>
             </main>
         </div>

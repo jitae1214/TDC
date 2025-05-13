@@ -1,0 +1,131 @@
+:root {
+    --workspace-bg: #4B0082;
+    --workspace-card-bg: #FFFFFF;
+    --workspace-text: #000000;
+    --workspace-accent: #5E2CA5;
+    --workspace-error: #d32f2f;
+    --workspace-border: #e0e0e0;
+    --workspace-button-disabled: #9e9e9e;
+}
+
+.workspace-create-container {
+    background-color: var(--workspace-bg);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.workspace-create-card {
+    background-color: var(--workspace-card-bg);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 650px;
+    padding: 40px;
+}
+
+.workspace-create-header {
+    margin-bottom: 30px;
+}
+
+.workspace-create-header h1 {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 16px;
+}
+
+.workspace-create-header h2 {
+    font-size: 28px;
+    margin-bottom: 12px;
+    color: var(--workspace-text);
+}
+
+.workspace-create-header p {
+    color: #666;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.workspace-create-form {
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.workspace-create-form input {
+    width: 100%;
+    padding: 15px;
+    font-size: 16px;
+    border: 1px solid var(--workspace-border);
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.workspace-create-form input:focus {
+    outline: none;
+    border-color: var(--workspace-accent);
+}
+
+.workspace-create-form input.error {
+    border-color: var(--workspace-error);
+}
+
+.workspace-create-form .input-counter {
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    color: #999;
+    font-size: 14px;
+}
+
+.workspace-create-form .error-message {
+    color: var(--workspace-error);
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+.workspace-create-actions {
+    display: flex;
+    justify-content: space-between;
+}
+
+.workspace-create-actions button {
+    padding: 12px 24px;
+    font-size: 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.workspace-create-actions .cancel-button {
+    background-color: transparent;
+    border: none;
+    color: #666;
+}
+
+.workspace-create-actions .cancel-button:hover {
+    text-decoration: underline;
+}
+
+.workspace-create-actions .next-button {
+    background-color: var(--workspace-accent);
+    color: white;
+    border: none;
+}
+
+.workspace-create-actions .next-button:disabled {
+    background-color: var(--workspace-button-disabled);
+    cursor: not-allowed;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .workspace-create-card {
+        padding: 20px;
+    }
+    
+    .workspace-create-header h2 {
+        font-size: 24px;
+    }
+} 

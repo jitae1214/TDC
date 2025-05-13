@@ -112,6 +112,14 @@ export const login = async (loginData: LoginRequest): Promise<LoginResponse> => 
 export const register = async (registerData: RegisterRequest): Promise<RegisterResponse> => {
   try {
     const response = await apiClient.post<RegisterResponse>(`${REGISTER_URL}/signup`, registerData);
+    
+    // 회원가입 성공 시 사용자 이름을 로컬 스토리지에 저장
+    if (response.data.success && response.data.username) {
+      // 회원가입 시 바로 로컬 스토리지에 사용자 이름 저장
+      localStorage.setItem(AUTH_USERNAME_KEY, response.data.username);
+      console.log('회원가입 성공: 사용자 이름 저장됨', response.data.username);
+    }
+    
     return response.data;
   } catch (error) {
     console.error('회원가입 오류:', error);

@@ -3,16 +3,67 @@ import { Link } from 'react-router-dom';
 import { getCurrentUser } from '../api/authService';
 
 const Profile: React.FC = () => {
-    const username = getCurrentUser();
+    // 모든 가능한 방법으로 사용자 이름 가져오기 시도
+    const usernameFromFunction = getCurrentUser();
+    const usernameFromLocalStorage = localStorage.getItem('username');
+    const usernameFromLocalStorageAlt = localStorage.getItem('AUTH_USERNAME_KEY');
+    
     const [profileImage, setProfileImage] = useState<string | null>(null);
     const [nickname, setNickname] = useState<string | null>(null);
+    const [userId, setUserId] = useState<string | null>(usernameFromFunction || usernameFromLocalStorage || usernameFromLocalStorageAlt || null);
+    
+    // 디버깅을 위해 즉시 콘솔로 상태 확인
+    console.log('===== 사용자 정보 상태 확인 =====');
+    console.log('usernameFromFunction:', usernameFromFunction);
+    console.log('usernameFromLocalStorage:', usernameFromLocalStorage);
+    console.log('usernameFromLocalStorageAlt:', usernameFromLocalStorageAlt);
+    console.log('초기 userId 상태:', userId);
     
     useEffect(() => {
+        // 초기화 직후 모든 로컬 스토리지 데이터 로깅
+        console.log('===== 사용자 정보 디버깅 =====');
+        console.log('getCurrentUser 결과:', getCurrentUser());
+        console.log('localStorage username:', localStorage.getItem('username'));
+        console.log('localStorage token:', localStorage.getItem('token') ? '존재함' : '없음');
+        console.log('localStorage userNickname:', localStorage.getItem('userNickname'));
+        console.log('sessionStorage token:', sessionStorage.getItem('token') ? '존재함' : '없음');
+        console.log('=============================');
+        
+        // 강제로 localStorage 접근 시도
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key) {
+                console.log(`localStorage[${key}] =`, localStorage.getItem(key));
+            }
+        }
+        
+        // 사용자 ID가 없으면 로컬 스토리지에서 다시 확인
+        if (!userId) {
+            // 다양한 키로 저장된 사용자 ID 확인
+            const possibleUserIds = [
+                localStorage.getItem('username'),
+                localStorage.getItem('AUTH_USERNAME_KEY'),
+                sessionStorage.getItem('username'),
+                getCurrentUser()
+            ].filter(Boolean);
+            
+            if (possibleUserIds.length > 0) {
+                const foundUserId = possibleUserIds[0];
+                console.log('다른 소스에서 사용자 ID 복구:', foundUserId);
+                setUserId(foundUserId);
+                
+                // 로컬 스토리지에 저장
+                if (!localStorage.getItem('username') && foundUserId) {
+                    localStorage.setItem('username', foundUserId);
+                }
+            }
+        }
+
         // 현재 로그인 사용자가 소셜 로그인 사용자인지 확인
-        const isSocialLogin = username && (
-            username.startsWith('K_') || 
-            username.startsWith('G_') || 
-            username.startsWith('N_')
+        const isSocialLogin = userId && (
+            userId.startsWith('K_') || 
+            userId.startsWith('G_') || 
+            userId.startsWith('N_')
         );
         
         // 프로필 이미지 로드
@@ -45,7 +96,7 @@ const Profile: React.FC = () => {
         } else {
             console.log('저장된 닉네임 없음');
         }
-    }, [username]);
+    }, [userId]); // userId만 의존성으로 설정하여 불필요한 재실행 방지
 
     // 사용자 ID에서 소셜 로그인 제공자 추출
     const getSocialProvider = (userId: string | null): string => {
@@ -57,6 +108,9 @@ const Profile: React.FC = () => {
         
         return '일반 로그인';
     };
+    
+    // 화면에 표시할 최종 사용자 ID 결정 (더 이상 'hello' 기본값 사용 안함)
+    const displayUserId = userId || '로그인 필요';
     
     return (
         <div style={{
@@ -117,7 +171,7 @@ const Profile: React.FC = () => {
                             fontSize: '40px',
                             color: '#999'
                         }}>
-                            {nickname ? nickname[0].toUpperCase() : username ? username[0].toUpperCase() : '?'}
+                            {nickname ? nickname[0].toUpperCase() : displayUserId ? displayUserId[0].toUpperCase() : '?'}
                         </div>
                     )}
                     <div>
@@ -129,15 +183,30 @@ const Profile: React.FC = () => {
                             margin: '0 0 5px 0',
                             color: '#666'
                         }}><strong>닉네임:</strong> {nickname || '설정된 닉네임 없음'}</p>
+                        <div style={{
+                            margin: '10px 0',
+                            padding: '8px 12px',
+                            backgroundColor: '#f9f9f9',
+                            borderRadius: '4px',
+                            border: '1px solid #ddd'
+                        }}>
+                            <p style={{
+                                margin: '0',
+                                fontSize: '15px',
+                                color: '#333',
+                                fontWeight: 'bold'
+                            }}>아이디</p>
+                            <p style={{
+                                margin: '4px 0 0 0',
+                                fontSize: '18px',
+                                color: '#4B0082',
+                                fontWeight: 'bold'
+                            }}>{displayUserId}</p>
+                        </div>
                         <p style={{
-                            margin: '0 0 5px 0',
-                            fontSize: '12px',
-                            color: '#999'
-                        }}><strong>아이디:</strong> {username}</p>
-                        <p style={{
-                            margin: '0 0 5px 0',
+                            margin: '10px 0 5px 0',
                             color: '#666'
-                        }}><strong>로그인 방식:</strong> {getSocialProvider(username)}</p>
+                        }}><strong>로그인 방식:</strong> {getSocialProvider(displayUserId)}</p>
                     </div>
                 </div>
                 

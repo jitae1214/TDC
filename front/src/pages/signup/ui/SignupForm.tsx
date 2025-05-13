@@ -189,6 +189,21 @@ const Signup = () => {
             console.log("회원가입 응답:", res);
 
             if (res.success) {
+                // 사용자 이름을 로컬 스토리지에 직접 저장
+                if (res.username) {
+                    localStorage.setItem('username', res.username);
+                    console.log('회원가입 성공: 사용자 이름 직접 저장됨', res.username);
+                } else {
+                    // 응답에 사용자 이름이 없는 경우 폼 데이터에서 가져와 저장
+                    localStorage.setItem('username', form.username);
+                    console.log('회원가입 성공: 폼 데이터에서 사용자 이름 저장됨', form.username);
+                }
+                
+                // 닉네임이 있으면 저장
+                if (form.nickname) {
+                    localStorage.setItem('userNickname', form.nickname);
+                }
+                
                 setMessages({success: "회원가입이 완료되었습니다. 이메일 인증 페이지로 이동합니다.", error: ""});
                 setTimeout(() => navigate(`/verify-email?email=${encodeURIComponent(form.email)}`), 1500);
             } else {

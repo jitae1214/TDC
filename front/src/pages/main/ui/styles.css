@@ -167,3 +167,40 @@
 @media (max-width: 768px) {
 
 }
+
+.main-workspace-loading,
+.main-workspace-error,
+.main-workspace-empty {
+    padding: 30px;
+    text-align: center;
+    color: #666;
+}
+
+.main-workspace-error {
+    color: #d32f2f;
+}
+
+.main-workspace-empty {
+    padding: 50px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.main-workspace-empty p {
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.main-workspace-empty .main-create-btn {
+    display: inline-block;
+    background-color: var(--main-text-purple);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+}
