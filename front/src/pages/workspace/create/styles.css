@@ -85,6 +85,95 @@
     font-size: 14px;
 }
 
+/* 프로필 섹션 스타일 */
+.profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+}
+
+.profile-image-upload {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+.default-profile-image {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background-color: #eee;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 40px;
+    color: #666;
+    margin-bottom: 8px;
+    border: 3px solid var(--workspace-accent);
+}
+
+.profile-initials {
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.profile-image-preview-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.profile-image-preview {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--workspace-accent);
+}
+
+.upload-image-button {
+    background-color: transparent;
+    color: var(--workspace-accent);
+    border: 1px solid var(--workspace-accent);
+    border-radius: 4px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.upload-image-button:hover {
+    background-color: rgba(94, 44, 165, 0.1);
+}
+
+.remove-image-button {
+    background-color: transparent;
+    color: var(--workspace-error);
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px 8px;
+}
+
+.remove-image-button:hover {
+    text-decoration: underline;
+}
+
+.display-name-input {
+    width: 100%;
+    margin-top: 8px;
+}
+
+.display-name-input label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #666;
+}
+
 .workspace-create-actions {
     display: flex;
     justify-content: space-between;
@@ -98,23 +187,27 @@
     font-weight: 600;
 }
 
-.workspace-create-actions .cancel-button {
+.workspace-create-actions .cancel-button,
+.workspace-create-actions .back-button {
     background-color: transparent;
     border: none;
     color: #666;
 }
 
-.workspace-create-actions .cancel-button:hover {
+.workspace-create-actions .cancel-button:hover,
+.workspace-create-actions .back-button:hover {
     text-decoration: underline;
 }
 
-.workspace-create-actions .next-button {
+.workspace-create-actions .next-button,
+.workspace-create-actions .create-button {
     background-color: var(--workspace-accent);
     color: white;
     border: none;
 }
 
-.workspace-create-actions .next-button:disabled {
+.workspace-create-actions .next-button:disabled,
+.workspace-create-actions .create-button:disabled {
     background-color: var(--workspace-button-disabled);
     cursor: not-allowed;
 }
@@ -127,5 +220,11 @@
     
     .workspace-create-header h2 {
         font-size: 24px;
+    }
+    
+    .profile-image-preview,
+    .default-profile-image {
+        width: 80px;
+        height: 80px;
     }
 } 

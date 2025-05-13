@@ -1,9 +1,10 @@
-import apiClient from './apiClient';
+import apiClient, { getAuthToken } from './apiClient';
 
 interface CreateWorkspaceRequest {
   name: string;
   description: string;
   iconColor: string;
+  displayName?: string;
 }
 
 interface UpdateWorkspaceRequest {
@@ -50,10 +51,44 @@ export const getWorkspace = async (id: number): Promise<Workspace> => {
   return response.data;
 };
 
-// 워크스페이스 생성
-export const createWorkspace = async (data: CreateWorkspaceRequest): Promise<Workspace> => {
-  const response = await apiClient.post('/api/workspaces', data);
-  return response.data;
+// 워크스페이스 생성 (FormData 지원)
+export const createWorkspace = async (data: CreateWorkspaceRequest | FormData): Promise<Workspace> => {
+  // FormData 객체인지 확인
+  const isFormData = data instanceof FormData;
+  
+  // 인증 토큰 가져오기
+  const token = getAuthToken();
+  
+  // FormData인 경우 별도의 헤더 설정이 필요
+  const config = isFormData ? {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+      // FormData일 때도 Authorization 헤더 추가
+      'Authorization': token ? `Bearer ${token}` : '',
+    },
+  } : undefined;
+  
+  try {
+    console.log('워크스페이스 생성 요청:', isFormData ? '(FormData)' : data);
+    
+    // API 엔드포인트 확인을 위한 로깅
+    console.log('API 엔드포인트:', '/api/workspaces');
+    console.log('인증 토큰 존재:', !!token);
+    
+    const response = await apiClient.post('/api/workspaces', data, config);
+    console.log('워크스페이스 생성 응답:', response.data);
+    return response.data;
+  } catch (error: any) {
+    console.error('워크스페이스 생성 중 오류:', error);
+    
+    // 에러 상세 정보 로깅
+    if (error.response) {
+      console.error('응답 상태:', error.response.status);
+      console.error('응답 데이터:', error.response.data);
+    }
+    
+    throw error;
+  }
 };
 
 // 워크스페이스 수정

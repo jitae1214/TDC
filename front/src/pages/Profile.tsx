@@ -68,19 +68,28 @@ const Profile: React.FC = () => {
         
         // 프로필 이미지 로드
         const storedProfileImage = localStorage.getItem('profileImage');
+        const userProfileImage = localStorage.getItem('userProfileImage');
         const storedNickname = localStorage.getItem('userNickname');
         
         // 소셜 로그인이 아닌 경우, 일반 회원가입 시 설정한 프로필 이미지 사용
         if (!isSocialLogin) {
-            // 회원가입 시 설정한 프로필 이미지 키
-            const signupProfileImage = localStorage.getItem('signupProfileImage');
-            if (signupProfileImage) {
-                setProfileImage(signupProfileImage);
-                console.log('일반 회원 프로필 이미지 로드:', signupProfileImage);
-            } else if (storedProfileImage) {
-                // 기존 프로필 이미지가 있지만 소셜 로그인이 아니면 제거
-                localStorage.removeItem('profileImage');
-                console.log('소셜 로그인 프로필 이미지 제거');
+            // 워크스페이스 생성 시 업로드한 이미지 확인 (우선순위 부여)
+            if (userProfileImage) {
+                setProfileImage(userProfileImage);
+                console.log('워크스페이스 생성 시 설정한 프로필 이미지 로드:', userProfileImage);
+            }
+            // 그 다음 회원가입 시 설정한 프로필 이미지 확인
+            else {
+                // 회원가입 시 설정한 프로필 이미지 키
+                const signupProfileImage = localStorage.getItem('signupProfileImage');
+                if (signupProfileImage) {
+                    setProfileImage(signupProfileImage);
+                    console.log('일반 회원 프로필 이미지 로드:', signupProfileImage);
+                } else if (storedProfileImage) {
+                    // 기존 프로필 이미지가 있지만 소셜 로그인이 아니면 제거
+                    localStorage.removeItem('profileImage');
+                    console.log('소셜 로그인 프로필 이미지 제거');
+                }
             }
         } else if (storedProfileImage) {
             // 소셜 로그인인 경우 소셜 프로필 이미지 사용

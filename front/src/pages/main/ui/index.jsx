@@ -83,16 +83,16 @@ const Main = () => {
                     ) : (
                         workspaces.map(workspace => (
                             <div className="main-workspace-item" key={workspace.id}>
-                                <div className="main-workspace-info">
+                        <div className="main-workspace-info">
                                     <div 
                                         className="main-workspace-img" 
                                         style={{ backgroundColor: workspace.iconColor || '#e0e0e0' }}
                                     />
-                                    <div>
+                            <div>
                                         <div className="main-workspace-name">{workspace.name}</div>
                                         <div className="main-workspace-members">{workspace.memberCount}명의 멤버</div>
-                                    </div>
-                                </div>
+                            </div>
+                        </div>
                                 <button 
                                     className="main-launch-btn"
                                     onClick={() => handleLaunchWorkspace(workspace.id)}
