@@ -1,0 +1,169 @@
+:root {
+    --main-bg: #4B0082;
+    --main-header-border: #3a0066;
+    --main-card-header: #f2dfff;
+    --main-text-purple: #5E2CA5;
+    --main-white: #ffffff;
+    --main-danger-bg: #ffdddd;
+}
+
+.main-container {
+    background-color: var(--main-bg);
+    color: var(--main-white);
+    padding-top: 80px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background-color: var(--main-bg);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 30px;
+    border-bottom: 1px solid var(--main-header-border);
+    z-index: 1000;
+    flex-wrap: wrap;
+}
+
+.main-header-logo {
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.main-header-right {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.main-logout-btn {
+    width: 100px;
+    margin: 0;
+}
+
+.main-link,
+.main-create-btn,
+.main-logout-btn {
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 6px;
+    font-size: 14px;
+}
+
+.main-link {
+    color: var(--main-white);
+}
+
+.main-create-btn {
+    background-color: var(--main-white);
+    color: var(--main-bg);
+}
+
+.main-logout-btn {
+    background-color: var(--main-danger-bg);
+    color: var(--main-bg);
+    border: none;
+    cursor: pointer;
+}
+
+.main-welcome-text {
+    color: var(--main-white);
+    font-weight: bold;
+}
+
+/* --- 본문 --- */
+.main-content {
+    width: 100%;
+    max-width: 900px;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.main-title {
+    font-size: 26px;
+    margin-bottom: 30px;
+    text-align: center;
+    font-weight: bold;
+}
+
+/* --- 워크스페이스 카드 --- */
+.main-workspace-card {
+    width: 100%;
+    background-color: var(--main-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    color: #000;
+}
+
+.main-workspace-header {
+    background-color: var(--main-card-header);
+    padding: 14px 24px;
+    font-weight: bold;
+    font-size: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+.main-workspace-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    border-bottom: 1px solid #eee;
+    gap: 16px;
+    flex-wrap: nowrap;
+}
+
+.main-workspace-info {
+    border: 1px solid black;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.main-workspace-img {
+    width: 50px;
+    height: 50px;
+    background-color: #e0e0e0;
+    border-radius: 8px;
+    flex-shrink: 0;
+}
+
+.main-workspace-name {
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.main-workspace-members {
+    font-size: 14px;
+    color: #666;
+}
+
+.main-launch-btn {
+    background-color: var(--main-text-purple);
+    color: white;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    margin-left: auto;
+    width: 200px;
+}
+
+/* --- 반응형 --- */
+@media (max-width: 768px) {
+
+}
