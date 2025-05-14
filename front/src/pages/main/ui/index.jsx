@@ -37,11 +37,6 @@ const Main = () => {
         fetchWorkspaces();
     }, [isLoggedIn, navigate]);
 
-    const handleLogout = () => {
-        logout();
-        window.location.href = '/login';
-    };
-
     const handleLaunchWorkspace = (workspaceId) => {
         // SLACK 실행 로직 구현 (예: 채팅 페이지로 이동)
         navigate(`/workspace/${workspaceId}/chat`);
@@ -59,16 +54,15 @@ const Main = () => {
                 <div className="main-header-logo">logo</div>
                 <span className="main-welcome-text">{username}님 환영합니다!</span>
                 <Link to="/profile" className="main-link">내 프로필</Link>
-                <button onClick={handleCreateWorkspace} className="main-create-btn">새 워크스페이스 개설</button>
-                <button className="main-logout-btn" onClick={handleLogout}>로그아웃</button>
             </header>
 
             <main className="main-content">
-                <h1 className="main-title">👋 또 만나게 되어 반가워요</h1>
+                <h1 className="main-title">👋 어 그래 왔니? 내 하얼빈의 장첸이야아!!! </h1>
 
                 <div className="main-workspace-card">
                     <div className="main-workspace-header">
-                        {username}의 워크스페이스
+                        <p>{username}의 워크스페이스</p>
+                        <button onClick={handleCreateWorkspace} className="main-create-btn">새 워크스페이스 개설</button>
                     </div>
 
                     {loading ? (

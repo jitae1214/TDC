@@ -10,6 +10,7 @@ import KakaoCallback from "../../pages/auth/KakaoCallback";
 import GoogleCallback from "../../pages/auth/GoogleCallback";
 import NaverCallback from "../../pages/auth/NaverCallback";
 import EmailVerificationPage from "../../pages/EmailVerificationPage";
+import Chat from "../../pages/workspace/main/index"
 
 const AppRoutes = () => {
     return (
@@ -37,6 +38,7 @@ const AppRoutes = () => {
                         <Profile/>
                     </ProtectedRoute>
                 }/>
+                <Route path="/workspace/chat" element={<Chat/>}/>
             </Routes>
         </Router>
     );

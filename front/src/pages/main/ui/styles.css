@@ -4,7 +4,6 @@
     --main-card-header: #f2dfff;
     --main-text-purple: #5E2CA5;
     --main-white: #ffffff;
-    --main-danger-bg: #ffdddd;
 }
 
 .main-container {
@@ -44,14 +43,8 @@
     flex-wrap: wrap;
 }
 
-.main-logout-btn {
-    width: 100px;
-    margin: 0;
-}
-
 .main-link,
-.main-create-btn,
-.main-logout-btn {
+.main-create-btn {
     text-decoration: none;
     font-weight: 600;
     padding: 8px 14px;
@@ -64,15 +57,10 @@
 }
 
 .main-create-btn {
+    width: 250px;
+    margin: 0;
     background-color: var(--main-white);
     color: var(--main-bg);
-}
-
-.main-logout-btn {
-    background-color: var(--main-danger-bg);
-    color: var(--main-bg);
-    border: none;
-    cursor: pointer;
 }
 
 .main-welcome-text {
@@ -113,6 +101,9 @@
     font-weight: bold;
     font-size: 15px;
     border-bottom: 1px solid #ddd;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 }
 
 .main-workspace-item {
@@ -126,7 +117,6 @@
 }
 
 .main-workspace-info {
-    border: 1px solid black;
     display: flex;
     align-items: center;
     gap: 16px;
