@@ -69,6 +69,10 @@ const WorkspaceCreate = () => {
         navigate('/main');
     };
 
+    const handleWorkspaceMain = () => {
+        navigate('/workspace/main');
+    }
+
     return (
         <div className="workspace-create-container">
             <div className="workspace-create-card">
@@ -100,7 +104,7 @@ const WorkspaceCreate = () => {
                     </button>
                     <button 
                         className="next-button" 
-                        onClick={handleNextStep}
+                        onClick={handleWorkspaceMain}
                         disabled={!workspaceName.trim() || isSubmitting}
                     >
                         {isSubmitting ? '처리 중...' : '다음'}

@@ -10,13 +10,19 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: space-between;
     padding-top: 40px;
+}
+
+.workspaceMain-sidebar > div {
+    display: flex;
+    flex-direction: column;
     gap: 20px;
 }
 
 .workspaceMain-sidebar-button {
     width: 180px;
-    padding: 15px 0;
+    height: 80px;
     color: white;
     font-size: 18px;
     font-weight: bold;
@@ -29,6 +35,34 @@
 
 .workspaceMain-sidebar-button:hover {
     background-color: #742374;
+}
+
+.workspaceMain-sidebar-profile {
+    width: 130px;
+    height: 130px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.workspaceMain-sidebar-profile>img {
+    width: 100%;
+    height: 100%;
+    border-radius: 8px;
+}
+
+.workspaceMain-sidebar-onlineCheck {
+    width: 20px;
+    height: 20px;
+    background-color: #00d94b;
+    border-radius: 50%;
+    border: 8px solid #3d0f3d;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.workspaceMain-sidebar-profile:hover {
+    background-color: #5A1A5A;
 }
 
 .workspaceMain-body {
