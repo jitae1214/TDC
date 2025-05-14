@@ -47,6 +47,10 @@ const Main = () => {
         navigate('/workspace/create');
     };
 
+    const handleWorkspaceMain = () => {
+        navigate('/workspace/main');
+    }
+
     return (
         <div className="main-container">
             {/* 헤더 */}
@@ -87,10 +91,10 @@ const Main = () => {
                                         <div className="main-workspace-members">{workspace.memberCount}명의 멤버</div>
                                     </div>
                                 </div>
-                                <Link to="/workspace/chat">테스트용</Link>
                                 <button 
                                     className="main-launch-btn"
-                                    onClick={() => handleLaunchWorkspace(workspace.id)}
+                                    // onClick={() => handleLaunchWorkspace(workspace.id)}
+                                    onClick={handleWorkspaceMain}
                                 >
                                     SLACK 실행하기
                                 </button>

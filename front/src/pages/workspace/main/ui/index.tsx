@@ -3,6 +3,7 @@ import {Link, useNavigate} from "react-router-dom";
 import searchIcon from '../../../../shared/image/search.png'
 import dotIcon from '../../../../shared/image/dots.png'
 import chatIcon from '../../../../shared/image/chat.png'
+import testImage from '../../../../shared/image/testImage.png'
 import "./styles.css";
 
 
@@ -11,26 +12,30 @@ const workspaceMain = () => {
     return (
         <div className="workspaceMain-container">
             <div className={"workspaceMain-sidebar"}>
-                <div className={"workspaceMain-sidebar-button"}>
-                    Home
+                <div>
+                    <div className={"workspaceMain-sidebar-button"}>
+                        Home
+                    </div>
+                    <div className={"workspaceMain-sidebar-button"}>
+                        DM
+                    </div>
+                    <div className={"workspaceMain-sidebar-button"}>
+                        일정관리
+                    </div>
+                    <div className={"workspaceMain-sidebar-button"}>
+                        초대하기
+                    </div>
+                    {/*<div className={"workspaceMain-sidebar-button"}>*/}
+                    {/*    X*/}
+                    {/*</div>*/}
+                    <div className={"workspaceMain-sidebar-button"}>
+                        설정
+                    </div>
                 </div>
-                <div className={"workspaceMain-sidebar-button"}>
-                    DM
-                </div>
-                <div className={"workspaceMain-sidebar-button"}>
-                    일정관리
-                </div>
-                <div className={"workspaceMain-sidebar-button"}>
-                    초대하기
-                </div>
-                {/*<div className={"workspaceMain-sidebar-button"}>*/}
-                {/*    X*/}
-                {/*</div>*/}
-                <div className={"workspaceMain-sidebar-button"}>
-                    설정
-                </div>
-                <div className={"workspaceMain-sidebar-button"}>
-                    프로필
+
+                <div className={"workspaceMain-sidebar-button workspaceMain-sidebar-profile"}>
+                    <img src={testImage} alt="" />
+                    <div className={"workspaceMain-sidebar-onlineCheck"}></div>
                 </div>
             </div>
             <div className={"workspaceMain-body"}>
@@ -77,10 +82,10 @@ const workspaceMain = () => {
                         </div>
                         <div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={chatIcon} alt="" /></span>
+                                <span><img src={chatIcon} alt=""/></span>
                             </div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={dotIcon} alt="" /></span>
+                                <span><img src={dotIcon} alt=""/></span>
                             </div>
                         </div>
                     </div>
@@ -97,10 +102,10 @@ const workspaceMain = () => {
                         </div>
                         <div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={chatIcon} alt="" /></span>
+                                <span><img src={chatIcon} alt=""/></span>
                             </div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={dotIcon} alt="" /></span>
+                                <span><img src={dotIcon} alt=""/></span>
                             </div>
                         </div>
                     </div>
@@ -117,10 +122,10 @@ const workspaceMain = () => {
                         </div>
                         <div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={chatIcon} alt="" /></span>
+                                <span><img src={chatIcon} alt=""/></span>
                             </div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={dotIcon} alt="" /></span>
+                                <span><img src={dotIcon} alt=""/></span>
                             </div>
                         </div>
                     </div>
@@ -137,10 +142,10 @@ const workspaceMain = () => {
                         </div>
                         <div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={chatIcon} alt="" /></span>
+                                <span><img src={chatIcon} alt=""/></span>
                             </div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={dotIcon} alt="" /></span>
+                                <span><img src={dotIcon} alt=""/></span>
                             </div>
                         </div>
                     </div>
@@ -157,10 +162,10 @@ const workspaceMain = () => {
                         </div>
                         <div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={chatIcon} alt="" /></span>
+                                <span><img src={chatIcon} alt=""/></span>
                             </div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={dotIcon} alt="" /></span>
+                                <span><img src={dotIcon} alt=""/></span>
                             </div>
                         </div>
                     </div>
@@ -177,10 +182,10 @@ const workspaceMain = () => {
                         </div>
                         <div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={chatIcon} alt="" /></span>
+                                <span><img src={chatIcon} alt=""/></span>
                             </div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={dotIcon} alt="" /></span>
+                                <span><img src={dotIcon} alt=""/></span>
                             </div>
                         </div>
                     </div>
@@ -197,10 +202,10 @@ const workspaceMain = () => {
                         </div>
                         <div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={chatIcon} alt="" /></span>
+                                <span><img src={chatIcon} alt=""/></span>
                             </div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={dotIcon} alt="" /></span>
+                                <span><img src={dotIcon} alt=""/></span>
                             </div>
                         </div>
                     </div>
@@ -217,10 +222,10 @@ const workspaceMain = () => {
                         </div>
                         <div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={chatIcon} alt="" /></span>
+                                <span><img src={chatIcon} alt=""/></span>
                             </div>
                             <div className={"workspaceMain-memberIcon"}>
-                                <span><img src={dotIcon} alt="" /></span>
+                                <span><img src={dotIcon} alt=""/></span>
                             </div>
                         </div>
                     </div>
