@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Main from "../../pages/main/ui";
 import Login from "../../pages/login/ui";
 import Signup from "../../pages/signup/ui/SignupForm";
@@ -11,6 +11,7 @@ import GoogleCallback from "../../pages/auth/GoogleCallback";
 import NaverCallback from "../../pages/auth/NaverCallback";
 import EmailVerificationPage from "../../pages/EmailVerificationPage";
 import WsMain from "../../pages/workspace/main/index"
+import WsChat from "../../pages/workspace/chat/index";
 
 const AppRoutes = () => {
     return (
@@ -39,6 +40,7 @@ const AppRoutes = () => {
                     </ProtectedRoute>
                 }/>
                 <Route path="/workspace/main" element={<WsMain/>}/>
+                <Route path="/workspace/chat" element={<WsChat/>}/>
             </Routes>
         </Router>
     );
