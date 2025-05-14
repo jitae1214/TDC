@@ -1,2 +1,2 @@
-import workspaceMain from "./ui";
-export default workspaceMain;
+import WorkspaceMain from "./ui";
+export default WorkspaceMain;

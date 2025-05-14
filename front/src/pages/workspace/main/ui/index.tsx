@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Link, useNavigate} from "react-router-dom";
+import { useNavigate } from 'react-router-dom';
 import searchIcon from '../../../../shared/image/search.png'
 import dotIcon from '../../../../shared/image/dots.png'
 import chatIcon from '../../../../shared/image/chat.png'
@@ -7,8 +7,12 @@ import testImage from '../../../../shared/image/testImage.png'
 import "./styles.css";
 
 
-const workspaceMain = () => {
+const WorkspaceMain = () => {
+    const navigate = useNavigate();
 
+    const handleWorkspaceChat = () => {
+        navigate('/workspace/chat');
+    }
     return (
         <div className="workspaceMain-container">
             <div className={"workspaceMain-sidebar"}>
@@ -16,7 +20,8 @@ const workspaceMain = () => {
                     <div className={"workspaceMain-sidebar-button"}>
                         Home
                     </div>
-                    <div className={"workspaceMain-sidebar-button"}>
+                    <div className={"workspaceMain-sidebar-button"}
+                         onClick={handleWorkspaceChat}>
                         DM
                     </div>
                     <div className={"workspaceMain-sidebar-button"}>
@@ -34,7 +39,7 @@ const workspaceMain = () => {
                 </div>
 
                 <div className={"workspaceMain-sidebar-button workspaceMain-sidebar-profile"}>
-                    <img src={testImage} alt="" />
+                    <img src={testImage} alt=""/>
                     <div className={"workspaceMain-sidebar-onlineCheck"}></div>
                 </div>
             </div>
@@ -236,4 +241,4 @@ const workspaceMain = () => {
     );
 };
 
-export default workspaceMain;
+export default WorkspaceMain;
