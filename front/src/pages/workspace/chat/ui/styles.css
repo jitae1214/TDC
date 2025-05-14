@@ -1,0 +1,246 @@
+.workspaceChat-container {
+    display: flex;
+    height: 100vh;
+    background-color: #2d2d2d;
+}
+
+/* 사이드바 */
+.workspaceChat-sidebar {
+    background-color: #36003c;
+    width: 60px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 0;
+}
+
+.workspaceChat-sidebar-menu {
+    writing-mode: vertical-rl;
+    text-align: center;
+    margin: 10px 0;
+    background-color: white;
+    padding: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.3s;
+}
+
+.workspaceChat-sidebar-menu:hover {
+    background-color: #ad7bc9;
+    color: white;
+}
+
+/* 멤버 리스트 */
+.workspaceChat-memberList {
+    background-color: #1f1f1f;
+    width: 220px;
+    padding: 10px;
+    overflow-y: auto;
+    color: white;
+}
+
+.workspaceChat-statusGroup {
+    margin-bottom: 20px;
+}
+
+.workspaceChat-statusHeader {
+    font-size: 18px;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.workspaceChat-member {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    cursor: default;
+    position: relative;
+}
+
+.workspaceChat-avatar {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.workspaceChat-status-dot {
+    position: absolute;
+    bottom: 0px;
+    left: 55px;
+    width: 15px;
+    height: 15px;
+    border: 5px solid #1f1f1f;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.green {
+    background-color: limegreen;
+}
+
+.gray {
+    background-color: gray;
+}
+
+.workspaceChat-name {
+    font-size: 32px;
+    padding-left: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 채팅 */
+.workspaceChat-chat-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    background-color: #3a3a3a;
+}
+
+.workspaceChat-chat-header {
+    background-color: #2e2e2e;
+    color: white;
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+    font-size: 20px;
+    border-bottom: 1px solid #444;
+}
+
+.workspaceChat-chat-body {
+    flex: 1;
+    overflow-y: auto;
+    color: white;
+}
+
+.workspaceChat-chat-body::-webkit-scrollbar {
+    width: 8px;
+}
+
+.workspaceChat-chat-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.workspaceChat-chat-body::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.workspaceChat-chat-body::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+.workspaceChat-chat-body {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.workspaceChat-chat-message {
+
+}
+
+.workspaceChat-message-block {
+    padding: 10px 10px;
+    color: white;
+    width: 100%;
+    position: relative;
+    border-top: 1px solid #AFAFAF;
+    box-sizing: border-box;
+    display: flex;
+}
+
+.workspaceChat-message-senderImage {
+    width: 90px;
+    height: 90px;
+    margin-right: 20px;
+}
+
+.workspaceChat-message-senderImage img {
+    width: 100%;
+    border-radius: 50%;
+}
+
+.workspaceChat-message-header {
+    display: flex;
+    width: 100%;
+    height: 50px;
+    justify-content: space-between;
+    align-items: center;
+    color: #ddd;
+}
+
+.sender-time {
+    display: flex;
+    align-items: flex-end;
+    font-weight: bold;
+}
+
+.sender-time strong {
+    font-size: 32px;
+}
+
+.time {
+    margin-left: 10px;
+    padding-bottom: 5px;
+    font-size: 14px;
+    color: #bbb;
+}
+
+.settings-button:hover {
+    color: white;
+}
+
+.workspaceChat-message-body {
+    margin-bottom: 4px;
+}
+
+.workspaceChat-message-body div {
+    font-size: 24px;
+    height: 35px;
+}
+
+/* 입력창 */
+.workspaceChat-inputBox {
+    background-color: #2d2d2d;
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 5px 10px 20px;
+    border-radius: 15px;
+}
+
+.workspaceChat-inputBox input {
+    flex: 1;
+    padding: 10px;
+    background-color: #2d2d2d;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    font-size: 20px;
+}
+
+.workspaceChat-inputBox input:focus {
+    outline: none;
+}
+
+.workspaceChat-button {
+    font-size: 26px;
+    display: flex;
+    user-select: none;
+    cursor: pointer;
+    margin-left: 8px;
+}
+
+.workspaceChat-resizer {
+    width: 5px;
+    cursor: col-resize;
+    background-color: #666;
+    height: 100%;
+}
+.workspaceChat-resizer:hover {
+    background-color: #aaa;
+}
