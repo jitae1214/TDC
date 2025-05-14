@@ -310,12 +310,16 @@ public class WorkspaceController {
     /**
      * 워크스페이스 이름 중복 체크
      * @param name 워크스페이스 이름
+     * @param userDetails 현재 인증된 사용자 정보
      * @return 사용 가능 여부
      */
     @GetMapping("/check-name")
-    public ResponseEntity<Boolean> checkWorkspaceName(@RequestParam("name") String name) {
+    public ResponseEntity<Boolean> checkWorkspaceName(
+            @RequestParam("name") String name,
+            @CurrentUser UserDetails userDetails) {
         try {
-            boolean isAvailable = workspaceService.isWorkspaceNameAvailable(name);
+            User currentUser = getCurrentUser(userDetails);
+            boolean isAvailable = workspaceService.isWorkspaceNameAvailable(name, currentUser.getId());
             return ResponseEntity.ok(isAvailable);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();

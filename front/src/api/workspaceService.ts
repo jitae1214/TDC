@@ -109,8 +109,15 @@ export const getWorkspaceMembers = async (id: number): Promise<WorkspaceMember[]
 };
 
 // 워크스페이스 멤버 추가
-export const addWorkspaceMember = async (id: number, username: string): Promise<WorkspaceMember> => {
-  const response = await apiClient.post(`/api/workspaces/${id}/members`, { username });
+export const addWorkspaceMember = async (
+  id: number, 
+  userIdentifier: string, 
+  role: 'ADMIN' | 'MEMBER' = 'MEMBER'
+): Promise<WorkspaceMember> => {
+  const response = await apiClient.post(`/api/workspaces/${id}/members`, { 
+    userIdentifier, 
+    role 
+  });
   return response.data;
 };
 

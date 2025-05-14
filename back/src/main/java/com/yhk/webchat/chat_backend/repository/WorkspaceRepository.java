@@ -34,6 +34,15 @@ public interface WorkspaceRepository extends JpaRepository<Workspace, Long> {
     List<Workspace> findByOwner(User owner);
     
     /**
+     * 특정 소유자를 제외한 다른 소유자가 동일한 워크스페이스 이름을 가지고 있는지 확인
+     * @param name 워크스페이스 이름
+     * @param ownerId 제외할 소유자 ID
+     * @return 존재 여부
+     */
+    @Query("SELECT CASE WHEN COUNT(w) > 0 THEN true ELSE false END FROM Workspace w WHERE w.name = :name AND w.owner.id <> :ownerId")
+    boolean existsByNameAndOwnerIdNot(@Param("name") String name, @Param("ownerId") Long ownerId);
+
+    /**
      * 워크스페이스 이름이 이미 존재하는지 확인
      * @param name 워크스페이스 이름
      * @return 존재 여부

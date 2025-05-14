@@ -53,9 +53,13 @@ public class WorkspaceService {
         User owner = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
         
-        // 2. 워크스페이스 이름 중복 검사
-        if (workspaceRepository.existsByName(createRequest.getName())) {
-            throw new IllegalArgumentException("이미 사용 중인 워크스페이스 이름입니다: " + createRequest.getName());
+        // 2. 워크스페이스 이름 중복 검사 (동일 사용자가 만든 동일 이름의 워크스페이스만 체크)
+        List<Workspace> userWorkspaces = workspaceRepository.findByOwner(owner);
+        boolean hasDuplicateName = userWorkspaces.stream()
+                .anyMatch(w -> w.getName().equals(createRequest.getName()));
+                
+        if (hasDuplicateName) {
+            throw new IllegalArgumentException("이미 동일한 이름의 워크스페이스를 가지고 있습니다: " + createRequest.getName());
         }
         
         // 3. 워크스페이스 생성
@@ -188,10 +192,17 @@ public class WorkspaceService {
         boolean updated = false;
         
         if (updateRequest.getName() != null && !updateRequest.getName().isEmpty()) {
-            // 이름 중복 검사 (다른 워크스페이스와 중복되면 안 됨)
-            if (!updateRequest.getName().equals(workspace.getName()) && 
-                    workspaceRepository.existsByName(updateRequest.getName())) {
-                throw new IllegalArgumentException("이미 사용 중인 워크스페이스 이름입니다: " + updateRequest.getName());
+            // 이름 중복 검사 (같은 소유자의 다른 워크스페이스와 중복되면 안 됨)
+            if (!updateRequest.getName().equals(workspace.getName())) {
+                User owner = workspace.getOwner();
+                List<Workspace> ownerWorkspaces = workspaceRepository.findByOwner(owner);
+                boolean hasDuplicateName = ownerWorkspaces.stream()
+                        .filter(w -> !w.getId().equals(workspaceId)) // 현재 워크스페이스 제외
+                        .anyMatch(w -> w.getName().equals(updateRequest.getName()));
+                
+                if (hasDuplicateName) {
+                    throw new IllegalArgumentException("이미 동일한 이름의 워크스페이스를 가지고 있습니다: " + updateRequest.getName());
+                }
             }
             workspace.setName(updateRequest.getName());
             updated = true;
@@ -447,11 +458,33 @@ public class WorkspaceService {
     /**
      * 워크스페이스 이름 중복 체크
      * @param name 워크스페이스 이름
+     * @param userId 사용자 ID (선택적)
+     * @return 중복 여부
+     */
+    @Transactional(readOnly = true)
+    public boolean isWorkspaceNameAvailable(String name, Long userId) {
+        if (userId == null) {
+            // 단순히 이름만 체크 (기존 호환성 유지)
+            return !workspaceRepository.existsByName(name);
+        } else {
+            // 특정 사용자의 워크스페이스 이름 중복 체크
+            User owner = userRepository.findById(userId)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
+            
+            List<Workspace> userWorkspaces = workspaceRepository.findByOwner(owner);
+            return userWorkspaces.stream()
+                    .noneMatch(w -> w.getName().equals(name));
+        }
+    }
+    
+    /**
+     * 워크스페이스 이름 중복 체크 (기존 호환성 유지)
+     * @param name 워크스페이스 이름
      * @return 중복 여부
      */
     @Transactional(readOnly = true)
     public boolean isWorkspaceNameAvailable(String name) {
-        return !workspaceRepository.existsByName(name);
+        return isWorkspaceNameAvailable(name, null);
     }
 
     /**

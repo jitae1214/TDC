@@ -127,8 +127,17 @@ const WorkspaceCreate = () => {
                 console.log('워크스페이스 생성: 프로필 이미지를 localStorage["userProfileImage"]에 저장');
             }
             
-            // 생성된 워크스페이스로 이동
-            navigate(`/workspace/${newWorkspace.id}/chat`);
+            // 생성된 워크스페이스 ID 저장
+            if (newWorkspace && newWorkspace.id) {
+                localStorage.setItem('currentWorkspaceId', newWorkspace.id.toString());
+            }
+            
+            // 생성된 워크스페이스로 이동 (ID 포함)
+            if (newWorkspace && newWorkspace.id) {
+                navigate(`/workspace/${newWorkspace.id}/main`);
+            } else {
+                navigate(`/workspace/main`);
+            }
         } catch (error) {
             console.error('워크스페이스 생성 중 오류 발생:', error);
             
