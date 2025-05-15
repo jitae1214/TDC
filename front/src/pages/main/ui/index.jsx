@@ -38,8 +38,8 @@ const Main = () => {
     }, [isLoggedIn, navigate]);
 
     const handleLaunchWorkspace = (workspaceId) => {
-        // SLACK 실행 로직 구현 (예: 채팅 페이지로 이동)
-        navigate(`/workspace/${workspaceId}/chat`);
+        // SLACK 실행 로직 구현 (워크스페이스 메인 페이지로 ID 포함해서 이동)
+        navigate(`/workspace/${workspaceId}/main`);
     };
     
     const handleCreateWorkspace = () => {
@@ -47,8 +47,9 @@ const Main = () => {
         navigate('/workspace/create');
     };
 
-    const handleWorkspaceMain = () => {
-        navigate('/workspace/main');
+    const handleWorkspaceMain = (workspaceId) => {
+        // ID가 포함된 URL로 이동
+        navigate(`/workspace/${workspaceId}/main`);
     }
 
     return (
@@ -93,8 +94,7 @@ const Main = () => {
                                 </div>
                                 <button 
                                     className="main-launch-btn"
-                                    // onClick={() => handleLaunchWorkspace(workspace.id)}
-                                    onClick={handleWorkspaceMain}
+                                    onClick={() => handleLaunchWorkspace(workspace.id)}
                                 >
                                     SLACK 실행하기
                                 </button>

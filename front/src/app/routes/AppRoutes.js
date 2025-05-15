@@ -39,6 +39,8 @@ const AppRoutes = () => {
                         <Profile/>
                     </ProtectedRoute>
                 }/>
+                <Route path="/workspace/:id/main" element={<WsMain/>}/>
+                <Route path="/workspace/:id/chat" element={<WsChat/>}/>
                 <Route path="/workspace/main" element={<WsMain/>}/>
                 <Route path="/workspace/chat" element={<WsChat/>}/>
             </Routes>

@@ -11,6 +11,7 @@ import "./styles.css";
 const WorkspaceMain = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const params = useParams();
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteUserId, setInviteUserId] = useState('');
     const [inviteRole, setInviteRole] = useState<'MEMBER' | 'ADMIN'>('MEMBER');
@@ -21,39 +22,21 @@ const WorkspaceMain = () => {
 
     // URL에서 워크스페이스 ID 추출
     useEffect(() => {
-        // URL 형식에 따라 워크스페이스 ID 추출 로직 조정
-        // 예: /workspace/123/main 또는 /workspace/main/123
-        const pathSegments = location.pathname.split('/').filter(Boolean);
-        let extractedId: number | null = null;
-        
-        // /workspace/:id/main 형식 확인
-        if (pathSegments.length >= 3 && pathSegments[0] === 'workspace' && !isNaN(Number(pathSegments[1]))) {
-            extractedId = Number(pathSegments[1]);
-        } 
-        // /workspace/main/:id 형식 확인
-        else if (pathSegments.length >= 3 && pathSegments[0] === 'workspace' && pathSegments[1] === 'main' && !isNaN(Number(pathSegments[2]))) {
-            extractedId = Number(pathSegments[2]);
-        }
-        // 단순 /workspace/main 형식(없으면 대체 로직)
-        else if (pathSegments.length >= 2 && pathSegments[0] === 'workspace') {
-            // 로컬 스토리지나 세션 스토리지에서 최근 워크스페이스 ID 가져오기
-            const savedId = localStorage.getItem('currentWorkspaceId');
-            if (savedId && !isNaN(Number(savedId))) {
-                extractedId = Number(savedId);
-            }
-        }
-        
-        if (extractedId) {
+        // URL에서 ID 파라미터 가져오기
+        if (params.id && !isNaN(Number(params.id))) {
+            const extractedId = Number(params.id);
             setWorkspaceId(extractedId);
-            localStorage.setItem('currentWorkspaceId', extractedId.toString());
             
             // 워크스페이스 정보 로딩
             loadWorkspaceInfo(extractedId);
         } else {
+            // URL에서 워크스페이스 ID를 찾을 수 없는 경우
             console.error('워크스페이스 ID를 URL에서 찾을 수 없습니다');
-            // 필요시 기본 워크스페이스로 리다이렉트 또는 다른 처리
+            
+            // 메인 페이지로 리다이렉트
+            navigate('/main');
         }
-    }, [location.pathname]);
+    }, [params.id, navigate]);
 
     // 워크스페이스 정보 로드
     const loadWorkspaceInfo = async (id: number) => {
@@ -62,11 +45,18 @@ const WorkspaceMain = () => {
             setWorkspaceName(workspace.name);
         } catch (error) {
             console.error('워크스페이스 정보 로딩 중 오류:', error);
+            // 오류 시 메인 페이지로 리다이렉트
+            navigate('/main');
         }
     };
 
     const handleWorkspaceChat = () => {
-        navigate('/workspace/chat');
+        // 항상 ID를 포함하여 이동
+        if (workspaceId) {
+            navigate(`/workspace/${workspaceId}/chat`);
+        } else {
+            navigate('/main');
+        }
     }
 
     const handleOpenInviteModal = () => {
