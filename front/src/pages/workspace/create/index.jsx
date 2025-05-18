@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createWorkspace, checkWorkspaceName } from '../../../api/workspaceService';
-import { getCurrentUser } from '../../../api/authService';
+import { getCurrentUser, getUsernameFromStorage } from '../../../api/authService';
+import { uploadWorkspaceImage, updateUserProfileImage } from '../../../api/fileService';
 import './styles.css';
 
 const WorkspaceCreate = () => {
@@ -17,7 +18,7 @@ const WorkspaceCreate = () => {
     const fileInputRef = useRef(null);
     
     const navigate = useNavigate();
-    const username = getCurrentUser();
+    const username = getUsernameFromStorage();
     
     // 유저 이름을 초기화하기 위해 컴포넌트가 마운트될 때 실행
     useEffect(() => {
@@ -95,22 +96,101 @@ const WorkspaceCreate = () => {
         }
     };
 
+    const handleProfileImageUpload = async (uploadedImageUrl) => {
+        setProfileImage(uploadedImageUrl);
+        
+        // 현재 로그인한 사용자의 ID 가져오기
+        const currentUser = getUsernameFromStorage();
+        
+        if (!currentUser) {
+            console.error('사용자 ID를 찾을 수 없습니다.');
+            return;
+        }
+        
+        // 사용자별 고유 키 사용 (다른 사용자와 혼동 방지)
+        const userSpecificImageKey = `profileImage_${currentUser}`;
+        
+        // 사용자별 프로필 이미지 저장
+        localStorage.setItem(userSpecificImageKey, uploadedImageUrl);
+        console.log(`사용자 ${currentUser}의 프로필 이미지가 저장되었습니다:`, uploadedImageUrl);
+        
+        // 하위 호환성을 위한 일반 키도 유지 (단, 현재 로그인한 사용자의 것임을 기록)
+        localStorage.setItem('userProfileImage', uploadedImageUrl);
+        localStorage.setItem('userProfileImage_owner', currentUser);
+        
+        // 프로필 이미지 URL을 데이터베이스에도 업데이트 (기존 API 함수 사용)
+        try {
+            const result = await updateUserProfileImage(uploadedImageUrl);
+            if (result && result.success) {
+                console.log('프로필 이미지 URL이 데이터베이스에 저장되었습니다.');
+            } else {
+                console.error('프로필 이미지 URL 데이터베이스 업데이트 실패:', result.message || '알 수 없는 오류');
+            }
+        } catch (error) {
+            console.error('프로필 이미지 URL 데이터베이스 업데이트 중 오류:', error);
+        }
+    };
+
+    // 사용자별 닉네임 저장 함수 개선
+    const saveUserNickname = (nickname) => {
+        if (!nickname) return;
+        
+        // 현재 로그인한 사용자의 ID 가져오기
+        const currentUser = getUsernameFromStorage();
+        
+        if (!currentUser) {
+            console.error('사용자 ID를 찾을 수 없습니다.');
+            return;
+        }
+        
+        // 사용자별 고유 키 사용 (다른 사용자와 혼동 방지)
+        const userSpecificNicknameKey = `nickname_${currentUser}`;
+        
+        // 사용자별 닉네임 저장
+        localStorage.setItem(userSpecificNicknameKey, nickname);
+        console.log(`사용자 ${currentUser}의 닉네임이 저장되었습니다:`, nickname);
+        
+        // 하위 호환성을 위한 일반 키도 유지 (단, 현재 로그인한 사용자의 것임을 기록)
+        localStorage.setItem('userNickname', nickname);
+        localStorage.setItem('userNickname_owner', currentUser);
+    };
+
     const handleCreateWorkspace = async () => {
         if (isSubmitting) return;
         
         try {
             setIsSubmitting(true);
             
-            // JSON 데이터로 워크스페이스 생성 
-            // (FormData 대신 JSON 객체 사용)
+            // 이미지 파일이 있으면 먼저 업로드
+            let imageUrl = null;
+            if (profileImage) {
+                try {
+                    imageUrl = await uploadWorkspaceImage(profileImage);
+                    console.log('워크스페이스 이미지 업로드 성공:', imageUrl);
+                    
+                    // 워크스페이스 이미지를 프로필 이미지로도 업데이트
+                    if (imageUrl) {
+                        try {
+                            const profileResult = await updateUserProfileImage(imageUrl);
+                            if (profileResult && profileResult.success) {
+                                console.log('워크스페이스 이미지가 프로필 이미지로도 저장되었습니다.');
+                            }
+                        } catch (profileError) {
+                            console.error('프로필 이미지 업데이트 중 오류:', profileError);
+                        }
+                    }
+                } catch (error) {
+                    console.error('워크스페이스 이미지 업로드 실패:', error);
+                }
+            }
+            
+            // 워크스페이스 데이터 구성
             const workspaceData = {
                 name: workspaceName,
                 description: description || `${workspaceName} 워크스페이스`,
                 iconColor: iconColor,
                 displayName: displayName,
-                // 프로필 이미지는 Base64로 저장하지 않고 
-                // 향후 별도 API를 통해 업로드 처리 
-                // 또는 profileImageUrl을 받아 설정
+                imageUrl: imageUrl // 업로드된 이미지 URL 추가
             };
             
             console.log('워크스페이스 생성 요청 데이터:', workspaceData);
@@ -120,23 +200,37 @@ const WorkspaceCreate = () => {
             
             console.log('생성된 워크스페이스:', newWorkspace);
             
-            // 프로필 이미지가 있으면 로컬스토리지에 저장
-            // (실제로는 서버에 업로드 후 URL을 저장하는 방식 권장)
-            if (imagePreview) {
-                localStorage.setItem('userProfileImage', imagePreview);
-                console.log('워크스페이스 생성: 프로필 이미지를 localStorage["userProfileImage"]에 저장');
+            // 입력된 닉네임이 있으면 사용자별로 저장
+            if (displayName.trim()) {
+                saveUserNickname(displayName.trim());
             }
             
-            // 생성된 워크스페이스 ID 저장
-            if (newWorkspace && newWorkspace.id) {
-                localStorage.setItem('currentWorkspaceId', newWorkspace.id.toString());
+            // 프로필 이미지가 있으면 URL 정보를 사용자별로 저장
+            if (imageUrl) {
+                const currentUser = getUsernameFromStorage();
+                if (currentUser) {
+                    const userSpecificImageKey = `profileImage_${currentUser}`;
+                    localStorage.setItem(userSpecificImageKey, imageUrl);
+                    localStorage.setItem('userProfileImage', imageUrl);
+                    localStorage.setItem('userProfileImage_owner', currentUser);
+                }
             }
             
-            // 생성된 워크스페이스로 이동 (ID 포함)
+            // 생성된 워크스페이스 ID 저장 (사용자별로 저장)
             if (newWorkspace && newWorkspace.id) {
+                const currentUser = getUsernameFromStorage();
+                if (currentUser) {
+                    // 사용자별 워크스페이스 ID 저장
+                    localStorage.setItem(`workspace_${currentUser}`, newWorkspace.id.toString());
+                    // 현재 워크스페이스 ID도 저장 (하위 호환성)
+                    localStorage.setItem('currentWorkspaceId', newWorkspace.id.toString());
+                    localStorage.setItem('currentWorkspaceId_owner', currentUser);
+                }
+                
+                // 생성된 워크스페이스로 이동 (ID 포함)
                 navigate(`/workspace/${newWorkspace.id}/main`);
             } else {
-                navigate(`/workspace/main`);
+                navigate('/main');
             }
         } catch (error) {
             console.error('워크스페이스 생성 중 오류 발생:', error);
@@ -149,6 +243,7 @@ const WorkspaceCreate = () => {
             } else {
                 alert('워크스페이스 생성 중 오류가 발생했습니다.');
             }
+        } finally {
             setIsSubmitting(false);
         }
     };

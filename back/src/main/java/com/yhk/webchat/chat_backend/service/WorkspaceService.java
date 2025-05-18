@@ -68,6 +68,7 @@ public class WorkspaceService {
                 .description(createRequest.getDescription())
                 .owner(owner)
                 .iconColor(createRequest.getIconColor())
+                .imageUrl(createRequest.getImageUrl())
                 .build();
         
         workspace = workspaceRepository.save(workspace);
@@ -215,6 +216,11 @@ public class WorkspaceService {
         
         if (updateRequest.getIconColor() != null) {
             workspace.setIconColor(updateRequest.getIconColor());
+            updated = true;
+        }
+        
+        if (updateRequest.getImageUrl() != null) {
+            workspace.setImageUrl(updateRequest.getImageUrl());
             updated = true;
         }
         

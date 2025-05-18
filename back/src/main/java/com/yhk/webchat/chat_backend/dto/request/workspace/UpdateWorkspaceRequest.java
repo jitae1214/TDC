@@ -16,14 +16,18 @@ public class UpdateWorkspaceRequest {
     @Size(max = 20, message = "아이콘 색상은 20자 이하여야 합니다")
     private String iconColor;
     
+    @Size(max = 255, message = "이미지 URL은 255자 이하여야 합니다")
+    private String imageUrl;
+    
     // 기본 생성자
     public UpdateWorkspaceRequest() {}
     
     // 모든 필드 생성자
-    public UpdateWorkspaceRequest(String name, String description, String iconColor) {
+    public UpdateWorkspaceRequest(String name, String description, String iconColor, String imageUrl) {
         this.name = name;
         this.description = description;
         this.iconColor = iconColor;
+        this.imageUrl = imageUrl;
     }
     
     // Getter 및 Setter
@@ -51,12 +55,21 @@ public class UpdateWorkspaceRequest {
         this.iconColor = iconColor;
     }
     
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+    
     @Override
     public String toString() {
         return "UpdateWorkspaceRequest{" +
                 "name='" + (name != null ? name : "null") + '\'' +
                 ", description='" + (description != null ? description : "null") + '\'' +
                 ", iconColor='" + (iconColor != null ? iconColor : "null") + '\'' +
+                ", imageUrl='" + (imageUrl != null ? imageUrl : "null") + '\'' +
                 '}';
     }
 } 

@@ -100,8 +100,21 @@ public class SecurityConfig {
                 // 이메일 인증 관련 URL 허용 추가
                 .requestMatchers("/api/auth/verify-code").permitAll()  // 이메일 인증 코드 확인 API 허용
                 
+                // 파일 업로드 및 사용자 프로필 API 인증 없이 접근 허용 (테스트용)
+                .requestMatchers("/api/files/**").permitAll()  // 파일 업로드 API는 모두 허용
+                .requestMatchers("/api/users/**").permitAll()  // 사용자 API는 모두 허용
+                
+                // 업로드 파일 경로에 대한 접근 허용 추가
+                .requestMatchers("/uploads/**").permitAll()  // 업로드 파일 경로 접근 허용
+                
                 // 워크스페이스 관련 API는 인증 필요
                 .requestMatchers("/api/workspaces/**").authenticated()
+                
+                // 채팅 WebSocket 관련 API 허용
+                .requestMatchers("/ws/**").permitAll()  // WebSocket 엔드포인트 허용
+                .requestMatchers("/app/**").authenticated() // STOMP 메시지 엔드포인트는 인증 필요
+                .requestMatchers("/topic/**").authenticated() // 메시지 브로커 엔드포인트는 인증 필요
+                .requestMatchers("/api/chat/**").authenticated() // 채팅 REST API는 인증 필요
                 
                 // 그 외 모든 요청은 인증 필요
                 .anyRequest().authenticated()

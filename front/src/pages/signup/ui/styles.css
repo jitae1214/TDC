@@ -26,6 +26,8 @@
     background: linear-gradient(135deg, var(--signup-background-gradient-start), var(--signup-background-gradient-end));
     font-family: "Pretendard", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     overflow-y: auto; /* 세로 스크롤이 가능하도록 추가 */
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 .signup-card {
@@ -85,9 +87,19 @@
     background-color: var(--signup-success-color);
 }
 
+.signup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.signup-form-field {
+    margin-bottom: 0.8rem;
+}
+
 .signup-form label {
     display: block;
-    margin-bottom: 0.2rem;
+    margin-bottom: 0.4rem;
     font-weight: 500;
     color: #444;
 }
@@ -95,13 +107,14 @@
 .signup-form input[type="text"],
 .signup-form input[type="email"],
 .signup-form input[type="password"] {
-    width: 95%;
-    padding: 0.65rem;
-    margin-bottom: 0.8rem;
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 0.2rem;
     border-radius: 8px;
     border: 1px solid var(--signup-border-color);
     font-size: 0.95rem;
     transition: border-color 0.3s, box-shadow 0.3s;
+    box-sizing: border-box;
 }
 
 .signup-form input[type="text"]:focus,
@@ -109,29 +122,30 @@
 .signup-form input[type="password"]:focus {
     border-color: var(--signup-input-focus-color);
     box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    outline: none;
 }
 
-.signup-form .field-error {
+.field-error {
     color: var(--signup-error-color);
     font-size: 0.85rem;
+    margin-top: 0.2rem;
     margin-bottom: 0.5rem;
 }
 
-.signup-form .extra {
-    font-size: 0.8rem;
-    color: var(--signup-secondary-text-color);
-    margin-bottom: 1rem;
-}
-
 .signup-form .terms {
-    margin-top: 1.2rem;
-    margin-bottom: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
     display: flex;
     align-items: center;
 }
 
 .signup-form .terms input {
     margin-right: 0.5rem;
+}
+
+.required {
+    color: var(--signup-error-color);
+    margin-left: 2px;
 }
 
 .signup-form button {
@@ -145,6 +159,7 @@
     cursor: pointer;
     transition: background-color 0.3s;
     font-size: 1rem;
+    margin-top: 0.5rem;
 }
 
 .signup-form button:hover {
@@ -177,10 +192,6 @@
     .signup-form input[type="password"] {
         padding: 0.8rem;
         font-size: 1rem;
-    }
-
-    .signup-form .extra {
-        font-size: 0.9rem;
     }
 
     .signup-form button {
@@ -219,84 +230,14 @@
     }
 }
 
-/* 프로필 이미지 업로드 스타일 */
-.profile-image-upload {
-    margin-bottom: 1.5rem;
+/* 애니메이션 */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
 }
-
-.profile-image-container {
-    width: 120px;
-    height: 120px;
-    margin: 0.5rem 0;
-    position: relative;
-}
-
-.profile-placeholder {
-    width: 100%;
-    height: 100%;
-    border: 2px dashed var(--signup-border-color);
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s;
-    background-color: #f9f9f9;
-}
-
-.profile-placeholder:hover {
-    background-color: #f0f0f0;
-    border-color: var(--signup-primary-color);
-}
-
-.profile-placeholder .upload-icon {
-    font-size: 24px;
-    margin-bottom: 8px;
-    color: #888;
-}
-
-.profile-preview {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-
-.profile-preview-image {
-    width: 100%;
-    height: 100%;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 2px solid var(--signup-border-color);
-}
-
-.remove-image-btn {
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 24px;
-    height: 24px;
-    background-color: var(--signup-error-color);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 12px;
-    transition: all 0.3s;
-}
-
-.remove-image-btn:hover {
-    background-color: #d32f2f;
-    transform: scale(1.1);
-}
-
-/* 모바일 반응형 스타일 */
-@media (max-width: 768px) {
-    .profile-image-container {
-        width: 100px;
-        height: 100px;
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }

@@ -36,6 +36,9 @@ const Login = () => {
             const response = await loginApi({ username, password });
 
             if (response.success) {
+                // 로그인 전에 기존 데이터 정리
+                clearPreviousUserData();
+                
                 // 확실하게 로컬 스토리지에 사용자 이름 저장
                 if (response.username) {
                     localStorage.setItem('username', response.username);
@@ -56,6 +59,35 @@ const Login = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    // 이전 사용자 데이터 정리 함수
+    const clearPreviousUserData = () => {
+        console.log('이전 사용자 데이터 정리 중...');
+        
+        // 소셜 로그인 관련 데이터
+        localStorage.removeItem('profileImage');
+        
+        // 일반 사용자 데이터
+        localStorage.removeItem('userProfileImage');
+        localStorage.removeItem('userNickname');
+        localStorage.removeItem('signupProfileImage');
+        
+        // 워크스페이스 관련 데이터
+        localStorage.removeItem('currentWorkspaceId');
+        
+        // 사용자별 저장된 데이터 (profileImage_*, nickname_* 등)
+        Object.keys(localStorage).forEach(key => {
+            if (key.includes('profileImage_') || 
+                key.includes('nickname_') || 
+                key.includes('workspace_') ||
+                key.includes('_owner') || 
+                key.includes('_user') ||
+                key.includes('invited_by_')) {
+                console.log(`삭제: ${key}`);
+                localStorage.removeItem(key);
+            }
+        });
     };
 
     return (

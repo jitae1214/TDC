@@ -3,6 +3,7 @@ package com.yhk.webchat.chat_backend.model;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 
 /**
  * 워크스페이스 정보 엔티티
@@ -34,6 +35,9 @@ public class Workspace {
     @Column(name = "icon_color", length = 20)
     private String iconColor;
     
+    @Column(name = "image_url", length = 255)
+    private String imageUrl;
+    
     // 기본 생성자
     public Workspace() {
         this.createdAt = LocalDateTime.now();
@@ -49,13 +53,28 @@ public class Workspace {
     }
     
     // 모든 필드를 포함한 생성자
-    public Workspace(String name, String description, User owner, String iconColor) {
+    public Workspace(String name, String description, User owner, String iconColor, String imageUrl) {
         this.name = name;
         this.description = description;
         this.owner = owner;
         this.iconColor = iconColor;
+        this.imageUrl = imageUrl;
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+    }
+    
+    // 빌더 메서드
+    @Builder
+    public static Workspace createWorkspace(String name, String description, User owner, String iconColor, String imageUrl) {
+        Workspace workspace = new Workspace();
+        workspace.name = name;
+        workspace.description = description;
+        workspace.owner = owner;
+        workspace.iconColor = iconColor;
+        workspace.imageUrl = imageUrl;
+        workspace.createdAt = LocalDateTime.now();
+        workspace.updatedAt = LocalDateTime.now();
+        return workspace;
     }
     
     // Getter 및 Setter 메서드
@@ -118,6 +137,15 @@ public class Workspace {
         this.updatedAt = LocalDateTime.now(); // 아이콘 색상 변경 시 updatedAt 자동 갱신
     }
     
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+        this.updatedAt = LocalDateTime.now(); // 이미지 URL 변경 시 updatedAt 자동 갱신
+    }
+    
     // 빌더 패턴 구현
     public static WorkspaceBuilder builder() {
         return new WorkspaceBuilder();
@@ -151,7 +179,7 @@ public class Workspace {
         }
         
         public Workspace build() {
-            return new Workspace(name, description, owner, iconColor);
+            return new Workspace(name, description, owner, iconColor, null);
         }
     }
     
@@ -166,6 +194,7 @@ public class Workspace {
                 ", createdAt=" + createdAt +
                 ", updatedAt=" + updatedAt +
                 ", iconColor='" + iconColor + '\'' +
+                ", imageUrl='" + imageUrl + '\'' +
                 '}';
     }
 } 

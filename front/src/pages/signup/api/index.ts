@@ -14,21 +14,6 @@ export const register = async (data: RegisterRequest) => {
     try {
         console.log("회원가입 API 호출:", `${REGISTER_BASE_URL}/signup`, data);
         
-        // 프로필 이미지 데이터 크기 확인
-        if (data.profileImage) {
-            const sizeInBytes = new Blob([data.profileImage]).size;
-            const sizeInMB = sizeInBytes / (1024 * 1024);
-            console.log(`프로필 이미지 크기: ${sizeInMB.toFixed(2)}MB`);
-            
-            // 이미지가 5MB를 초과하는 경우
-            if (sizeInMB > 5) {
-                return {
-                    success: false,
-                    message: "프로필 이미지 크기가 5MB를 초과합니다."
-                };
-            }
-        }
-        
         const response = await apiClient.post(`${REGISTER_BASE_URL}/signup`, data);
         console.log("회원가입 API 응답:", response.data);
         return response.data;

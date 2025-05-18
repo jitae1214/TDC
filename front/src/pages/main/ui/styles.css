@@ -44,7 +44,8 @@
 }
 
 .main-link,
-.main-create-btn {
+.main-create-btn,
+.main-logout-btn {
     text-decoration: none;
     font-weight: 600;
     padding: 8px 14px;
@@ -54,6 +55,13 @@
 
 .main-link {
     color: var(--main-white);
+}
+
+.main-logout-btn {
+    background-color: #ffdddd;
+    color: var(--main-text-purple);
+    border: none;
+    cursor: pointer;
 }
 
 .main-create-btn {

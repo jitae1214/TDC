@@ -26,7 +26,6 @@ const validate = {
 
 const Signup = () => {
     const navigate = useNavigate();
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [form, setForm] = useState({
         username: "",
@@ -35,7 +34,6 @@ const Signup = () => {
         email: "",
         fullName: "",
         nickname: "",
-        profileImage: "",
         agreeToTerms: false,
     });
 
@@ -53,39 +51,9 @@ const Signup = () => {
     });
 
     const [isLoading, setIsLoading] = useState(false);
-    const [previewImage, setPreviewImage] = useState<string | null>(null);
 
     const handleChange = (field: string, value: any) => {
         setForm({...form, [field]: value});
-    };
-
-    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-        
-        // 파일 크기 검사 (5MB 이하)
-        if (file.size > 5 * 1024 * 1024) {
-            setMessages({...messages, error: "이미지 크기는 5MB 이하여야 합니다."});
-            return;
-        }
-        
-        // 파일 형식 검사
-        if (!['image/jpeg', 'image/png', 'image/gif', 'image/webp'].includes(file.type)) {
-            setMessages({...messages, error: "JPG, PNG, GIF, WEBP 형식만 지원합니다."});
-            return;
-        }
-        
-        // 이미지 미리보기
-        const reader = new FileReader();
-        reader.onloadend = () => {
-            const result = reader.result as string;
-            setPreviewImage(result);
-            handleChange('profileImage', result);
-            
-            // 일반 회원가입 프로필 이미지를 별도의 키로 로컬 스토리지에 저장
-            localStorage.setItem('signupProfileImage', result);
-        };
-        reader.readAsDataURL(file);
     };
 
     const checkUsername = async () => {
@@ -157,35 +125,19 @@ const Signup = () => {
             setIsLoading(true);
             setMessages({error: "", success: ""});
 
-            // 요청 데이터 준비 - 프로필 이미지 처리 최적화
-            let profileImageToSend = undefined;
-            if (form.profileImage && form.profileImage.length > 0) {
-                // 프로필 이미지가 있는 경우 Base64 데이터 길이 체크
-                if (form.profileImage.length > 5 * 1024 * 1024) { // 대략적인 5MB 체크
-                    setMessages({error: "프로필 이미지가 너무 큽니다. 5MB 이하의 이미지를 사용해주세요.", success: ""});
-                    setIsLoading(false);
-                    return;
-                }
-                profileImageToSend = form.profileImage;
-            }
-            
-            // 요청 데이터 로깅
+            // 요청 데이터 준비
             const requestData = {
                 username: form.username,
                 password: form.password,
                 email: form.email,
                 fullName: form.fullName,
                 nickname: form.nickname || undefined,
-                profileImage: profileImageToSend,
                 agreeToTerms: form.agreeToTerms,
             };
-            console.log("회원가입 요청 데이터:", {...requestData, profileImage: profileImageToSend ? "이미지 데이터 (생략)" : undefined});
+            
+            console.log("회원가입 요청 데이터:", requestData);
 
-            // 먼저 프로필 이미지 없이 시도
-            const res = await register({
-                ...requestData,
-                profileImage: undefined // 우선 프로필 이미지 없이 시도
-            });
+            const res = await register(requestData);
             console.log("회원가입 응답:", res);
 
             if (res.success) {
@@ -217,28 +169,9 @@ const Signup = () => {
         }
     };
 
-    // 파일 선택 다이얼로그 열기
-    const openFileDialog = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
-    };
-
-    // 프로필 이미지 제거
-    const removeProfileImage = () => {
-        setPreviewImage(null);
-        handleChange('profileImage', '');
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-        // 로컬 스토리지에서도 제거
-        localStorage.removeItem('signupProfileImage');
-    };
-
     return (
         <div className="signup-container">
             <div className="signup-card">
-
                 <div className="signup-nav">
                     <Link to="/main">메인</Link>
                     <Link to="/login">로그인</Link>
@@ -250,80 +183,106 @@ const Signup = () => {
                 {messages.success && <div className="signup-message success">{messages.success}</div>}
 
                 <form onSubmit={handleSubmit} className="signup-form">
-                    {/* 프로필 이미지 업로드 영역 */}
-                    <div className="profile-image-upload">
-                        <label>프로필 이미지 (선택)</label>
-                        <div className="profile-image-container">
-                            {previewImage ? (
-                                <div className="profile-preview">
-                                    <img 
-                                        src={previewImage} 
-                                        alt="프로필 미리보기" 
-                                        className="profile-preview-image"
-                                    />
-                                    <button 
-                                        type="button" 
-                                        className="remove-image-btn"
-                                        onClick={removeProfileImage}
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            ) : (
-                                <div 
-                                    className="profile-placeholder"
-                                    onClick={openFileDialog}
-                                >
-                                    <span className="upload-icon">➕</span>
-                                    <span>이미지 선택</span>
-                                </div>
-                            )}
-                        </div>
-                        <input 
-                            type="file" 
-                            ref={fileInputRef}
-                            style={{ display: 'none' }} 
-                            accept="image/jpeg, image/png, image/gif, image/webp"
-                            onChange={handleImageUpload}
+                    <div className="signup-form-field">
+                        <label htmlFor="username">
+                            아이디 <span className="required">*</span>
+                        </label>
+                        <input
+                            id="username"
+                            type="text"
+                            value={form.username}
+                            onChange={(e) => handleChange("username", e.target.value)}
+                            onBlur={checkUsername}
+                            placeholder="4자 이상의 아이디"
                         />
-                        <div className="extra">JPG, PNG, GIF, WEBP 형식, 최대 5MB</div>
+                        {errors.username && <div className="field-error">{errors.username}</div>}
                     </div>
 
-                    {[
-                        {label: "아이디 *", name: "username", type: "text", onBlur: checkUsername, error: errors.username},
-                        {label: "비밀번호 *", name: "password", type: "password", extra: "8자 이상 입력."},
-                        {label: "비밀번호 확인 *", name: "passwordConfirm", type: "password", error: errors.password},
-                        {label: "이메일 *", name: "email", type: "email", onBlur: checkEmail, error: errors.email},
-                        {label: "이름 *", name: "fullName", type: "text", error: errors.fullName},
-                        {label: "닉네임 (선택)", name: "nickname", type: "text"},
-                    ].map(({label, name, type, onBlur, extra, error}) => (
-                        <div key={name}>
-                            <label>{label}</label>
-                            <input
-                                type={type}
-                                value={(form as any)[name]}
-                                onChange={(e) => handleChange(name, e.target.value)}
-                                onBlur={onBlur}
-                            />
-                            {extra && <div className="extra">{extra}</div>}
-                            {error && <div className="field-error">{error}</div>}
-                        </div>
-                    ))}
+                    <div className="signup-form-field">
+                        <label htmlFor="password">
+                            비밀번호 <span className="required">*</span>
+                        </label>
+                        <input
+                            id="password"
+                            type="password"
+                            value={form.password}
+                            onChange={(e) => handleChange("password", e.target.value)}
+                            placeholder="8자 이상의 비밀번호"
+                        />
+                        {errors.password && <div className="field-error">{errors.password}</div>}
+                    </div>
+
+                    <div className="signup-form-field">
+                        <label htmlFor="passwordConfirm">
+                            비밀번호 확인 <span className="required">*</span>
+                        </label>
+                        <input
+                            id="passwordConfirm"
+                            type="password"
+                            value={form.passwordConfirm}
+                            onChange={(e) => handleChange("passwordConfirm", e.target.value)}
+                            placeholder="비밀번호를 다시 입력해주세요"
+                        />
+                    </div>
+
+                    <div className="signup-form-field">
+                        <label htmlFor="email">
+                            이메일 <span className="required">*</span>
+                        </label>
+                        <input
+                            id="email"
+                            type="email"
+                            value={form.email}
+                            onChange={(e) => handleChange("email", e.target.value)}
+                            onBlur={checkEmail}
+                            placeholder="example@email.com"
+                        />
+                        {errors.email && <div className="field-error">{errors.email}</div>}
+                    </div>
+
+                    <div className="signup-form-field">
+                        <label htmlFor="fullName">
+                            이름 <span className="required">*</span>
+                        </label>
+                        <input
+                            id="fullName"
+                            type="text"
+                            value={form.fullName}
+                            onChange={(e) => handleChange("fullName", e.target.value)}
+                            placeholder="실명을 입력해주세요"
+                        />
+                        {errors.fullName && <div className="field-error">{errors.fullName}</div>}
+                    </div>
+
+                    <div className="signup-form-field">
+                        <label htmlFor="nickname">닉네임 (선택)</label>
+                        <input
+                            id="nickname"
+                            type="text"
+                            value={form.nickname}
+                            onChange={(e) => handleChange("nickname", e.target.value)}
+                            placeholder="다른 사용자에게 표시될 이름"
+                        />
+                    </div>
 
                     <div className="terms">
-                        <label>
-                            <input
-                                type="checkbox"
-                                checked={form.agreeToTerms}
-                                onChange={(e) => handleChange("agreeToTerms", e.target.checked)}
-                            />
-                            이용약관에 동의합니다. *
+                        <input
+                            id="agreeToTerms"
+                            type="checkbox"
+                            checked={form.agreeToTerms}
+                            onChange={(e) => handleChange("agreeToTerms", e.target.checked)}
+                        />
+                        <label htmlFor="agreeToTerms">
+                            <span className="required">*</span> 이용약관 및 개인정보 처리방침에 동의합니다.
                         </label>
                         {errors.terms && <div className="field-error">{errors.terms}</div>}
                     </div>
 
-                    <button type="submit" disabled={isLoading}>
-                        {isLoading ? "가입 중..." : "회원가입"}
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                    >
+                        {isLoading ? "처리 중..." : "회원가입"}
                     </button>
                 </form>
             </div>

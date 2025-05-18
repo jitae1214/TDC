@@ -5,12 +5,14 @@ interface CreateWorkspaceRequest {
   description: string;
   iconColor: string;
   displayName?: string;
+  imageUrl?: string;
 }
 
 interface UpdateWorkspaceRequest {
   name?: string;
   description?: string;
   iconColor?: string;
+  imageUrl?: string;
 }
 
 interface WorkspaceMember {
@@ -19,6 +21,8 @@ interface WorkspaceMember {
   email: string;
   role: string;
   joinedAt: string;
+  nickname?: string;
+  profileImageUrl?: string;
 }
 
 interface Workspace {
@@ -26,6 +30,7 @@ interface Workspace {
   name: string;
   description: string;
   iconColor: string;
+  imageUrl?: string;
   memberCount: number;
   role: string;
   createdAt: string;
@@ -114,11 +119,26 @@ export const addWorkspaceMember = async (
   userIdentifier: string, 
   role: 'ADMIN' | 'MEMBER' = 'MEMBER'
 ): Promise<WorkspaceMember> => {
-  const response = await apiClient.post(`/api/workspaces/${id}/members`, { 
-    userIdentifier, 
-    role 
-  });
-  return response.data;
+  try {
+    // 현재 로그인한 사용자 ID 가져오기 (소유자)
+    const currentUser = localStorage.getItem('username');
+    
+    const response = await apiClient.post(`/api/workspaces/${id}/members`, { 
+      userIdentifier, 
+      role 
+    });
+    
+    // 초대 정보를 로컬에 기록 (누가 누구를 초대했는지)
+    if (currentUser && response.data) {
+      localStorage.setItem(`invited_by_${userIdentifier}_to_${id}`, currentUser);
+      console.log(`초대 정보 기록: ${userIdentifier}를 워크스페이스 ${id}에 초대한 사용자: ${currentUser}`);
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('워크스페이스 멤버 추가 오류:', error);
+    throw error;
+  }
 };
 
 // 워크스페이스 멤버 역할 변경

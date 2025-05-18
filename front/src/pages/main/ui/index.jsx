@@ -1,12 +1,14 @@
+"use client";
+
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { isAuthenticated, getCurrentUser, logout } from "../../../api/authService";
+import { isAuthenticated, getUsernameFromStorage, logout } from "../../../api/authService";
 import { getWorkspaces } from "../../../api/workspaceService";
 import "./styles.css";
 
 const Main = () => {
     const isLoggedIn = isAuthenticated();
-    const username = getCurrentUser();
+    const username = getUsernameFromStorage();
     const navigate = useNavigate();
     const [workspaces, setWorkspaces] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -52,13 +54,19 @@ const Main = () => {
         navigate(`/workspace/${workspaceId}/main`);
     }
 
+    const handleLogout = () => {
+        // 로그아웃 처리
+        logout();
+        navigate('/login');
+    };
+
     return (
         <div className="main-container">
             {/* 헤더 */}
             <header className="main-header">
                 <div className="main-header-logo">logo</div>
                 <span className="main-welcome-text">{username}님 환영합니다!</span>
-                <Link to="/profile" className="main-link">내 프로필</Link>
+                <button onClick={handleLogout} className="main-logout-btn">로그아웃</button>
             </header>
 
             <main className="main-content">
@@ -82,16 +90,16 @@ const Main = () => {
                     ) : (
                         workspaces.map(workspace => (
                             <div className="main-workspace-item" key={workspace.id}>
-                                <div className="main-workspace-info">
+                        <div className="main-workspace-info">
                                     <div 
                                         className="main-workspace-img" 
                                         style={{ backgroundColor: workspace.iconColor || '#e0e0e0' }}
                                     />
-                                    <div>
+                            <div>
                                         <div className="main-workspace-name">{workspace.name}</div>
                                         <div className="main-workspace-members">{workspace.memberCount}명의 멤버</div>
-                                    </div>
-                                </div>
+                            </div>
+                        </div>
                                 <button 
                                     className="main-launch-btn"
                                     onClick={() => handleLaunchWorkspace(workspace.id)}

@@ -17,6 +17,7 @@ public class WorkspaceResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String iconColor;
+    private String imageUrl;
     private int memberCount;
     private String memberRole; // 현재 요청한 사용자의 역할
     
@@ -33,6 +34,7 @@ public class WorkspaceResponse {
         this.createdAt = workspace.getCreatedAt();
         this.updatedAt = workspace.getUpdatedAt();
         this.iconColor = workspace.getIconColor();
+        this.imageUrl = workspace.getImageUrl();
         this.memberCount = memberCount;
         this.memberRole = memberRole;
     }
@@ -100,6 +102,14 @@ public class WorkspaceResponse {
     
     public void setIconColor(String iconColor) {
         this.iconColor = iconColor;
+    }
+    
+    public String getImageUrl() {
+        return imageUrl;
+    }
+    
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
     
     public int getMemberCount() {

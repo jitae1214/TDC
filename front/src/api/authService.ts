@@ -30,7 +30,6 @@ export interface RegisterRequest {
   email: string;
   fullName: string;
   nickname?: string;
-  profileImage?: string;
   agreeToTerms: boolean;
 }
 
@@ -166,12 +165,45 @@ export const checkEmailAvailability = async (email: string): Promise<Availabilit
 
 // 사용자 로그아웃
 export const logout = (): void => {
-  setAuthToken(null); // JWT 토큰 제거
-  localStorage.removeItem(AUTH_USERNAME_KEY); // 사용자 이름 제거
+  // 현재 사용자 ID 가져오기
+  const currentUser = getUsername();
   
-  // 세션 스토리지에서도 토큰 제거
+  // JWT 토큰 제거
+  setAuthToken(null);
+  
+  // 사용자 이름 관련 데이터 제거
+  localStorage.removeItem(AUTH_USERNAME_KEY);
+  localStorage.removeItem('username');
+  
+  // 워크스페이스 관련 데이터 제거
+  localStorage.removeItem('currentWorkspaceId');
+  
+  // 프로필 관련 데이터 제거
+  localStorage.removeItem('profileImage');
+  localStorage.removeItem('userProfileImage');
+  localStorage.removeItem('userNickname');
+  localStorage.removeItem('signupProfileImage');
+  
+  // 현재 사용자별 저장된 데이터 제거
+  if (currentUser) {
+    localStorage.removeItem(`profileImage_${currentUser}`);
+    localStorage.removeItem(`nickname_${currentUser}`);
+    
+    // 현재 사용자와 관련된 모든 데이터 제거
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes(currentUser)) {
+        localStorage.removeItem(key);
+        console.log(`사용자 관련 데이터 삭제: ${key}`);
+      }
+    });
+  }
+  
+  // 세션 스토리지에서도 관련 데이터 제거
   sessionStorage.removeItem('token');
   sessionStorage.removeItem(AUTH_USERNAME_KEY);
+  sessionStorage.removeItem('username');
+  
+  console.log('로그아웃: 사용자 관련 데이터가 모두 삭제되었습니다.');
 };
 
 // 로그인 상태 확인
@@ -179,7 +211,32 @@ export const isAuthenticated = (): boolean => { // 로컬 스토리지에 토큰
   return getAuthToken() !== null; // 토큰이 없으면 false 반환
 };
 
-// 현재 사용자 정보 가져오기
-export const getCurrentUser = (): string | null => {
+// 현재 사용자 정보 가져오기 (문자열 반환)
+export const getUsernameFromStorage = (): string | null => {
   return getUsername();
+};
+
+// 현재 사용자 상세 정보 가져오기 (API 호출)
+export const getCurrentUser = async (): Promise<any> => {
+  try {
+    const token = getAuthToken();
+    if (!token) {
+      return { success: false, message: '인증 토큰이 없습니다.' };
+    }
+    
+    const response = await apiClient.get(`${AUTH_URL}/me`);
+    return { success: true, data: response.data };
+  } catch (error: any) {
+    console.error('사용자 정보 조회 오류:', error);
+    
+    if (error.response && error.response.status === 401) {
+      // 인증 오류 - 로그인 필요
+      return { success: false, message: '로그인이 필요합니다.' };
+    }
+    
+    return { 
+      success: false, 
+      message: '사용자 정보를 가져오는 중 오류가 발생했습니다.' 
+    };
+  }
 };

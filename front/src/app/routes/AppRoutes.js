@@ -3,7 +3,6 @@ import {BrowserRouter as Router, Route, Routes} from "react-router-dom";
 import Main from "../../pages/main/ui";
 import Login from "../../pages/login/ui";
 import Signup from "../../pages/signup/ui/SignupForm";
-import Profile from "../../pages/Profile";
 import WorkspaceCreate from "../../pages/workspace/create";
 import ProtectedRoute from "./ProtectedRoute";
 import KakaoCallback from "../../pages/auth/KakaoCallback";
@@ -32,11 +31,6 @@ const AppRoutes = () => {
                 <Route path="/workspace/create" element={
                     <ProtectedRoute>
                         <WorkspaceCreate/>
-                    </ProtectedRoute>
-                }/>
-                <Route path="/profile" element={
-                    <ProtectedRoute>
-                        <Profile/>
                     </ProtectedRoute>
                 }/>
                 <Route path="/workspace/:id/main" element={<WsMain/>}/>

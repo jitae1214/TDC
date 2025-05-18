@@ -1,250 +1,335 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import {getCurrentUser, logout} from '../api/authService';
+import { getCurrentUser, logout } from '../api/authService';
+import { uploadAndUpdateProfileImage } from '../api/fileService';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Profile: React.FC = () => {
-    // 모든 가능한 방법으로 사용자 이름 가져오기 시도
-    const usernameFromFunction = getCurrentUser();
-    const usernameFromLocalStorage = localStorage.getItem('username');
-    const usernameFromLocalStorageAlt = localStorage.getItem('AUTH_USERNAME_KEY');
-    
     const [profileImage, setProfileImage] = useState<string | null>(null);
+    const [fullName, setFullName] = useState<string | null>(null);
+    const [email, setEmail] = useState<string | null>(null);
     const [nickname, setNickname] = useState<string | null>(null);
-    const [userId, setUserId] = useState<string | null>(usernameFromFunction || usernameFromLocalStorage || usernameFromLocalStorageAlt || null);
+    const [isUploading, setIsUploading] = useState<boolean>(false);
+    
+    // 현재 로그인한 사용자 정보
+    const currentUsername = localStorage.getItem('username') || '';
+    const [userId, setUserId] = useState<string | null>(currentUsername);
     
     // 디버깅을 위해 즉시 콘솔로 상태 확인
-    console.log('===== 사용자 정보 상태 확인 =====');
-    console.log('usernameFromFunction:', usernameFromFunction);
-    console.log('usernameFromLocalStorage:', usernameFromLocalStorage);
-    console.log('usernameFromLocalStorageAlt:', usernameFromLocalStorageAlt);
-    console.log('초기 userId 상태:', userId);
+    console.log('프로필 컴포넌트 렌더링, 현재 사용자:', currentUsername);
+    console.log('현재 로컬 스토리지 내용:', {
+        username: localStorage.getItem('username'),
+        token: localStorage.getItem('token') ? '있음' : '없음',
+        userSpecificKey: `profileImage_${currentUsername}`,
+        userSpecificValue: localStorage.getItem(`profileImage_${currentUsername}`),
+        profileImage: localStorage.getItem('profileImage')
+    });
     
     useEffect(() => {
-        // 초기화 직후 모든 로컬 스토리지 데이터 로깅
-        console.log('===== 사용자 정보 디버깅 =====');
-        console.log('getCurrentUser 결과:', getCurrentUser());
-        console.log('localStorage username:', localStorage.getItem('username'));
-        console.log('localStorage token:', localStorage.getItem('token') ? '존재함' : '없음');
-        console.log('localStorage userNickname:', localStorage.getItem('userNickname'));
-        console.log('sessionStorage token:', sessionStorage.getItem('token') ? '존재함' : '없음');
-        console.log('=============================');
+        const fetchUserProfile = async () => {
+            try {
+                const response = await getCurrentUser();
+                if (response && response.success === true) {
+                    const userData = response.data || {};
+                    setFullName(userData.fullName || 'Unknown');
+                    setEmail(userData.email || 'No email provided');
+                    setNickname(userData.nickname || '');
         
-        // 강제로 localStorage 접근 시도
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key) {
-                console.log(`localStorage[${key}] =`, localStorage.getItem(key));
-            }
-        }
-        
-        // 사용자 ID가 없으면 로컬 스토리지에서 다시 확인
-        if (!userId) {
-            // 다양한 키로 저장된 사용자 ID 확인
-            const possibleUserIds = [
-                localStorage.getItem('username'),
-                localStorage.getItem('AUTH_USERNAME_KEY'),
-                sessionStorage.getItem('username'),
-                getCurrentUser()
-            ].filter(Boolean);
-            
-            if (possibleUserIds.length > 0) {
-                const foundUserId = possibleUserIds[0];
-                console.log('다른 소스에서 사용자 ID 복구:', foundUserId);
-                setUserId(foundUserId);
+                    // DB에 저장된 프로필 이미지가 있으면 사용
+                    if (userData.profileImageUrl) {
+                        setProfileImage(userData.profileImageUrl);
+                        console.log('DB에서 프로필 이미지 로드:', userData.profileImageUrl);
+                        
+                        // 로컬 스토리지에도 저장 (동기화)
+                        const userSpecificImageKey = `profileImage_${currentUsername}`;
+                        localStorage.setItem(userSpecificImageKey, userData.profileImageUrl);
+                        localStorage.setItem('profileImage', userData.profileImageUrl);
+                    } else {
+                        // DB에 이미지가 없으면 로컬 스토리지에서 확인
+                        loadProfileImageFromLocalStorage();
+                    }
+                } else {
+                    console.error('사용자 프로필 로드 실패: 응답이 성공이 아닙니다.');
+                    loadProfileImageFromLocalStorage();
+                }
+            } catch (error) {
+                console.error('사용자 프로필 로드 실패:', error);
                 
-                // 로컬 스토리지에 저장
-                if (!localStorage.getItem('username') && foundUserId) {
-                    localStorage.setItem('username', foundUserId);
-                }
+                // API 오류 시 로컬 스토리지에서 로드 시도
+                loadProfileImageFromLocalStorage();
             }
-        }
+        };
 
-        // 현재 로그인 사용자가 소셜 로그인 사용자인지 확인
-        const isSocialLogin = userId && (
-            userId.startsWith('K_') || 
-            userId.startsWith('G_') || 
-            userId.startsWith('N_')
-        );
-        
-        // 프로필 이미지 로드
-        const storedProfileImage = localStorage.getItem('profileImage');
-        const userProfileImage = localStorage.getItem('userProfileImage');
-        const storedNickname = localStorage.getItem('userNickname');
-        
-        // 소셜 로그인이 아닌 경우, 일반 회원가입 시 설정한 프로필 이미지 사용
-        if (!isSocialLogin) {
-            // 워크스페이스 생성 시 업로드한 이미지 확인 (우선순위 부여)
-            if (userProfileImage) {
-                setProfileImage(userProfileImage);
-                console.log('워크스페이스 생성 시 설정한 프로필 이미지 로드:', userProfileImage);
-            }
-            // 그 다음 회원가입 시 설정한 프로필 이미지 확인
-            else {
-                // 회원가입 시 설정한 프로필 이미지 키
-                const signupProfileImage = localStorage.getItem('signupProfileImage');
-                if (signupProfileImage) {
-                    setProfileImage(signupProfileImage);
-                    console.log('일반 회원 프로필 이미지 로드:', signupProfileImage);
-                } else if (storedProfileImage) {
-                    // 기존 프로필 이미지가 있지만 소셜 로그인이 아니면 제거
-                    localStorage.removeItem('profileImage');
-                    console.log('소셜 로그인 프로필 이미지 제거');
-                }
-            }
-        } else if (storedProfileImage) {
-            // 소셜 로그인인 경우 소셜 프로필 이미지 사용
-            setProfileImage(storedProfileImage);
-            console.log('소셜 로그인 프로필 이미지 로드:', storedProfileImage);
-        } else {
-            console.log('저장된 프로필 이미지 없음');
-        }
-        
-        if (storedNickname) {
-            setNickname(storedNickname);
-            console.log('닉네임 로드:', storedNickname);
-        } else {
-            console.log('저장된 닉네임 없음');
-        }
-    }, [userId]); // userId만 의존성으로 설정하여 불필요한 재실행 방지
+        fetchUserProfile();
+    }, [currentUsername]);
 
-    // 사용자 ID에서 소셜 로그인 제공자 추출
-    const getSocialProvider = (userId: string | null): string => {
-        if (!userId) return '알 수 없음';
+    // 로컬 스토리지에서 프로필 이미지 로드
+    const loadProfileImageFromLocalStorage = () => {
+        // 사용자별 키로 먼저 확인
+        const userSpecificImageKey = `profileImage_${currentUsername}`;
+        const userSpecificImage = localStorage.getItem(userSpecificImageKey);
         
-        if (userId.startsWith('K_')) return '카카오';
-        if (userId.startsWith('G_')) return '구글';
-        if (userId.startsWith('N_')) return '네이버';
+        if (userSpecificImage) {
+            setProfileImage(userSpecificImage);
+            console.log(`사용자 ${currentUsername}의 개인 프로필 이미지 로드:`, userSpecificImage);
+        } 
+        // 소셜 로그인 사용자라면 소셜 이미지 확인
+        else if (currentUsername.startsWith('K_') || 
+                 currentUsername.startsWith('G_') || 
+                 currentUsername.startsWith('N_')) {
+            const socialProfileImage = localStorage.getItem('profileImage');
+            if (socialProfileImage) {
+                setProfileImage(socialProfileImage);
+                // 사용자별 키로 저장 (향후 사용을 위해)
+                localStorage.setItem(userSpecificImageKey, socialProfileImage);
+                console.log('소셜 프로필 이미지를 사용자별로 저장:', socialProfileImage);
+            }
+        }
+        // 일반 키 확인 (하위 호환성)
+        else {
+            const generalProfileImage = localStorage.getItem('profileImage');
+            if (generalProfileImage) {
+                setProfileImage(generalProfileImage);
+                // 사용자별 키로도 저장 (일관성을 위해)
+                localStorage.setItem(userSpecificImageKey, generalProfileImage);
+                console.log('일반 프로필 이미지를 사용자별로 저장:', generalProfileImage);
+            }
+        }
+    };
+
+    // 로그아웃 처리
+    const handleLogout = async () => {
+        try {
+            await logout();
+            // 페이지 새로고침
+            window.location.href = '/login';
+        } catch (error) {
+            console.error('로그아웃 실패:', error);
+        }
+    };
+
+    // 이미지 URL이 절대 URL인지 확인하는 함수
+    const getImageUrl = (imageUrl: string | null): string | undefined => {
+        if (!imageUrl) return undefined;
         
-        return '일반 로그인';
+        console.log('Profile에서 처리 전 이미지 URL:', imageUrl);
+        
+        // 이미 완전한 URL인 경우(http://, https://로 시작)
+        if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+            console.log('이미 완전한 URL:', imageUrl);
+            return imageUrl;
+        }
+        
+        // 서버의 상대 경로(/uploads/로 시작)인 경우
+        if (imageUrl.startsWith('/uploads/')) {
+            // 백엔드 서버 URL 직접 지정
+            const fullUrl = `http://localhost:8080${imageUrl}`;
+            console.log('백엔드 서버 URL 추가:', fullUrl);
+            return fullUrl;
+        }
+        
+        // 그 외의 경우 (base64 데이터 등) 그대로 반환
+        console.log('기타 형식 이미지:', imageUrl.substring(0, 30) + '...');
+        return imageUrl;
+    };
+
+    // 토스트 알림 표시 함수
+    const showToast = (message: string, type: 'success' | 'error' | 'info' = 'info') => {
+        toast[type](message, {
+            position: "top-right",
+            autoClose: 3000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+        });
+    };
+
+    // 이미지 업로드 핸들러
+    const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        
+        const file = files[0];
+        
+        try {
+            setIsUploading(true);
+            
+            // 이미지 업로드 및 DB 업데이트
+            const result = await uploadAndUpdateProfileImage(file);
+            
+            if (result && result.success) {
+                const updatedImageUrl = result.data.profileImageUrl;
+                setProfileImage(updatedImageUrl);
+                showToast('프로필 이미지가 업로드되었습니다.', 'success');
+                console.log('프로필 이미지 업로드 및 DB 업데이트 성공:', updatedImageUrl);
+            } else {
+                showToast('이미지 업로드 중 오류가 발생했습니다.', 'error');
+            }
+        } catch (error) {
+            console.error('이미지 업로드 오류:', error);
+            showToast('이미지 업로드 중 오류가 발생했습니다.', 'error');
+        } finally {
+            setIsUploading(false);
+        }
     };
     
-    // 화면에 표시할 최종 사용자 ID 결정 (더 이상 'hello' 기본값 사용 안함)
-    const displayUserId = userId || '로그인 필요';
-
-    const handleLogout = () => {
-        logout();
-        window.location.href = '/login';
-    };
-
     return (
-        <div style={{
-            maxWidth: '600px',
-            margin: '0 auto',
-            padding: '20px',
-            fontFamily: 'Arial, sans-serif'
-        }}>
-            <h1 style={{
-                color: '#333',
-                borderBottom: '2px solid #eee',
-                paddingBottom: '10px'
-            }}>사용자 프로필</h1>
+        <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+            <ToastContainer />
+            <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>사용자 프로필</h1>
             
             <div style={{
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: 'center',
+                padding: '20px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                backgroundColor: 'white',
                 marginBottom: '20px'
             }}>
-                <Link to="/main" style={{
-                    color: '#0066cc',
-                    textDecoration: 'none'
-                }}>메인으로 돌아가기</Link>
-            </div>
-            
-            <div style={{
-                backgroundColor: 'white',
-                borderRadius: '8px',
-                padding: '20px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-            }}>
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    marginBottom: '20px'
-                }}>
+                {/* 프로필 이미지 섹션 */}
+                <div style={{ marginBottom: '20px', textAlign: 'center' }}>
                     {profileImage ? (
                         <img 
-                            src={profileImage}
+                            src={getImageUrl(profileImage)}
                             alt="프로필 이미지"
                             style={{
-                                width: '100px',
-                                height: '100px',
+                                width: '120px',
+                                height: '120px',
                                 borderRadius: '50%',
-                                marginRight: '20px',
                                 objectFit: 'cover',
-                                border: '3px solid #eee'
+                                border: '3px solid #3f51b5'
                             }}
                         />
                     ) : (
-                        <div style={{
-                            width: '100px',
-                            height: '100px',
+                        <div 
+                            style={{
+                                width: '120px',
+                                height: '120px',
                             borderRadius: '50%',
-                            backgroundColor: '#eee',
-                            marginRight: '20px',
-                            display: 'flex',
+                                backgroundColor: '#3f51b5',
+                                display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            fontSize: '40px',
-                            color: '#999'
-                        }}>
-                            {nickname ? nickname[0].toUpperCase() : displayUserId ? displayUserId[0].toUpperCase() : '?'}
+                                fontSize: '50px',
+                                color: '#fff',
+                                fontWeight: 'bold'
+                            }}
+                        >
+                            {fullName ? fullName.charAt(0).toUpperCase() : '?'}
                         </div>
                     )}
-                    <div>
-                        <h2 style={{
-                            margin: '0 0 10px 0',
-                            color: '#333'
-                        }}>사용자 정보</h2>
-                        <p style={{
-                            margin: '0 0 5px 0',
-                            color: '#666'
-                        }}><strong>닉네임:</strong> {nickname || '설정된 닉네임 없음'}</p>
-                        <div style={{
-                            margin: '10px 0',
-                            padding: '8px 12px',
-                            backgroundColor: '#f9f9f9',
-                            borderRadius: '4px',
-                            border: '1px solid #ddd'
-                        }}>
-                            <p style={{
-                                margin: '0',
-                                fontSize: '15px',
-                                color: '#333',
-                                fontWeight: 'bold'
-                            }}>아이디</p>
-                            <p style={{
-                                margin: '4px 0 0 0',
-                                fontSize: '18px',
-                                color: '#4B0082',
-                                fontWeight: 'bold'
-                            }}>{displayUserId}</p>
-                        </div>
-                        <p style={{
-                            margin: '10px 0 5px 0',
-                            color: '#666'
-                        }}><strong>로그인 방식:</strong> {getSocialProvider(displayUserId)}</p>
-                        <button style={{
-                            width: '100px',
-                            margin: '0',
-                            textDecoration: 'none',
-                            fontWeight: 600,
-                            padding: '8px 14px',
-                            borderRadius: '6px',
-                            fontSize: '14px',
-                            backgroundColor: '#ffdddd',
-                            color: '#4B0082',
-                            border: 'none',
-                            cursor: 'pointer'
-                        }} onClick={handleLogout}>로그아웃</button>
+                    
+                    {/* 이미지 업로드 버튼 */}
+                    <div style={{ marginTop: '15px' }}>
+                        <input
+                            type="file"
+                            id="profile-image-upload"
+                            accept="image/*"
+                            style={{ display: 'none' }}
+                            onChange={handleImageUpload}
+                            disabled={isUploading}
+                        />
+                        <label 
+                            htmlFor="profile-image-upload"
+                            style={{
+                                padding: '8px 16px',
+                                backgroundColor: isUploading ? '#cccccc' : '#4CAF50',
+                                color: 'white',
+                                cursor: isUploading ? 'not-allowed' : 'pointer',
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                transition: 'all 0.3s ease'
+                            }}
+                        >
+                            {isUploading ? '업로드 중...' : '프로필 이미지 변경'}
+                        </label>
                     </div>
                 </div>
                 
-                {!profileImage && (
+                {/* 사용자 정보 섹션 */}
+                <div style={{ width: '100%', marginBottom: '20px' }}>
+                    <div style={{ marginBottom: '15px' }}>
+                        <h3 style={{ margin: '0 0 5px 0', color: '#333' }}>아이디</h3>
+                        <p style={{ 
+                            margin: 0, 
+                            padding: '10px', 
+                            backgroundColor: '#f5f5f5', 
+                            borderRadius: '4px',
+                            fontWeight: 'bold'
+                        }}>{userId || '알 수 없음'}</p>
+                    </div>
+                    
+                    <div style={{ marginBottom: '15px' }}>
+                        <h3 style={{ margin: '0 0 5px 0', color: '#333' }}>이름</h3>
+                        <p style={{ 
+                            margin: 0, 
+                            padding: '10px', 
+                            backgroundColor: '#f5f5f5', 
+                            borderRadius: '4px' 
+                        }}>{fullName || '알 수 없음'}</p>
+                    </div>
+                    
+                    <div style={{ marginBottom: '15px' }}>
+                        <h3 style={{ margin: '0 0 5px 0', color: '#333' }}>이메일</h3>
+                        <p style={{ 
+                            margin: 0, 
+                            padding: '10px', 
+                            backgroundColor: '#f5f5f5', 
+                            borderRadius: '4px' 
+                        }}>{email || '알 수 없음'}</p>
+                    </div>
+                    
+                    {nickname && (
+                        <div style={{ marginBottom: '15px' }}>
+                            <h3 style={{ margin: '0 0 5px 0', color: '#333' }}>닉네임</h3>
                     <p style={{
-                        color: '#666',
-                        fontStyle: 'italic'
-                    }}>
-                        소셜 로그인 시 프로필 이미지가 자동으로 표시됩니다.
-                    </p>
-                )}
+                                margin: 0, 
+                                padding: '10px', 
+                                backgroundColor: '#f5f5f5', 
+                                borderRadius: '4px' 
+                            }}>{nickname}</p>
+                        </div>
+                    )}
+                </div>
+            </div>
+            
+            {/* 버튼 섹션 */}
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '15px' }}>
+                <Link 
+                    to="/main" 
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#3f51b5',
+                        color: 'white',
+                        textDecoration: 'none',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        textAlign: 'center',
+                        transition: 'background-color 0.3s'
+                    }}
+                >
+                    메인으로
+                </Link>
+                
+                <button 
+                    onClick={handleLogout}
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: '#f44336',
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        transition: 'background-color 0.3s'
+                    }}
+                >
+                    로그아웃
+                </button>
             </div>
         </div>
     );

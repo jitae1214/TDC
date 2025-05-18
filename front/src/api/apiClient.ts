@@ -1,8 +1,8 @@
 import axios from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
-// API 기본 URL 설정
-const BASE_URL = 'http://localhost:8080';  // '/api' 부분 제거
+// API uae30ubcf8 URL uc124uc815
+const BASE_URL = 'http://localhost:8080';  // '/api' ubd80ubd84 uc81cuac70
 // 토큰 저장 관련 상수
 const AUTH_TOKEN_KEY = 'token';
 
