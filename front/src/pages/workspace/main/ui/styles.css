@@ -34,7 +34,15 @@
 }
 
 .workspaceMain-sidebar-button:hover {
-    background-color: #742374;
+    background-color: #5A1A5A;
+    color: white;
+    cursor: pointer;
+}
+
+.workspaceMain-sidebar-button-active {
+    background-color: #5A1A5A;
+    color: white;
+    border-left: 4px solid #FF3366;
 }
 
 .workspaceMain-sidebar-profile {

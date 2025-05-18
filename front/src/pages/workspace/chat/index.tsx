@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { getWorkspace } from '../../../api/workspaceService';
 import './styles.css';
+import ChatUI from './ui';
 
 const WorkspaceChat = () => {
     const navigate = useNavigate();
@@ -44,9 +45,13 @@ const WorkspaceChat = () => {
         }
     };
 
+    if (loading) {
+        return <div className="loading">로딩 중...</div>;
+    }
+
     return (
         <div className="workspace-chat-container">
-            {/* UI 요소가 모두 삭제되었습니다 */}
+            <ChatUI />
         </div>
     );
 };

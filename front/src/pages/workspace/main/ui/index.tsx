@@ -149,6 +149,7 @@ const WorkspaceMain = () => {
         }
     };
 
+    // DM 버튼 클릭 핸들러
     const handleWorkspaceChat = () => {
         // 항상 ID를 포함하여 이동
         if (workspaceId) {
@@ -157,6 +158,9 @@ const WorkspaceMain = () => {
             navigate('/main');
         }
     }
+
+    // 현재 페이지가 DM 페이지인지 확인
+    const isDMPage = location.pathname.includes('/chat');
 
     const handleOpenInviteModal = () => {
         setShowInviteModal(true);
@@ -244,7 +248,9 @@ const WorkspaceMain = () => {
                     <div className={"workspaceMain-sidebar-button"}>
                         Home
                     </div>
-                    <div className={"workspaceMain-sidebar-button"}
+                    <div className={isDMPage 
+                        ? "workspaceMain-sidebar-button workspaceMain-sidebar-button-active" 
+                        : "workspaceMain-sidebar-button"}
                          onClick={handleWorkspaceChat}>
                         DM
                     </div>
