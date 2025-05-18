@@ -18,16 +18,18 @@
     writing-mode: vertical-rl;
     text-align: center;
     margin: 10px 0;
-    background-color: white;
+    background-color: transparent;
+    color: white;
     padding: 5px;
     font-size: 14px;
     cursor: pointer;
     user-select: none;
-    transition: background-color 0.3s;
+    transition: all 0.3s;
+    border-radius: 5px;
 }
 
 .workspaceChat-sidebar-menu:hover {
-    background-color: #ad7bc9;
+    background-color: #8a44a0;
     color: white;
 }
 
@@ -63,6 +65,19 @@
     height: 75px;
     border-radius: 50%;
     margin-right: 8px;
+    object-fit: cover;
+}
+
+/* 이니셜 기반 아바타 스타일 */
+.workspaceChat-avatar-initial {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    background-color: #512DA8;
+    text-align: center;
 }
 
 .workspaceChat-status-dot {
@@ -81,7 +96,7 @@
 }
 
 .gray {
-    background-color: gray;
+    background-color: red;
 }
 
 .workspaceChat-name {
@@ -200,6 +215,17 @@
 .workspaceChat-message-body div {
     font-size: 24px;
     height: 35px;
+}
+
+/* 로딩 표시 */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-size: 20px;
+    color: white;
+    background-color: #2d2d2d;
 }
 
 /* 입력창 */
