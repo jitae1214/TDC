@@ -140,37 +140,54 @@ export const loginWithSocialAuthCode = async (
     if (response.data.success && response.data.token) {
       console.log('토큰 저장 시작:', !!response.data.token);
       
-      // 기존 토큰 제거 후 새 토큰 저장 (토큰 충돌 방지)
-      localStorage.removeItem('token');
-      
-      // 로컬 스토리지에 직접 저장
-      localStorage.setItem('token', response.data.token);
-      
-      // 백업으로 세션 스토리지에도 저장
-      sessionStorage.setItem('token', response.data.token);
-      
-      // setAuthToken을 통해서도 저장 (기존 방식)
-      setAuthToken(response.data.token);
-      
-      // 토큰이 제대로 저장되었는지 확인
-      const savedToken = localStorage.getItem('token');
-      console.log('저장된 토큰 확인:', !!savedToken);
-      
-      if (!savedToken) {
-        console.error('토큰 저장 실패. 마지막 시도로 다시 저장합니다.');
+      try {
+        // 먼저 기존 토큰 제거
+        localStorage.removeItem('token');
+        sessionStorage.removeItem('token');
+        
+        // 로컬 스토리지에 토큰 저장
         localStorage.setItem('token', response.data.token);
-      }
-      
-      if (response.data.username) {
-        console.log('사용자 이름 저장:', response.data.username);
-        localStorage.setItem('username', response.data.username);
-        setUsername(response.data.username);
-      }
-      
-      // 닉네임 저장 (백엔드에서 제공하는 경우)
-      if (response.data.nickname) {
-        console.log('닉네임 저장:', response.data.nickname);
-        localStorage.setItem('userNickname', response.data.nickname);
+        
+        // 세션 스토리지에도 저장
+        sessionStorage.setItem('token', response.data.token);
+        
+        // API 클라이언트에도 설정
+        setAuthToken(response.data.token);
+        
+        // 토큰 저장 확인
+        const savedToken = localStorage.getItem('token');
+        console.log('저장된 토큰 확인:', !!savedToken);
+        
+        if (!savedToken) {
+          console.error('토큰 저장 실패. 마지막 시도로 다시 저장합니다.');
+          localStorage.setItem('token', response.data.token);
+        }
+        
+        // 사용자 정보 저장
+        if (response.data.username) {
+          console.log('사용자 이름 저장:', response.data.username);
+          localStorage.setItem('username', response.data.username);
+          setUsername(response.data.username);
+          
+          // 사용자 상태를 ONLINE으로 설정
+          try {
+            await apiClient.post('/api/users/status', { 
+              username: response.data.username, 
+              status: 'ONLINE' 
+            });
+            console.log(`사용자 ${response.data.username} 상태를 ONLINE으로 변경했습니다.`);
+          } catch (statusError) {
+            console.error('소셜 로그인 후 사용자 상태 업데이트 오류:', statusError);
+          }
+        }
+        
+        // 닉네임 저장 (백엔드에서 제공하는 경우)
+        if (response.data.nickname) {
+          console.log('닉네임 저장:', response.data.nickname);
+          localStorage.setItem('userNickname', response.data.nickname);
+        }
+      } catch (storageError) {
+        console.error('토큰 저장 중 오류 발생:', storageError);
       }
     } else {
       console.log('소셜 로그인 실패:', response.data.message);

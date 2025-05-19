@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { loginWithSocialAuthCode } from '../../api/socialAuthService';
+import apiClient, { setAuthToken } from '../../api/apiClient';
 
 interface DebugInfo {
   code?: string;
@@ -47,29 +48,54 @@ const KakaoCallback: React.FC = () => {
         
         console.log('소셜 로그인 응답:', response);
         
-        // 로그인 성공 여부와 관계없이 항상 토큰 저장 시도 및 리다이렉트
-        console.log('로그인 처리 완료, 메인 페이지로 이동 준비');
-        
-        // 토큰이 있으면 저장
+        // 로그인 성공 시 직접 토큰 설정 처리
         if (response.success && response.token) {
-          localStorage.setItem('token', response.token);
-          sessionStorage.setItem('token', response.token);
+          console.log('KakaoCallback: 로그인 성공, 토큰 설정 시작');
           
-          if (response.username) {
-            localStorage.setItem('username', response.username);
-          }
+          try {
+            // apiClient의 setAuthToken 함수 사용
+            setAuthToken(response.token);
+            
+            // 토큰이 올바르게 저장되었는지 확인
+            const localToken = localStorage.getItem('token');
+            const sessionToken = sessionStorage.getItem('token');
+            console.log('토큰 저장 확인:', {
+              localStorageToken: !!localToken,
+              sessionStorageToken: !!sessionToken
+            });
+            
+            // 사용자 이름 저장
+            if (response.username) {
+              console.log('사용자 이름 저장:', response.username);
+              localStorage.setItem('username', response.username);
+              
+              // 사용자 상태를 ONLINE으로 설정
+              try {
+                console.log('사용자 상태 ONLINE으로 설정 시도:', response.username);
+                const statusResponse = await apiClient.post('/api/users/status', { 
+                  username: response.username, 
+                  status: 'ONLINE' 
+                });
+                console.log('사용자 상태 업데이트 응답:', statusResponse.data);
+                console.log(`카카오 로그인: 사용자 ${response.username} 상태를 ONLINE으로 변경했습니다.`);
+              } catch (statusError) {
+                console.error('카카오 로그인 후 사용자 상태 업데이트 오류:', statusError);
+              }
+            }
 
-          // 프로필 이미지 URL 저장
-          if (response.profileImage) {
-            localStorage.setItem('profileImage', response.profileImage);
+            // 프로필 이미지 URL 저장
+            if (response.profileImage) {
+              localStorage.setItem('profileImage', response.profileImage);
+            }
+          } catch (storageError) {
+            console.error('토큰/사용자 정보 저장 중 오류:', storageError);
           }
+        } else {
+          console.error('소셜 로그인 실패:', response.message);
         }
         
-        // 토큰 저장 확인
-        console.log('토큰 저장 상태:', {
-          localStorage: !!localStorage.getItem('token'),
-          sessionStorage: !!sessionStorage.getItem('token')
-        });
+        // 로그인 처리 완료, 페이지 이동 준비
+        console.log('로그인 처리 완료, 지정된 페이지로 이동 준비');
         
         // 토큰 저장 후 짧은 지연 시간을 두고 리다이렉트
         setTimeout(() => {

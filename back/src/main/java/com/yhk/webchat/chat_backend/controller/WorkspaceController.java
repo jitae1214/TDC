@@ -19,6 +19,7 @@ import com.yhk.webchat.chat_backend.model.User;
 import com.yhk.webchat.chat_backend.repository.UserRepository;
 import com.yhk.webchat.chat_backend.security.CurrentUser;
 import com.yhk.webchat.chat_backend.service.WorkspaceService;
+import com.yhk.webchat.chat_backend.service.UserService;
 
 import jakarta.validation.Valid;
 
@@ -34,6 +35,9 @@ public class WorkspaceController {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private UserService userService;
     
     /**
      * 현재 인증된 사용자 정보 조회
@@ -341,5 +345,17 @@ public class WorkspaceController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
+    }
+    
+    /**
+     * 워크스페이스 온라인 멤버 목록 조회
+     * @param workspaceId 워크스페이스 ID
+     * @return 온라인 멤버 ID 목록
+     */
+    @GetMapping("/{workspaceId}/online-members")
+    public ResponseEntity<List<Long>> getWorkspaceOnlineMembers(@PathVariable Long workspaceId) {
+        // 사용자 서비스에서 온라인 멤버 목록 조회
+        List<Long> onlineMembers = userService.getWorkspaceOnlineMembers(workspaceId);
+        return ResponseEntity.ok(onlineMembers);
     }
 } 

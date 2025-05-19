@@ -103,35 +103,55 @@ public class SocialLoginService {
      * 소셜 인증 코드로 액세스 토큰 요청
      */
     public String getKakaoAccessToken(String code) {
-        // HTTP 헤더 생성
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-
-        // HTTP 요청 파라미터 생성
-        MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-        params.add("grant_type", "authorization_code");
-        params.add("client_id", kakaoClientId);
-        params.add("client_secret", kakaoClientSecret);
-        params.add("redirect_uri", kakaoRedirectUri);
-        params.add("code", code);
-
-        // HTTP 요청 엔티티 생성
-        HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(params, headers);
-
-        // 카카오 토큰 요청
-        ResponseEntity<String> response = restTemplate.exchange(
-                kakaoTokenUri,
-                HttpMethod.POST,
-                kakaoTokenRequest,
-                String.class
-        );
-
-        // 응답에서 액세스 토큰 추출
         try {
-            JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            return jsonNode.get("access_token").asText();
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("카카오 액세스 토큰 파싱 중 오류가 발생했습니다.", e);
+            // HTTP 헤더 생성
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+    
+            // HTTP 요청 파라미터 생성
+            MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
+            params.add("grant_type", "authorization_code");
+            params.add("client_id", kakaoClientId);
+            params.add("client_secret", kakaoClientSecret);
+            params.add("redirect_uri", kakaoRedirectUri);
+            params.add("code", code);
+    
+            // 로그 추가
+            System.out.println("카카오 토큰 요청 정보:");
+            System.out.println("- client_id: " + kakaoClientId);
+            System.out.println("- redirect_uri: " + kakaoRedirectUri);
+            System.out.println("- code 길이: " + (code != null ? code.length() : "null"));
+            System.out.println("- 토큰 요청 URL: " + kakaoTokenUri);
+    
+            // HTTP 요청 엔티티 생성
+            HttpEntity<MultiValueMap<String, String>> kakaoTokenRequest = new HttpEntity<>(params, headers);
+    
+            // 카카오 토큰 요청
+            ResponseEntity<String> response = restTemplate.exchange(
+                    kakaoTokenUri,
+                    HttpMethod.POST,
+                    kakaoTokenRequest,
+                    String.class
+            );
+    
+            // 응답 로그 추가
+            System.out.println("카카오 토큰 응답 상태: " + response.getStatusCode());
+            System.out.println("카카오 토큰 응답 본문: " + response.getBody());
+    
+            // 응답에서 액세스 토큰 추출
+            try {
+                JsonNode jsonNode = objectMapper.readTree(response.getBody());
+                String accessToken = jsonNode.get("access_token").asText();
+                System.out.println("카카오 액세스 토큰 생성 성공: " + (accessToken != null && !accessToken.isEmpty()));
+                return accessToken;
+            } catch (JsonProcessingException e) {
+                System.err.println("카카오 액세스 토큰 파싱 중 오류: " + e.getMessage());
+                throw new RuntimeException("카카오 액세스 토큰 파싱 중 오류가 발생했습니다.", e);
+            }
+        } catch (Exception e) {
+            System.err.println("카카오 토큰 요청 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("카카오 토큰 요청 중 오류가 발생했습니다.", e);
         }
     }
 
@@ -139,54 +159,77 @@ public class SocialLoginService {
      * 카카오 액세스 토큰으로 사용자 정보 요청
      */
     public SocialUserInfo getKakaoUserInfo(String accessToken) {
-        // HTTP 헤더 생성
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Authorization", "Bearer " + accessToken);
-        headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
-
-        // HTTP 요청 엔티티 생성
-        HttpEntity<MultiValueMap<String, String>> kakaoUserInfoRequest = new HttpEntity<>(headers);
-
-        // 카카오 사용자 정보 요청
-        ResponseEntity<String> response = restTemplate.exchange(
-                kakaoUserInfoUri,
-                HttpMethod.GET,
-                kakaoUserInfoRequest,
-                String.class
-        );
-
-        // 응답에서 사용자 정보 추출
         try {
-            JsonNode jsonNode = objectMapper.readTree(response.getBody());
-            
-            // 사용자 정보 추출
-            String id = jsonNode.get("id").asText(); // 카카오 고유 ID가 여기 들어감
-            String nickname = jsonNode.path("properties").path("nickname").asText();
-            String profileImage = jsonNode.path("properties").path("profile_image").asText();
-            String email = jsonNode.path("kakao_account").path("email").asText("");
-            
-            // 추가 정보 저장
-            Map<String, Object> additionalInfo = new HashMap<>();
-            if (jsonNode.has("connected_at")) {
-                additionalInfo.put("connected_at", jsonNode.get("connected_at").asText());
-            }
-            
-            // 소셜 사용자 정보 객체 생성
-            SocialUserInfo userInfo = new SocialUserInfo(
-                    id, // 카카오 고유 ID가 여기 들어감
-                    "kakao",
-                    email,
-                    nickname,
-                    profileImage
+            // HTTP 헤더 생성
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Authorization", "Bearer " + accessToken);
+            headers.add("Content-type", "application/x-www-form-urlencoded;charset=utf-8");
+    
+            // 로그 추가
+            System.out.println("카카오 사용자 정보 요청:");
+            System.out.println("- 액세스 토큰 존재 여부: " + (accessToken != null && !accessToken.isEmpty()));
+            System.out.println("- 사용자 정보 요청 URL: " + kakaoUserInfoUri);
+    
+            // HTTP 요청 엔티티 생성
+            HttpEntity<MultiValueMap<String, String>> kakaoUserInfoRequest = new HttpEntity<>(headers);
+    
+            // 카카오 사용자 정보 요청
+            ResponseEntity<String> response = restTemplate.exchange(
+                    kakaoUserInfoUri,
+                    HttpMethod.GET,
+                    kakaoUserInfoRequest,
+                    String.class
             );
-            userInfo.setAdditionalInfo(additionalInfo);
-            return userInfo;
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("카카오 사용자 정보 파싱 중 오류가 발생", e);
+    
+            // 응답 로그 추가
+            System.out.println("카카오 사용자 정보 응답 상태: " + response.getStatusCode());
+            System.out.println("카카오 사용자 정보 응답 본문: " + response.getBody());
+    
+            // 응답에서 사용자 정보 추출
+            try {
+                JsonNode jsonNode = objectMapper.readTree(response.getBody());
+                
+                // 사용자 정보 추출
+                String id = jsonNode.get("id").asText(); // 카카오 고유 ID가 여기 들어감
+                String nickname = jsonNode.path("properties").path("nickname").asText();
+                String profileImage = jsonNode.path("properties").path("profile_image").asText();
+                String email = jsonNode.path("kakao_account").path("email").asText("");
+                
+                // 로그 추가
+                System.out.println("카카오 사용자 정보 추출 결과:");
+                System.out.println("- 소셜 ID: " + id);
+                System.out.println("- 이메일: " + email);
+                System.out.println("- 닉네임: " + nickname);
+                System.out.println("- 프로필 이미지: " + (profileImage != null && !profileImage.isEmpty() ? "있음" : "없음"));
+                
+                // 추가 정보 저장
+                Map<String, Object> additionalInfo = new HashMap<>();
+                if (jsonNode.has("connected_at")) {
+                    additionalInfo.put("connected_at", jsonNode.get("connected_at").asText());
+                }
+                
+                // 소셜 사용자 정보 객체 생성
+                SocialUserInfo userInfo = new SocialUserInfo(
+                        id, // 카카오 고유 ID가 여기 들어감
+                        "kakao",
+                        email,
+                        nickname,
+                        profileImage
+                );
+                userInfo.setAdditionalInfo(additionalInfo);
+                
+                System.out.println("카카오 사용자 정보 객체 생성 완료");
+                return userInfo;
+            } catch (JsonProcessingException e) {
+                System.err.println("카카오 사용자 정보 파싱 중 오류: " + e.getMessage());
+                throw new RuntimeException("카카오 사용자 정보 파싱 중 오류가 발생", e);
+            }
+        } catch (Exception e) {
+            System.err.println("카카오 사용자 정보 요청 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("카카오 사용자 정보 요청 중 오류가 발생했습니다.", e);
         }
     }
-
-    
 
     /**
      * 소셜 로그인 사용자 찾기 또는 생성

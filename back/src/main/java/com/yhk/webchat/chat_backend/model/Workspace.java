@@ -157,6 +157,7 @@ public class Workspace {
         private String description;
         private User owner;
         private String iconColor;
+        private String imageUrl;
         
         public WorkspaceBuilder name(String name) {
             this.name = name;
@@ -178,8 +179,13 @@ public class Workspace {
             return this;
         }
         
+        public WorkspaceBuilder imageUrl(String imageUrl) {
+            this.imageUrl = imageUrl;
+            return this;
+        }
+        
         public Workspace build() {
-            return new Workspace(name, description, owner, iconColor, null);
+            return new Workspace(name, description, owner, iconColor, imageUrl);
         }
     }
     

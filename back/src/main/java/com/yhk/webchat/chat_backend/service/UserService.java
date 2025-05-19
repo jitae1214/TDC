@@ -6,12 +6,19 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.yhk.webchat.chat_backend.dto.response.ApiResponse;
 import com.yhk.webchat.chat_backend.model.User;
+import com.yhk.webchat.chat_backend.model.Workspace;
+import com.yhk.webchat.chat_backend.model.WorkspaceMembership;
 import com.yhk.webchat.chat_backend.repository.UserRepository;
+import com.yhk.webchat.chat_backend.repository.WorkspaceMembershipRepository;
+import com.yhk.webchat.chat_backend.repository.WorkspaceRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 사용자 관련 비즈니스 로직을 담당하는 서비스
@@ -21,6 +28,17 @@ public class UserService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private WorkspaceRepository workspaceRepository;
+    
+    @Autowired
+    private WorkspaceMembershipRepository workspaceMembershipRepository;
+    
+    // 상태 상수 정의
+    public static final String STATUS_ONLINE = "ONLINE";
+    public static final String STATUS_OFFLINE = "OFFLINE";
+    public static final String STATUS_AWAY = "AWAY";
     
     /**
      * 사용자 프로필 이미지 URL 업데이트
@@ -89,6 +107,134 @@ public class UserService {
             return new ApiResponse(true, "ud504ub85cud544 uc774ubbf8uc9c0uac00 uc5c5ub370uc774ud2b8ub418uc5c8uc2b5ub2c8ub2e4.", data);
         } catch (Exception e) {
             return new ApiResponse(false, "ud504ub85cud544 uc774ubbf8uc9c0 uc5c5ub370uc774ud2b8 uc911 uc624ub958uac00 ubc1cuc0ddud588uc2b5ub2c8ub2e4: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 사용자 온라인 상태 업데이트
+     * @param userId 사용자 ID
+     * @param status 상태 (ONLINE, OFFLINE, AWAY)
+     * @return 업데이트 결과
+     */
+    @Transactional
+    public ApiResponse updateUserStatus(Long userId, String status) {
+        try {
+            // 사용자 조회
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (!optionalUser.isPresent()) {
+                return new ApiResponse(false, "사용자를 찾을 수 없습니다.", null);
+            }
+            
+            User user = optionalUser.get();
+            
+            // 상태값 검증
+            if (!status.equals(STATUS_ONLINE) && !status.equals(STATUS_OFFLINE) && !status.equals(STATUS_AWAY)) {
+                return new ApiResponse(false, "잘못된 상태값입니다. (ONLINE, OFFLINE, AWAY 중 하나여야 함)", null);
+            }
+            
+            // 사용자 상태 업데이트
+            user.setStatus(status);
+            user.setUpdatedAt(LocalDateTime.now());
+            
+            // 로그인 시간 업데이트 (온라인 상태로 변경 시)
+            if (status.equals(STATUS_ONLINE)) {
+                user.setLastLoginAt(LocalDateTime.now());
+            }
+            
+            userRepository.save(user);
+            
+            // 응답 데이터 구성
+            Map<String, Object> data = new HashMap<>();
+            data.put("userId", user.getId());
+            data.put("username", user.getUsername());
+            data.put("status", user.getStatus());
+            data.put("lastLoginAt", user.getLastLoginAt());
+            
+            return new ApiResponse(true, "사용자 상태가 업데이트되었습니다.", data);
+        } catch (Exception e) {
+            return new ApiResponse(false, "사용자 상태 업데이트 중 오류가 발생했습니다: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 사용자명으로 온라인 상태 업데이트
+     * @param username 사용자명
+     * @param status 상태 (ONLINE, OFFLINE, AWAY)
+     * @return 업데이트 결과
+     */
+    @Transactional
+    public ApiResponse updateUserStatusByUsername(String username, String status) {
+        try {
+            // 사용자 조회
+            Optional<User> optionalUser = userRepository.findByUsername(username);
+            if (!optionalUser.isPresent()) {
+                return new ApiResponse(false, "사용자를 찾을 수 없습니다.", null);
+            }
+            
+            User user = optionalUser.get();
+            
+            // 업데이트 메서드 재사용
+            return updateUserStatus(user.getId(), status);
+        } catch (Exception e) {
+            return new ApiResponse(false, "사용자 상태 업데이트 중 오류가 발생했습니다: " + e.getMessage(), null);
+        }
+    }
+    
+    /**
+     * 모든 온라인 사용자 목록 조회
+     * @return 온라인 사용자 ID 목록
+     */
+    public List<Long> getAllOnlineUsers() {
+        List<User> onlineUsers = userRepository.findByStatus(STATUS_ONLINE);
+        return onlineUsers.stream().map(User::getId).collect(Collectors.toList());
+    }
+    
+    /**
+     * 워크스페이스에 속한 온라인 사용자 목록 조회
+     * @param workspaceId 워크스페이스 ID
+     * @return 온라인 사용자 ID 목록
+     */
+    public List<Long> getWorkspaceOnlineMembers(Long workspaceId) {
+        try {
+            // 워크스페이스 존재 확인
+            Optional<Workspace> optionalWorkspace = workspaceRepository.findById(workspaceId);
+            if (!optionalWorkspace.isPresent()) {
+                return new ArrayList<>();
+            }
+            
+            // 워크스페이스 멤버십 조회
+            List<WorkspaceMembership> memberships = workspaceMembershipRepository.findByWorkspaceId(workspaceId);
+            
+            // 멤버십에 속한 사용자 중 온라인 상태인 사용자 필터링
+            List<Long> onlineUserIds = new ArrayList<>();
+            for (WorkspaceMembership membership : memberships) {
+                User user = membership.getUser();
+                if (user != null && STATUS_ONLINE.equals(user.getStatus())) {
+                    onlineUserIds.add(user.getId());
+                }
+            }
+            
+            return onlineUserIds;
+        } catch (Exception e) {
+            // 오류 발생 시 빈 목록 반환
+            return new ArrayList<>();
+        }
+    }
+    
+    /**
+     * 특정 사용자의 온라인 상태 조회
+     * @param userId 사용자 ID
+     * @return 온라인 상태 문자열 (ONLINE, OFFLINE, AWAY)
+     */
+    public String getUserStatus(Long userId) {
+        try {
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (optionalUser.isPresent()) {
+                return optionalUser.get().getStatus();
+            }
+            return STATUS_OFFLINE;
+        } catch (Exception e) {
+            return STATUS_OFFLINE;
         }
     }
 } 

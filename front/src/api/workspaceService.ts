@@ -167,4 +167,40 @@ export const checkWorkspaceName = async (name: string): Promise<boolean> => {
 export const getRecentWorkspaces = async (limit: number = 5): Promise<Workspace[]> => {
   const response = await apiClient.get(`/api/workspaces/recent?limit=${limit}`);
   return response.data;
+};
+
+// 온라인 상태인 사용자 목록 조회
+export const getOnlineUsers = async (): Promise<string[]> => {
+  try {
+    const response = await apiClient.get('/api/users/online');
+    console.log('온라인 사용자 조회 응답:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('온라인 사용자 조회 중 오류:', error);
+    return []; // 오류 발생 시 빈 배열 반환
+  }
+};
+
+// 특정 워크스페이스의 온라인 멤버 조회
+export const getWorkspaceOnlineMembers = async (workspaceId: number): Promise<number[]> => {
+  try {
+    const response = await apiClient.get(`/api/workspaces/${workspaceId}/online-members`);
+    console.log('워크스페이스 온라인 멤버 조회 응답:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('워크스페이스 온라인 멤버 조회 중 오류:', error);
+    return []; // 오류 발생 시 빈 배열 반환
+  }
+};
+
+// 특정 사용자의 온라인 상태 조회
+export const getUserOnlineStatus = async (userId: number): Promise<boolean> => {
+  try {
+    const response = await apiClient.get(`/api/users/${userId}/status`);
+    console.log(`사용자 ${userId} 온라인 상태 조회 응답:`, response.data);
+    return response.data === 'ONLINE';
+  } catch (error) {
+    console.error(`사용자 ${userId} 온라인 상태 조회 중 오류:`, error);
+    return false; // 오류 발생 시 오프라인으로 간주
+  }
 }; 

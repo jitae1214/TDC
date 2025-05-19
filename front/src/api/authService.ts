@@ -6,6 +6,9 @@ const AUTH_URL = '/api/auth';
 const REGISTER_URL = '/api/register'; // 회원가입 관련 새로운 URL 추가
 const AUTH_USERNAME_KEY = 'username';
 
+// getAuthToken 함수를 다시 export
+export { getAuthToken };
+
 /* -- Request : 프론트엔드에서 뱍엔드로 데이터를 보낼 때 사용 */
 /*-- Response : 백엔드에서 프론트엔드로 응답 할 때 사용 */
 
@@ -79,6 +82,17 @@ export const login = async (loginData: LoginRequest): Promise<LoginResponse> => 
     if (response.data.success && response.data.token) {
       setAuthToken(response.data.token); // JWT 토큰 저장
       setUsername(response.data.username || ''); // 사용자 이름 저장
+      
+      // 로그인 성공 시 사용자 상태를 ONLINE으로 설정
+      try {
+        await apiClient.post('/api/users/status', { 
+          username: response.data.username, 
+          status: 'ONLINE' 
+        });
+        console.log(`사용자 ${response.data.username} 상태를 ONLINE으로 변경했습니다.`);
+      } catch (statusError) {
+        console.error('로그인 중 사용자 상태 업데이트 오류:', statusError);
+      }
     }
     
     return response.data;
@@ -164,9 +178,23 @@ export const checkEmailAvailability = async (email: string): Promise<Availabilit
 };
 
 // 사용자 로그아웃
-export const logout = (): void => {
+export const logout = async (): Promise<void> => {
   // 현재 사용자 ID 가져오기
   const currentUser = getUsername();
+  
+  // 로그아웃 전에 사용자 상태를 OFFLINE으로 변경
+  try {
+    if (currentUser) {
+      // 사용자 상태를 OFFLINE으로 업데이트하는 API 호출
+      await apiClient.post('/api/users/status', { 
+        username: currentUser, 
+        status: 'OFFLINE' 
+      });
+      console.log(`사용자 ${currentUser} 상태를 OFFLINE으로 변경했습니다.`);
+    }
+  } catch (error) {
+    console.error('로그아웃 중 사용자 상태 업데이트 오류:', error);
+  }
   
   // JWT 토큰 제거
   setAuthToken(null);
@@ -204,7 +232,7 @@ export const logout = (): void => {
   sessionStorage.removeItem('username');
   
   console.log('로그아웃: 사용자 관련 데이터가 모두 삭제되었습니다.');
-};
+}
 
 // 로그인 상태 확인
 export const isAuthenticated = (): boolean => { // 로컬 스토리지에 토큰이 있는지 확인
