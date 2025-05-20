@@ -53,17 +53,37 @@ public class ChatService {
      * @param chatMessage 전송할 채팅 메시지
      */
     public void sendMessage(ChatMessage chatMessage) {
-        chatMessage.setId(UUID.randomUUID().toString());
-        chatMessage.setTimestamp(LocalDateTime.now());
-        
-        // 채팅방 주제(topic)으로 메시지 전송
-        messagingTemplate.convertAndSend(
-            "/topic/chat/" + chatMessage.getChatRoomId(),
-            chatMessage
-        );
-        
-        // DB에 메시지 저장
-        saveChatMessage(chatMessage);
+        try {
+            System.out.println("새 채팅 메시지 수신: " + chatMessage);
+            
+            // ID와 타임스탬프 설정
+            chatMessage.setId(UUID.randomUUID().toString());
+            chatMessage.setTimestamp(LocalDateTime.now());
+            
+            // 필수 필드 확인
+            if (chatMessage.getChatRoomId() == null) {
+                System.err.println("오류: 채팅방 ID가 없습니다.");
+                return;
+            }
+            
+            if (chatMessage.getSenderId() == null) {
+                System.err.println("오류: 발신자 ID가 없습니다.");
+                return;
+            }
+            
+            // 채팅방 주제(topic)으로 메시지 전송
+            messagingTemplate.convertAndSend(
+                "/topic/chat/" + chatMessage.getChatRoomId(),
+                chatMessage
+            );
+            System.out.println("메시지 전송 완료: 채팅방ID=" + chatMessage.getChatRoomId());
+            
+            // DB에 메시지 저장
+            saveChatMessage(chatMessage);
+        } catch (Exception e) {
+            System.err.println("메시지 전송 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
     
     /**
@@ -72,40 +92,144 @@ public class ChatService {
      */
     @Transactional
     private void saveChatMessage(ChatMessage message) {
-        Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findById(message.getChatRoomId());
-        Optional<User> senderOpt = userRepository.findById(message.getSenderId());
-        
-        if (chatRoomOpt.isPresent() && senderOpt.isPresent()) {
-            ChatRoom chatRoom = chatRoomOpt.get();
-            User sender = senderOpt.get();
+        try {
+            // 로그 추가
+            System.out.println("메시지 저장 시작: 채팅방ID=" + message.getChatRoomId() + ", 발신자ID=" + message.getSenderId());
             
-            // DTO -> 엔티티 변환
-            com.yhk.webchat.chat_backend.model.ChatMessage entity = new com.yhk.webchat.chat_backend.model.ChatMessage();
-            entity.setChatRoom(chatRoom);
-            entity.setSender(sender);
-            entity.setContent(message.getContent());
-            entity.setCreatedAt(message.getTimestamp());
+            Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findById(message.getChatRoomId());
+            Optional<User> senderOpt = userRepository.findById(message.getSenderId());
             
-            // 메시지 타입 변환
-            com.yhk.webchat.chat_backend.model.ChatMessage.MessageType entityType;
-            switch(message.getType()) {
-                case JOIN:
-                    entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.JOIN;
-                    break;
-                case LEAVE:
-                    entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.LEAVE;
-                    break;
-                default:
-                    entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.CHAT;
+            // 채팅방 존재 확인
+            if (!chatRoomOpt.isPresent()) {
+                System.err.println("오류: 채팅방을 찾을 수 없습니다. ID=" + message.getChatRoomId());
+                
+                // 워크스페이스 ID를 사용하여 기본 채팅방 찾기 시도
+                Optional<Workspace> workspaceOpt = workspaceRepository.findById(message.getChatRoomId());
+                if (workspaceOpt.isPresent() && senderOpt.isPresent()) {
+                    Workspace workspace = workspaceOpt.get();
+                    User sender = senderOpt.get();
+                    
+                    System.out.println("워크스페이스를 찾았습니다. ID=" + workspace.getId() + ", 이름=" + workspace.getName());
+                    
+                    // 워크스페이스의 기본 채팅방 찾기 또는 생성
+                    List<ChatRoom> existingRooms = chatRoomRepository.findByWorkspaceAndMember(workspace, sender);
+                    ChatRoom chatRoom;
+                    
+                    if (!existingRooms.isEmpty()) {
+                        // 첫 번째 채팅방 사용
+                        chatRoom = existingRooms.get(0);
+                        System.out.println("기존 채팅방을 찾았습니다. ID=" + chatRoom.getId() + ", 이름=" + chatRoom.getName());
+                    } else {
+                        // 새 채팅방 생성
+                        System.out.println("사용자가 속한 기존 채팅방이 없어 새 채팅방을 생성합니다.");
+                        chatRoom = new ChatRoom();
+                        chatRoom.setName("일반");
+                        chatRoom.setDescription("워크스페이스 기본 채팅방");
+                        chatRoom.setWorkspace(workspace);
+                        chatRoom.setCreator(sender);
+                        chatRoom.setDirect(false);
+                        chatRoom.addMember(sender);
+                        chatRoom = chatRoomRepository.save(chatRoom);
+                        System.out.println("새로운 채팅방 생성 완료. ID=" + chatRoom.getId());
+                    }
+                    
+                    // DTO -> 엔티티 변환
+                    com.yhk.webchat.chat_backend.model.ChatMessage entity = new com.yhk.webchat.chat_backend.model.ChatMessage();
+                    entity.setChatRoom(chatRoom);
+                    entity.setSender(sender);
+                    entity.setContent(message.getContent());
+                    entity.setCreatedAt(message.getTimestamp());
+                    
+                    // 메시지 타입 변환
+                    com.yhk.webchat.chat_backend.model.ChatMessage.MessageType entityType;
+                    switch(message.getType()) {
+                        case JOIN:
+                            entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.JOIN;
+                            break;
+                        case LEAVE:
+                            entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.LEAVE;
+                            break;
+                        default:
+                            entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.CHAT;
+                    }
+                    entity.setType(entityType);
+                    
+                    // 메시지 저장
+                    com.yhk.webchat.chat_backend.model.ChatMessage savedMessage = chatMessageRepository.save(entity);
+                    System.out.println("메시지 저장 완료. 메시지ID=" + savedMessage.getId());
+                    
+                    // 채팅방 최종 활동 시간 업데이트
+                    chatRoom.updateLastActivity();
+                    chatRoomRepository.save(chatRoom);
+                    
+                    // 원래 메시지의 채팅방 ID 업데이트 (후속 메시지 전송을 위해)
+                    messagingTemplate.convertAndSend(
+                        "/topic/chat/" + chatRoom.getId(),
+                        new ChatMessage(
+                            UUID.randomUUID().toString(),
+                            chatRoom.getId(),
+                            sender.getId(),
+                            sender.getUsername(),
+                            "채팅방이 자동으로 설정되었습니다. 이제 이 채팅방에서 대화할 수 있습니다.",
+                            ChatMessage.MessageType.CHAT,
+                            LocalDateTime.now(),
+                            sender.getProfileImageUrl()
+                        )
+                    );
+                    
+                    return;
+                }
             }
-            entity.setType(entityType);
             
-            // 메시지 저장
-            chatMessageRepository.save(entity);
+            // 발신자 존재 확인
+            if (!senderOpt.isPresent()) {
+                System.err.println("오류: 발신자를 찾을 수 없습니다. ID=" + message.getSenderId());
+                return;
+            }
             
-            // 채팅방 최종 활동 시간 업데이트
-            chatRoom.updateLastActivity();
-            chatRoomRepository.save(chatRoom);
+            if (chatRoomOpt.isPresent() && senderOpt.isPresent()) {
+                ChatRoom chatRoom = chatRoomOpt.get();
+                User sender = senderOpt.get();
+                
+                // 사용자가 채팅방 멤버인지 확인
+                if (!chatRoom.getMembers().contains(sender)) {
+                    System.out.println("사용자가 채팅방 멤버가 아니어서 자동으로 추가합니다. 사용자ID=" + sender.getId() + ", 채팅방ID=" + chatRoom.getId());
+                    chatRoom.addMember(sender);
+                    chatRoomRepository.save(chatRoom);
+                }
+                
+                // DTO -> 엔티티 변환
+                com.yhk.webchat.chat_backend.model.ChatMessage entity = new com.yhk.webchat.chat_backend.model.ChatMessage();
+                entity.setChatRoom(chatRoom);
+                entity.setSender(sender);
+                entity.setContent(message.getContent());
+                entity.setCreatedAt(message.getTimestamp());
+                
+                // 메시지 타입 변환
+                com.yhk.webchat.chat_backend.model.ChatMessage.MessageType entityType;
+                switch(message.getType()) {
+                    case JOIN:
+                        entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.JOIN;
+                        break;
+                    case LEAVE:
+                        entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.LEAVE;
+                        break;
+                    default:
+                        entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.CHAT;
+                }
+                entity.setType(entityType);
+                
+                // 메시지 저장
+                com.yhk.webchat.chat_backend.model.ChatMessage savedMessage = chatMessageRepository.save(entity);
+                System.out.println("메시지 저장 완료. 메시지ID=" + savedMessage.getId());
+                
+                // 채팅방 최종 활동 시간 업데이트
+                chatRoom.updateLastActivity();
+                chatRoomRepository.save(chatRoom);
+            }
+        } catch (Exception e) {
+            System.err.println("메시지 저장 중 예외 발생: " + e.getMessage());
+            e.printStackTrace();
         }
     }
     
@@ -343,6 +467,113 @@ public class ChatService {
             return new ApiResponse(true, "채팅방 목록을 성공적으로 조회했습니다.", chatRoomData);
         } catch (Exception e) {
             return new ApiResponse(false, "채팅방 목록 조회 중 오류가 발생했습니다: " + e.getMessage(), null);
+        }
+    }
+
+    /**
+     * 워크스페이스 ID로 기본 채팅방 조회 또는 생성
+     * 
+     * @param workspaceId 워크스페이스 ID
+     * @param userId 사용자 ID
+     * @return 채팅방 정보
+     */
+    @Transactional
+    public ApiResponse getOrCreateDefaultChatRoom(Long workspaceId, Long userId) {
+        try {
+            System.out.println("워크스페이스 " + workspaceId + "의 기본 채팅방 조회 또는 생성 요청");
+            
+            Optional<Workspace> workspaceOpt = workspaceRepository.findById(workspaceId);
+            Optional<User> userOpt = userRepository.findById(userId);
+            
+            if (!workspaceOpt.isPresent()) {
+                return new ApiResponse(false, "워크스페이스를 찾을 수 없습니다.", null);
+            }
+            
+            if (!userOpt.isPresent()) {
+                return new ApiResponse(false, "사용자를 찾을 수 없습니다.", null);
+            }
+            
+            Workspace workspace = workspaceOpt.get();
+            User user = userOpt.get();
+            
+            System.out.println("워크스페이스 " + workspace.getName() + "에서 사용자 " + user.getUsername() + "의 채팅방 조회");
+            
+            // 워크스페이스의 기본 채팅방 찾기
+            List<ChatRoom> userChatRooms = chatRoomRepository.findByWorkspaceAndMember(workspace, user);
+            ChatRoom defaultChatRoom = null;
+            
+            // 기존 채팅방 중에서 공통 채팅방 찾기
+            for (ChatRoom room : userChatRooms) {
+                if (!room.isDirect() && 
+                    (room.getName().toLowerCase().contains("일반") || 
+                     room.getName().toLowerCase().contains("general") || 
+                     room.getName().toLowerCase().contains("공통"))) {
+                    defaultChatRoom = room;
+                    System.out.println("기존 공통 채팅방 발견: " + room.getName() + ", ID: " + room.getId());
+                    break;
+                }
+            }
+            
+            // 공통 채팅방이 없으면 첫 번째 그룹 채팅방 사용
+            if (defaultChatRoom == null) {
+                for (ChatRoom room : userChatRooms) {
+                    if (!room.isDirect()) {
+                        defaultChatRoom = room;
+                        System.out.println("첫 번째 그룹 채팅방 사용: " + room.getName() + ", ID: " + room.getId());
+                        break;
+                    }
+                }
+            }
+            
+            // 그룹 채팅방도 없으면 새 채팅방 생성
+            if (defaultChatRoom == null) {
+                System.out.println("기존 채팅방 없음. 새 기본 채팅방 생성");
+                
+                defaultChatRoom = new ChatRoom();
+                defaultChatRoom.setName("일반");
+                defaultChatRoom.setDescription("워크스페이스 기본 채팅방");
+                defaultChatRoom.setWorkspace(workspace);
+                defaultChatRoom.setCreator(user);
+                defaultChatRoom.setDirect(false);
+                defaultChatRoom.addMember(user);
+                
+                defaultChatRoom = chatRoomRepository.save(defaultChatRoom);
+                System.out.println("새 채팅방 생성 완료: ID=" + defaultChatRoom.getId());
+                
+                // 시스템 메시지 추가
+                com.yhk.webchat.chat_backend.model.ChatMessage systemMessage = new com.yhk.webchat.chat_backend.model.ChatMessage();
+                systemMessage.setChatRoom(defaultChatRoom);
+                systemMessage.setSender(user);
+                systemMessage.setContent("채팅방이 생성되었습니다.");
+                systemMessage.setType(com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.SYSTEM);
+                systemMessage.setCreatedAt(LocalDateTime.now());
+                chatMessageRepository.save(systemMessage);
+            }
+            
+            // 응답 데이터 생성
+            Map<String, Object> responseData = new HashMap<>();
+            responseData.put("chatRoomId", defaultChatRoom.getId());
+            responseData.put("name", defaultChatRoom.getName());
+            responseData.put("description", defaultChatRoom.getDescription());
+            responseData.put("workspaceId", workspace.getId());
+            responseData.put("isDirect", defaultChatRoom.isDirect());
+            
+            // 멤버 목록 추가
+            List<Map<String, Object>> memberList = new ArrayList<>();
+            for (User member : defaultChatRoom.getMembers()) {
+                Map<String, Object> memberData = new HashMap<>();
+                memberData.put("id", member.getId());
+                memberData.put("username", member.getUsername());
+                memberData.put("profileImageUrl", member.getProfileImageUrl());
+                memberList.add(memberData);
+            }
+            responseData.put("members", memberList);
+            
+            return new ApiResponse(true, "채팅방을 찾았습니다.", responseData);
+        } catch (Exception e) {
+            System.err.println("기본 채팅방 조회/생성 중 오류: " + e.getMessage());
+            e.printStackTrace();
+            return new ApiResponse(false, "채팅방 조회/생성 중 오류가 발생했습니다: " + e.getMessage(), null);
         }
     }
 } 

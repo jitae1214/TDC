@@ -6,6 +6,7 @@ import "./styles.css";
 import chatImage from "../../../../shared/image/chat.png";
 import { getWorkspaceMembers, getWorkspace, getWorkspaceOnlineMembers, getUserOnlineStatus } from "../../../../api/workspaceService";
 import { getCurrentUser, getUsernameFromStorage, getAuthToken } from "../../../../api/authService";
+import { getChatMessages, getChatRoomsByWorkspace } from "../../../../api/chatService";
 import { Client } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
@@ -69,7 +70,10 @@ const WorkspaceChat: React.FC = () => {
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputMessage, setInputMessage] = useState<string>('');
     const [chatRoomId, setChatRoomId] = useState<number | null>(null);
+    const [chatRooms, setChatRooms] = useState<any[]>([]);
+    const [loadingMessages, setLoadingMessages] = useState<boolean>(false);
     const stompClientRef = useRef<Client | null>(null);
+    const chatBodyRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
 
     // STOMP 클라이언트 연결 설정 - 의존성 배열에서 workspaceId만 유지
@@ -77,11 +81,24 @@ const WorkspaceChat: React.FC = () => {
         console.log('워크스페이스 ID 변경됨:', workspaceId);
         if (workspaceId) {
             // 먼저 사용자 정보 로드
-            loadCurrentUser().then(() => {
-                // 기존 연결 해제 후 새 연결 수립
-                disconnectFromChat();
-                connectToChat();
-            });
+            loadCurrentUser()
+                .then(() => {
+                    // 저장된 채팅방 ID 확인
+                    const savedChatRoomId = localStorage.getItem(`chatRoomId_${workspaceId}`);
+                    console.log('저장된 채팅방 ID:', savedChatRoomId);
+                    
+                    if (savedChatRoomId) {
+                        // 저장된 채팅방 ID가 있으면 사용
+                        const roomId = parseInt(savedChatRoomId);
+                        console.log('저장된 채팅방 ID 복원:', roomId);
+                        setChatRoomId(roomId);
+                        disconnectFromChat();
+                        connectToChat(roomId);
+                    } else {
+                        // 워크스페이스의 채팅방 목록 로드
+                        loadChatRooms(workspaceId);
+                    }
+                });
         }
         
         return () => {
@@ -92,15 +109,94 @@ const WorkspaceChat: React.FC = () => {
         };
     }, [workspaceId]);
 
+    // 워크스페이스의 채팅방 목록 로드
+    const loadChatRooms = async (wsId: number) => {
+        try {
+            console.log(`워크스페이스 ${wsId}의 채팅방 목록 로드 시작`);
+            const response = await getChatRoomsByWorkspace(wsId);
+            console.log('채팅방 목록 로드 결과:', response);
+            
+            if (response && response.chatRooms && response.chatRooms.length > 0) {
+                setChatRooms(response.chatRooms);
+                
+                // 워크스페이스 공통 채팅방 찾기 (isDirect가 false인 첫 번째 채팅방 또는 이름에 'general'이 포함된 채팅방)
+                const generalRoom = response.chatRooms.find((room: any) => 
+                    !room.isDirect && (room.name.toLowerCase().includes('general') || 
+                                     room.name.toLowerCase().includes('공통') || 
+                                     room.name.toLowerCase().includes('일반'))
+                );
+                
+                // 공통 채팅방이 없으면 isDirect가 false인 첫 번째 채팅방
+                const defaultRoom = response.chatRooms.find((room: any) => !room.isDirect);
+                
+                // 적절한 채팅방 선택
+                const selectedRoom = generalRoom || defaultRoom || response.chatRooms[0];
+                
+                if (selectedRoom) {
+                    console.log('선택된 채팅방:', selectedRoom);
+                    const roomId = selectedRoom.id;
+                    
+                    // 채팅방 ID를 로컬 스토리지에 저장
+                    localStorage.setItem(`chatRoomId_${wsId}`, roomId.toString());
+                    console.log(`채팅방 ID ${roomId}를 워크스페이스 ${wsId}용으로 저장`);
+                    
+                    setChatRoomId(roomId);
+                    
+                    // 기존 연결 해제 후 새 연결 수립
+                    disconnectFromChat();
+                    connectToChat(roomId);
+                } else {
+                    console.error('적절한 채팅방을 찾을 수 없습니다.');
+                    // 채팅방이 없으면 워크스페이스 ID를 채팅방 ID로 사용 (fallback)
+                    setChatRoomId(wsId);
+                    
+                    // 채팅방 ID를 로컬 스토리지에 저장 (fallback)
+                    localStorage.setItem(`chatRoomId_${wsId}`, wsId.toString());
+                    console.log(`채팅방 ID ${wsId}(fallback)를 워크스페이스 ${wsId}용으로 저장`);
+                    
+                    disconnectFromChat();
+                    connectToChat(wsId);
+                    setIsLoading(false);
+                }
+            } else {
+                console.log('채팅방이 없습니다. 워크스페이스 ID를 채팅방 ID로 사용합니다.');
+                // 채팅방이 없으면 워크스페이스 ID를 채팅방 ID로 사용
+                setChatRoomId(wsId);
+                
+                // 채팅방 ID를 로컬 스토리지에 저장 (fallback)
+                localStorage.setItem(`chatRoomId_${wsId}`, wsId.toString());
+                console.log(`채팅방 ID ${wsId}(fallback)를 워크스페이스 ${wsId}용으로 저장`);
+                
+                disconnectFromChat();
+                connectToChat(wsId);
+                setIsLoading(false);
+            }
+        } catch (error) {
+            console.error('채팅방 목록 로드 중 오류:', error);
+            console.log('에러 발생으로 워크스페이스 ID를 채팅방 ID로 사용합니다.');
+            
+            // 에러 발생 시 워크스페이스 ID를 채팅방 ID로 대체 사용
+            setChatRoomId(wsId);
+            
+            // 채팅방 ID를 로컬 스토리지에 저장 (fallback)
+            localStorage.setItem(`chatRoomId_${wsId}`, wsId.toString());
+            console.log(`채팅방 ID ${wsId}(fallback)를 워크스페이스 ${wsId}용으로 저장`);
+            
+            disconnectFromChat();
+            connectToChat(wsId);
+            setIsLoading(false);
+        }
+    };
+
     // STOMP 클라이언트 연결 함수 - 연결 관리 강화
-    const connectToChat = () => {
+    const connectToChat = (roomId: number) => {
         // 이미 연결되어 있는 경우 연결 해제 먼저 수행
         disconnectFromChat();
         
         const token = getAuthToken();
-        if (!token || !workspaceId) return;
+        if (!token || !roomId) return;
 
-        console.log('새 STOMP 클라이언트 생성 시작');
+        console.log('새 STOMP 클라이언트 생성 시작, 채팅방 ID:', roomId);
         const stompClient = new Client({
             webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
             connectHeaders: {
@@ -120,12 +216,8 @@ const WorkspaceChat: React.FC = () => {
         stompClient.onConnect = () => {
             console.log('STOMP 연결 성공 - 새 세션:', stompClient.connected);
             
-            // 워크스페이스 전체 채팅방 구독 (워크스페이스 ID를 채팅방 ID로 사용)
-            const workspaceChatRoomId = workspaceId;
-            setChatRoomId(workspaceChatRoomId);
-
             // 구독 식별자
-            const subscriptionId = `/topic/chat/${workspaceChatRoomId}`;
+            const subscriptionId = `/topic/chat/${roomId}`;
             
             // 기존 구독이 있으면 제거
             if (subscriptionMap.has(subscriptionId)) {
@@ -194,17 +286,30 @@ const WorkspaceChat: React.FC = () => {
             subscriptionMap.set(subscriptionId, subscription);
             console.log('구독 등록 완료, ID:', subscription.id);
 
+            // 이전 메시지 로드
+            loadPreviousMessages(roomId);
+
             // 채팅방 입장 메시지는 연결 후 한 번만 전송
             if (currentUser) {
                 setTimeout(() => {
                     console.log('입장 메시지 전송 준비...');
+                    console.log('현재 사용자 정보:', currentUser);
+                    
+                    // 사용자 ID 추출 (data 객체 안에 있을 수 있음)
+                    const userId = currentUser.id || (currentUser.data && currentUser.data.id) || 0;
+                    console.log('추출된 사용자 ID:', userId);
+                    
                     const joinMessage: ChatMessage = {
-                        chatRoomId: workspaceChatRoomId,
-                        senderId: currentUser.id || 0,
-                        senderName: currentUser.username || getUsernameFromStorage() || '알 수 없는 사용자',
+                        chatRoomId: roomId,
+                        senderId: userId,
+                        senderName: currentUser.username || 
+                                  (currentUser.data && currentUser.data.username) || 
+                                  getUsernameFromStorage() || 
+                                  '알 수 없는 사용자',
                         content: '채팅방에 입장했습니다.',
                         type: 'JOIN',
-                        senderProfileUrl: currentUser.profileImageUrl,
+                        senderProfileUrl: currentUser.profileImageUrl || 
+                                        (currentUser.data && currentUser.data.profileImageUrl),
                         timestamp: new Date()
                     };
                     
@@ -216,7 +321,7 @@ const WorkspaceChat: React.FC = () => {
                             destination: '/app/chat.addUser',
                             body: JSON.stringify(joinMessage)
                         });
-                        console.log('입장 메시지 전송 완료!');
+                        console.log('입장 메시지 전송 완료!', joinMessage);
                         
                         // 전송한 메시지 ID 추적에 추가
                         processedMessages.add(joinMessageId);
@@ -235,6 +340,68 @@ const WorkspaceChat: React.FC = () => {
         stompClient.activate();
         stompClientRef.current = stompClient;
         console.log('STOMP 연결 활성화 요청 완료');
+    };
+
+    // 이전 메시지 로드 함수
+    const loadPreviousMessages = async (roomId: number) => {
+        try {
+            console.log('이전 메시지 로드 시작...', roomId);
+            setLoadingMessages(true);
+            
+            if (!roomId) {
+                console.error('채팅방 ID가 유효하지 않습니다:', roomId);
+                setIsLoading(false);
+                setLoadingMessages(false);
+                return;
+            }
+            
+            const response = await getChatMessages(roomId);
+            console.log('이전 메시지 로드 성공:', response);
+            
+            if (response && response.messages && response.messages.length > 0) {
+                const previousMessages = response.messages.map(msg => ({
+                    id: parseInt(msg.id || '0') || Date.now(),
+                    sender: msg.senderName,
+                    img: msg.senderProfileUrl || chatImage,
+                    time: new Date(msg.timestamp || Date.now()).toLocaleTimeString(),
+                    content: msg.content
+                }));
+                
+                // 이전 메시지는 배열을 뒤집어서 새로운 메시지가 아래에 표시되도록 함
+                // 백엔드에서 내림차순으로 반환하므로 다시 뒤집어 시간순으로 정렬
+                setMessages(previousMessages.reverse());
+                
+                // 처리된 메시지 ID 등록
+                response.messages.forEach(msg => {
+                    if (msg.id) {
+                        const messageId = `${msg.senderName}-${msg.content}-${msg.timestamp || Date.now()}`;
+                        processedMessages.add(messageId);
+                    }
+                });
+                
+                console.log(`${previousMessages.length}개의 이전 메시지를 로드했습니다.`);
+            } else {
+                console.log('이전 메시지가 없습니다. 빈 메시지 목록으로 초기화합니다.');
+                setMessages([]); // 빈 메시지 목록으로 초기화
+            }
+            
+            // 최초 로딩 완료 표시
+            setIsLoading(false);
+            
+            // 초기 메시지 로드 후 스크롤을 아래로 이동
+            setTimeout(() => {
+                if (chatBodyRef.current) {
+                    chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
+                }
+            }, 100);
+        } catch (error) {
+            console.error('이전 메시지 로드 중 오류:', error);
+            console.warn('오류가 발생했지만 채팅 기능은 계속 사용할 수 있습니다.');
+            setMessages([]); // 오류 발생 시 빈 메시지 목록으로 초기화
+            setIsLoading(false);
+        } finally {
+            setLoadingMessages(false);
+        }
     };
 
     // STOMP 연결 해제 - 더 안전하게 처리
@@ -289,18 +456,38 @@ const WorkspaceChat: React.FC = () => {
 
     // 메시지 전송 함수 - 고유 ID 포함 및 즉시 필터링
     const sendMessage = () => {
-        if (!inputMessage.trim() || !stompClientRef.current || !stompClientRef.current.connected || !chatRoomId || !currentUser) return;
+        if (!inputMessage.trim() || !stompClientRef.current || !stompClientRef.current.connected || !chatRoomId) return;
+        
+        if (!currentUser) {
+            console.error('사용자 정보가 없습니다.');
+            return;
+        }
         
         const now = new Date();
+        
+        // 사용자 ID 추출 (data 객체 안에 있을 수 있음)
+        const userId = currentUser.id || (currentUser.data && currentUser.data.id);
+        
+        if (!userId) {
+            console.error('사용자 ID를 찾을 수 없습니다:', currentUser);
+            return;
+        }
+        
         const chatMessage: ChatMessage = {
             chatRoomId: chatRoomId,
-            senderId: currentUser.id || 0,
-            senderName: currentUser.username || getUsernameFromStorage() || '알 수 없는 사용자',
+            senderId: userId,
+            senderName: currentUser.username || 
+                       (currentUser.data && currentUser.data.username) || 
+                       getUsernameFromStorage() || 
+                       '알 수 없는 사용자',
             content: inputMessage,
             type: 'CHAT',
-            senderProfileUrl: currentUser.profileImageUrl,
+            senderProfileUrl: currentUser.profileImageUrl || 
+                             (currentUser.data && currentUser.data.profileImageUrl),
             timestamp: now
         };
+        
+        console.log('전송할 메시지:', chatMessage);
         
         // 고유 식별자 생성
         const messageId = `${chatMessage.senderName}-${chatMessage.content}-${now.getTime()}`;
@@ -356,21 +543,84 @@ const WorkspaceChat: React.FC = () => {
     // 현재 사용자 정보 로드
     const loadCurrentUser = async () => {
         try {
-            const user = await getCurrentUser();
-            console.log('현재 사용자 로드:', user);
+            const response = await getCurrentUser();
+            console.log('현재 사용자 로드 응답:', response);
+            
+            let userData = null;
+            
+            if (response && response.success) {
+                // 데이터가 response.data에 있는 경우
+                userData = response.data;
+                console.log('현재 사용자 데이터:', userData);
+                
+                // 사용자 ID 확인
+                if (!userData.id) {
+                    console.warn('사용자 ID가 없습니다. 사용자 데이터 구조 확인:', userData);
+                    // 사용자 ID가 중첩된 구조에 있을 수 있음
+                    if (userData.user && userData.user.id) {
+                        userData.id = userData.user.id;
+                        console.log('사용자 ID 추출 성공 (user.id):', userData.id);
+                    } else if (userData.userId) {
+                        userData.id = userData.userId;
+                        console.log('사용자 ID 추출 성공 (userId):', userData.id);
+                    }
+                } else {
+                    console.log('사용자 ID 찾음:', userData.id);
+                }
+                
+                setCurrentUser(userData);
+            } else if (response && !response.success) {
+                // 실패한 경우 에러 처리
+                console.error('사용자 정보 로드 실패:', response.message || '알 수 없는 오류');
+                // 기본 사용자 정보 생성 (임시)
+                userData = {
+                    id: parseInt(localStorage.getItem('userId') || '0'),
+                    username: getUsernameFromStorage(),
+                    profileImageUrl: localStorage.getItem('profileImageUrl') || null
+                };
+                setCurrentUser(userData);
+                console.log('기본 사용자 정보 생성:', userData);
+            } else {
+                // response 자체가 사용자 객체인 경우
+                userData = response;
+                console.log('현재 사용자 설정 (직접):', userData);
+                
+                // 사용자 ID 확인
+                if (!userData.id) {
+                    console.warn('사용자 ID가 없습니다. 사용자 데이터 구조 확인:', userData);
+                    // 기본 ID 설정
+                    userData.id = parseInt(localStorage.getItem('userId') || '0');
+                    console.log('기본 사용자 ID 설정:', userData.id);
+                }
+                
+                setCurrentUser(userData);
+            }
             
             // 로컬 스토리지에서 사용자 이름 가져오기
             const usernameFromStorage = getUsernameFromStorage();
             console.log('localStorage에서 가져온 사용자 이름:', usernameFromStorage);
             
-            if (user) {
-                setCurrentUser({
-                    ...user,
-                    usernameFromStorage  // 로컬 스토리지에서 가져온 이름도 저장
-                });
+            // 사용자 ID를 로컬 스토리지에 저장 (다른 곳에서 참조용)
+            if (userData && userData.id) {
+                localStorage.setItem('userId', userData.id.toString());
+                console.log('사용자 ID를 로컬 스토리지에 저장:', userData.id);
             }
+            
+            return userData;
         } catch (error) {
             console.error('현재 사용자 정보 로딩 오류:', error);
+            
+            // 오류 발생 시 기본 사용자 정보 생성
+            const defaultUser = {
+                id: parseInt(localStorage.getItem('userId') || '0'),
+                username: getUsernameFromStorage(),
+                profileImageUrl: localStorage.getItem('profileImageUrl') || null
+            };
+            
+            console.log('오류로 인한 기본 사용자 정보 생성:', defaultUser);
+            setCurrentUser(defaultUser);
+            
+            return defaultUser;
         }
     };
 
@@ -618,13 +868,13 @@ const WorkspaceChat: React.FC = () => {
     };
 
     const groupedMessages = groupConsecutiveMessages(messages);
-    const chatBodyRef = useRef<HTMLDivElement>(null);
 
+    // 메시지 스크롤 자동 이동 수정
     useEffect(() => {
-        if (chatBodyRef.current) {
+        if (chatBodyRef.current && !loadingMessages) {
             chatBodyRef.current.scrollTop = chatBodyRef.current.scrollHeight;
         }
-    }, [groupedMessages]);
+    }, [messages, loadingMessages]);
 
     // 프로필 이미지 URL 가져오기
     const getProfileImageUrl = (member: Member) => {
@@ -759,32 +1009,43 @@ const WorkspaceChat: React.FC = () => {
             <div className="workspaceChat-chat-container">
                 <div className="workspaceChat-chat-header">{workspaceName}</div>
                 <div className="workspaceChat-chat-body" ref={chatBodyRef}>
-                    <div className="workspaceChat-chat-message">
-                        {groupedMessages.map((group) => (
-                            <div key={group.id} className="workspaceChat-message-block">
-                                <div className={"workspaceChat-message-senderImage"}>
-                                    <img 
-                                        src={getSenderImageUrl(group)}
-                                        alt="sender"
-                                        onError={handleImageError}
-                                    /> 
-                                </div>
-                                <div>
-                                    <div className="workspaceChat-message-header">
-                                        <div className="sender-time">
-                                            <strong>{group.sender}</strong>
-                                            <span className="time">{group.time}</span>
+                    {isLoading ? (
+                        <div className="workspaceChat-loading-messages">메시지를 불러오는 중...</div>
+                    ) : groupedMessages.length === 0 ? (
+                        <div className="workspaceChat-no-messages">
+                            아직 메시지가 없습니다. 첫 메시지를 보내보세요!
+                        </div>
+                    ) : (
+                        <div className="workspaceChat-chat-message">
+                            {loadingMessages && (
+                                <div className="workspaceChat-loading-more">이전 메시지 불러오는 중...</div>
+                            )}
+                            {groupedMessages.map((group) => (
+                                <div key={group.id} className="workspaceChat-message-block">
+                                    <div className={"workspaceChat-message-senderImage"}>
+                                        <img 
+                                            src={getSenderImageUrl(group)}
+                                            alt="sender"
+                                            onError={handleImageError}
+                                        /> 
+                                    </div>
+                                    <div>
+                                        <div className="workspaceChat-message-header">
+                                            <div className="sender-time">
+                                                <strong>{group.sender}</strong>
+                                                <span className="time">{group.time}</span>
+                                            </div>
+                                        </div>
+                                        <div className="workspaceChat-message-body">
+                                            {group.contents.map((line, i) => (
+                                                <div key={i}>{line}</div>
+                                            ))}
                                         </div>
                                     </div>
-                                    <div className="workspaceChat-message-body">
-                                        {group.contents.map((line, i) => (
-                                            <div key={i}>{line}</div>
-                                        ))}
-                                    </div>
                                 </div>
-                            </div>
-                        ))}
-                    </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
                 <div className="workspaceChat-inputBox">
                     <input 
