@@ -19,7 +19,12 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use( 
   (config: InternalAxiosRequestConfig) => {
     const token = getAuthToken(); // 개선된 함수 사용
-    console.log('API 요청 시 토큰 상태:', !!token);
+    console.log('[상세 디버깅] API 요청 정보:', { 
+      url: config.url, 
+      method: config.method, 
+      hasToken: !!token,
+      tokenPreview: token ? token.substring(0, 15) + '...' : 'null',
+    });
     
     if (token && config.headers) { // 토큰이 있고 헤더가 있으면
       config.headers.Authorization = `Bearer ${token}`; // 헤더에 토큰 추가
@@ -51,13 +56,24 @@ apiClient.interceptors.response.use(
           localStorage.removeItem(AUTH_TOKEN_KEY);
           sessionStorage.removeItem(AUTH_TOKEN_KEY);
           localStorage.removeItem('username');
+          localStorage.removeItem('userId');
           
           // 로그인 페이지로 리다이렉트
           window.location.href = '/login';
           break;
           
         case 403: // Forbidden 에러 처리
-          console.error('접근 권한이 없습니다.');
+          console.error('접근 권한이 없습니다.', {
+            url: error.config?.url,
+            method: error.config?.method,
+            params: error.config?.params,
+            // 토큰 정보 로깅 (보안상 앞부분만)
+            token: localStorage.getItem(AUTH_TOKEN_KEY) ? '존재함 (일부 표시): ' + 
+              localStorage.getItem(AUTH_TOKEN_KEY)?.substring(0, 20) + '...' : '없음',
+            userId: localStorage.getItem('userId'),
+            error: error.response
+          });
+          // 403 에러는 임시로 무시하고 진행 (UI 계속 표시)
           break;
           
         case 404: // Not Found 에러 처리
@@ -124,6 +140,15 @@ export const getAuthToken = (): string | null => {
     }
     
     console.log('getAuthToken 상태:', !!token);
+    
+    // 토큰이 비어있거나 undefined, null, 'undefined' 문자열인 경우 처리
+    if (!token || token === 'undefined' || token === 'null') {
+      console.log('유효하지 않은 토큰이 발견되어 제거합니다');
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      sessionStorage.removeItem(AUTH_TOKEN_KEY);
+      return null;
+    }
+    
     return token;
   } catch (error) {
     console.error('토큰 조회 중 오류 발생:', error);

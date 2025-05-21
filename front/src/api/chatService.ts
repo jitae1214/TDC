@@ -1,142 +1,292 @@
-import apiClient from './apiClient';
+import { Client, StompSubscription } from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import { getAuthToken } from './apiClient';
 
-// 채팅 메시지 타입 정의
-export interface ChatMessage {
-    id?: string;
-    chatRoomId: number;
-    senderId: number;
-    senderName: string;
-    content: string;
-    type: 'CHAT' | 'JOIN' | 'LEAVE' | 'TYPING';
-    timestamp?: Date;
-    senderProfileUrl?: string;
-}
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+const SOCKET_URL = `${API_BASE_URL}/ws`;
 
-// 채팅방 메시지 조회 응답 타입
-export interface ChatMessagesResponse {
-    messages: ChatMessage[];
-    totalItems: number;
-    totalPages: number;
-}
+let stompClient: Client | null = null;
+let chatSubscription: StompSubscription | null = null;
+let typingSubscription: StompSubscription | null = null;
 
-/**
- * 채팅방의 이전 메시지 목록 조회
- * @param chatRoomId 채팅방 ID
- * @param page 페이지 번호 (0부터 시작)
- * @param size 페이지당 메시지 수
- */
-export const getChatMessages = async (
-    chatRoomId: number, 
-    page: number = 0, 
-    size: number = 20
-): Promise<ChatMessagesResponse> => {
-    try {
-        console.log(`채팅방 ${chatRoomId}의 메시지 조회 API 호출 시작 (page: ${page}, size: ${size})`);
-        
-        const response = await apiClient.get(
-            `/api/chat/rooms/${chatRoomId}/messages?page=${page}&size=${size}`
-        );
-        
-        console.log('채팅방 메시지 API 응답:', response);
-        
-        if (response.data && response.data.success) {
-            return response.data.data;
-        } else {
-            console.warn(`채팅방 ${chatRoomId}의 메시지 로드 실패:`, response.data.message);
-            // 오류 메시지에도 불구하고 빈 메시지 배열 반환 (화면은 정상 표시)
-            return {
-                messages: [],
-                totalItems: 0,
-                totalPages: 0
-            };
-        }
-    } catch (error: any) {
-        console.error('채팅 메시지 조회 중 오류:', error);
-        
-        // 더 자세한 오류 정보 로깅
-        if (error.response) {
-            console.error('오류 상태 코드:', error.response.status);
-            console.error('오류 데이터:', error.response.data);
-            
-            // 404 오류(채팅방 없음)나 403 오류(권한 없음)의 경우 빈 배열 반환
-            if (error.response.status === 404 || error.response.status === 403) {
-                console.log('채팅방을 찾을 수 없거나 접근 권한이 없어 빈 메시지 목록을 반환합니다.');
-                return {
-                    messages: [],
-                    totalItems: 0,
-                    totalPages: 0
-                };
-            }
-        }
-        
-        // 여전히 UI를 방해하지 않기 위해 빈 메시지 배열 반환
-        console.log('오류 발생으로 빈 메시지 목록을 반환합니다.');
-        return {
-            messages: [],
-            totalItems: 0,
-            totalPages: 0
-        };
-    }
+// 메시지 핸들러 콜백 함수 타입 정의
+type MessageHandler = (message: any) => void;
+type ConnectionStatusHandler = (connected: boolean) => void;
+
+let messageCallback: MessageHandler | null = null;
+let typingCallback: MessageHandler | null = null;
+let connectionStatusCallback: ConnectionStatusHandler | null = null;
+
+// WebSocket 연결 설정
+export const connectWebSocket = (onConnectionStatus?: ConnectionStatusHandler) => {
+  if (connectionStatusCallback !== onConnectionStatus && onConnectionStatus) {
+    connectionStatusCallback = onConnectionStatus;
+  }
+
+  if (stompClient && stompClient.connected) {
+    console.log('WebSocket 이미 연결됨');
+    connectionStatusCallback && connectionStatusCallback(true);
+    return;
+  }
+
+  const socket = new SockJS(SOCKET_URL);
+  stompClient = new Client({
+    webSocketFactory: () => socket,
+    connectHeaders: {
+      Authorization: `Bearer ${getAuthToken()}`
+    },
+    debug: (msg) => {
+      console.log('STOMP 디버그: ', msg);
+    },
+    reconnectDelay: 5000,
+    heartbeatIncoming: 4000,
+    heartbeatOutgoing: 4000
+  });
+
+  stompClient.onConnect = () => {
+    console.log('WebSocket 연결 성공');
+    connectionStatusCallback && connectionStatusCallback(true);
+  };
+
+  stompClient.onStompError = (frame) => {
+    console.error('STOMP 오류: ', frame);
+    connectionStatusCallback && connectionStatusCallback(false);
+  };
+
+  stompClient.onWebSocketClose = () => {
+    console.log('WebSocket 연결 종료');
+    connectionStatusCallback && connectionStatusCallback(false);
+  };
+
+  stompClient.activate();
 };
 
-/**
- * 채팅방 생성
- */
-export const createChatRoom = async (
-    workspaceId: number,
-    name: string,
-    description: string,
-    memberIds: number[],
-    isDirect: boolean = false
-): Promise<any> => {
-    try {
-        const response = await apiClient.post('/api/chat/rooms', {
-            workspaceId,
-            name,
-            description,
-            memberIds,
-            isDirect
-        });
-        
-        if (response.data && response.data.success) {
-            return response.data.data;
-        } else {
-            throw new Error(response.data.message || '채팅방 생성에 실패했습니다.');
+// 채팅방 구독
+export const subscribeToChatRoom = (chatRoomId: number, onMessageReceived: MessageHandler, onTyping?: MessageHandler) => {
+  if (!stompClient || !stompClient.connected) {
+    console.error('WebSocket이 연결되어 있지 않습니다.');
+    connectWebSocket(() => {
+      // 연결 후 다시 시도
+      subscribeToChatRoom(chatRoomId, onMessageReceived, onTyping);
+    });
+    return;
+  }
+
+  // 이전 구독 취소
+  unsubscribeFromChatRoom();
+
+  messageCallback = onMessageReceived;
+  typingCallback = onTyping || null;
+
+  // 채팅 메시지 구독
+  chatSubscription = stompClient.subscribe(
+    `/topic/chat/${chatRoomId}`,
+    (message) => {
+      try {
+        const receivedMessage = JSON.parse(message.body);
+        console.log('새 메시지 수신: ', receivedMessage);
+        if (messageCallback) {
+          messageCallback(receivedMessage);
         }
-    } catch (error) {
-        console.error('채팅방 생성 중 오류:', error);
-        throw error;
+      } catch (error) {
+        console.error('메시지 파싱 오류: ', error);
+      }
     }
+  );
+
+  // 타이핑 이벤트 구독 (선택적)
+  if (onTyping) {
+    typingSubscription = stompClient.subscribe(
+      `/topic/chat/${chatRoomId}/typing`,
+      (message) => {
+        try {
+          const typingData = JSON.parse(message.body);
+          console.log('타이핑 이벤트: ', typingData);
+          if (typingCallback) {
+            typingCallback(typingData);
+          }
+        } catch (error) {
+          console.error('타이핑 메시지 파싱 오류: ', error);
+        }
+      }
+    );
+  }
 };
 
-/**
- * 워크스페이스의 채팅방 목록 조회
- */
-export const getChatRoomsByWorkspace = async (workspaceId: number): Promise<any> => {
-    try {
-        console.log(`워크스페이스 ${workspaceId}의 채팅방 목록 조회 API 호출 시작`);
-        
-        // 요청 URL 로깅
-        const url = `/api/chat/rooms/workspace/${workspaceId}`;
-        console.log('요청 URL:', url);
-        
-        const response = await apiClient.get(url);
-        console.log('채팅방 목록 API 응답:', response);
-        
-        if (response.data && response.data.success) {
-            return response.data.data;
-        } else {
-            throw new Error(response.data.message || '채팅방 목록 조회에 실패했습니다.');
-        }
-    } catch (error: any) {
-        console.error('채팅방 목록 조회 중 오류:', error);
-        
-        // 더 자세한 오류 정보 로깅
-        if (error.response) {
-            console.error('오류 상태 코드:', error.response.status);
-            console.error('오류 데이터:', error.response.data);
-        }
-        
-        throw error;
+// 채팅방 구독 취소
+export const unsubscribeFromChatRoom = () => {
+  if (chatSubscription) {
+    chatSubscription.unsubscribe();
+    chatSubscription = null;
+  }
+
+  if (typingSubscription) {
+    typingSubscription.unsubscribe();
+    typingSubscription = null;
+  }
+
+  messageCallback = null;
+  typingCallback = null;
+};
+
+// 메시지 전송
+export const sendChatMessage = (chatRoomId: number, senderId: number, content: string, senderName: string, senderProfileUrl?: string) => {
+  if (!stompClient || !stompClient.connected) {
+    console.error('WebSocket이 연결되어 있지 않습니다.');
+    return false;
+  }
+
+  const message = {
+    chatRoomId,
+    senderId,
+    senderName,
+    content,
+    senderProfileUrl,
+    type: 'CHAT',
+    timestamp: new Date()
+  };
+
+  stompClient.publish({
+    destination: '/app/chat.sendMessage',
+    body: JSON.stringify(message)
+  });
+
+  return true;
+};
+
+// 타이핑 이벤트 전송
+export const sendTypingEvent = (chatRoomId: number, senderId: number, senderName: string) => {
+  if (!stompClient || !stompClient.connected) {
+    console.error('WebSocket이 연결되어 있지 않습니다.');
+    return;
+  }
+
+  const message = {
+    chatRoomId,
+    senderId,
+    senderName,
+    type: 'TYPING',
+    timestamp: new Date()
+  };
+
+  stompClient.publish({
+    destination: '/app/chat.typing',
+    body: JSON.stringify(message)
+  });
+};
+
+// 채팅방 입장 메시지 전송
+export const sendJoinMessage = (chatRoomId: number, senderId: number, senderName: string, senderProfileUrl?: string) => {
+  if (!stompClient || !stompClient.connected) {
+    console.error('WebSocket이 연결되어 있지 않습니다.');
+    return;
+  }
+
+  const message = {
+    chatRoomId,
+    senderId,
+    senderName,
+    senderProfileUrl,
+    content: `${senderName}님이 입장했습니다.`,
+    type: 'JOIN',
+    timestamp: new Date()
+  };
+
+  stompClient.publish({
+    destination: '/app/chat.addUser',
+    body: JSON.stringify(message)
+  });
+};
+
+// WebSocket 연결 해제
+export const disconnectWebSocket = () => {
+  unsubscribeFromChatRoom();
+  
+  if (stompClient) {
+    if (stompClient.connected) {
+      stompClient.deactivate();
     }
+    stompClient = null;
+  }
+  
+  connectionStatusCallback = null;
+  console.log('WebSocket 연결 해제됨');
+};
+
+// HTTP API를 통한 채팅방 메시지 로드
+export const loadChatMessages = async (chatRoomId: number, page: number = 0, size: number = 20, workspaceId?: number) => {
+  try {
+    const token = getAuthToken();
+    let url = `${API_BASE_URL}/api/chat/rooms/${chatRoomId}/messages?page=${page}&size=${size}`;
+    
+    // 워크스페이스 ID가 제공된 경우 URL에 추가
+    if (workspaceId) {
+      url += `&workspaceId=${workspaceId}`;
+    }
+    
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error('메시지 로드 실패');
+    }
+
+    const data = await response.json();
+    return data.data;
+  } catch (error) {
+    console.error('채팅 메시지 로드 중 오류:', error);
+    throw error;
+  }
+};
+
+// 워크스페이스의 채팅방 목록 조회
+export const getChatRooms = async (workspaceId: number) => {
+  try {
+    const token = getAuthToken();
+    
+    if (!token) {
+      console.error('인증 토큰이 없습니다. 로그인이 필요합니다.');
+      return [];
+    }
+    
+    console.log(`채팅방 목록 요청 - 워크스페이스 ID: ${workspaceId}, 토큰: ${token ? '있음' : '없음'}`);
+    
+    const response = await fetch(`${API_BASE_URL}/api/chat/rooms/workspace/${workspaceId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (response.status === 403) {
+      console.error('채팅방 목록 접근 권한이 없습니다. 토큰이 유효한지 확인하세요.');
+      return [];
+    }
+    
+    if (!response.ok) {
+      console.error(`채팅방 목록 로드 실패 (상태 코드: ${response.status})`);
+      // 실패해도 빈 배열 반환하여 앱이 계속 작동하도록 함
+      return [];
+    }
+
+    const data = await response.json();
+    console.log('채팅방 목록 로드 성공:', data);
+    
+    if (!data.data || !Array.isArray(data.data)) {
+      console.warn('채팅방 데이터가 예상 형식이 아닙니다:', data);
+      return [];
+    }
+    
+    return data.data;
+  } catch (error) {
+    console.error('채팅방 목록 로드 중 오류:', error);
+    // 오류 발생 시 빈 배열 반환하여 앱이 크래시 되지 않도록 함
+    return [];
+  }
 }; 

@@ -117,21 +117,4 @@ public class ChatController {
         
         return ResponseEntity.ok(response);
     }
-
-    /**
-     * 워크스페이스 ID로 기본 채팅방 조회 또는 생성
-     * 프론트엔드에서 워크스페이스 ID를 채팅방 ID로 사용할 때 호환성 제공
-     */
-    @GetMapping("/rooms/default/workspace/{workspaceId}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<ApiResponse> getOrCreateDefaultChatRoom(
-            @PathVariable Long workspaceId,
-            @CurrentUser User currentUser) {
-        
-        Long userId = currentUser.getId();
-        
-        ApiResponse response = chatService.getOrCreateDefaultChatRoom(workspaceId, userId);
-        
-        return ResponseEntity.ok(response);
-    }
 } 

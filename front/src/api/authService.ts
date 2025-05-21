@@ -5,9 +5,7 @@ import apiClient, { setAuthToken, getAuthToken } from './apiClient';
 const AUTH_URL = '/api/auth';
 const REGISTER_URL = '/api/register'; // 회원가입 관련 새로운 URL 추가
 const AUTH_USERNAME_KEY = 'username';
-
-// getAuthToken 함수를 다시 export
-export { getAuthToken };
+const USER_ID_KEY = 'userId'; // 사용자 ID 저장용 키 추가
 
 /* -- Request : 프론트엔드에서 뱍엔드로 데이터를 보낼 때 사용 */
 /*-- Response : 백엔드에서 프론트엔드로 응답 할 때 사용 */
@@ -24,6 +22,7 @@ export interface LoginResponse {
   message: string;
   token?: string;
   username?: string;
+  userId?: number; // 사용자 ID 추가
 }
 
 // 회원가입 요청 인터페이스
@@ -42,6 +41,7 @@ export interface RegisterResponse {
   message: string;
   username?: string;
   email?: string;
+  userId?: number; // 사용자 ID 추가
 }
 
 // 아이디 중복 확인 요청 인터페이스
@@ -71,6 +71,18 @@ export const getUsername = (): string | null => {
   return localStorage.getItem(AUTH_USERNAME_KEY);
 };
 
+// 사용자 ID 관리 함수 추가
+export const setUserId = (userId: number | string): void => {
+  if (userId) {
+    localStorage.setItem(USER_ID_KEY, String(userId));
+  }
+};
+
+export const getUserId = (): number | null => {
+  const userId = localStorage.getItem(USER_ID_KEY);
+  return userId ? Number(userId) : null;
+};
+
 // 로그인 API 호출
 export const login = async (loginData: LoginRequest): Promise<LoginResponse> => {
   try {
@@ -82,6 +94,23 @@ export const login = async (loginData: LoginRequest): Promise<LoginResponse> => 
     if (response.data.success && response.data.token) {
       setAuthToken(response.data.token); // JWT 토큰 저장
       setUsername(response.data.username || ''); // 사용자 이름 저장
+      
+      // 사용자 ID가 있으면 저장
+      if (response.data.userId) {
+        setUserId(response.data.userId);
+        console.log('사용자 ID 저장됨:', response.data.userId);
+      } else {
+        // 사용자 ID가 없는 경우 API로 사용자 정보 가져오기 시도
+        try {
+          const userResponse = await apiClient.get(`${AUTH_URL}/me`);
+          if (userResponse.data && userResponse.data.id) {
+            setUserId(userResponse.data.id);
+            console.log('사용자 ID 조회 및 저장됨:', userResponse.data.id);
+          }
+        } catch (userError) {
+          console.error('사용자 ID 조회 실패:', userError);
+        }
+      }
       
       // 로그인 성공 시 사용자 상태를 ONLINE으로 설정
       try {
@@ -131,6 +160,12 @@ export const register = async (registerData: RegisterRequest): Promise<RegisterR
       // 회원가입 시 바로 로컬 스토리지에 사용자 이름 저장
       localStorage.setItem(AUTH_USERNAME_KEY, response.data.username);
       console.log('회원가입 성공: 사용자 이름 저장됨', response.data.username);
+      
+      // 사용자 ID가 있으면 저장
+      if (response.data.userId) {
+        setUserId(response.data.userId);
+        console.log('회원가입 성공: 사용자 ID 저장됨', response.data.userId);
+      }
     }
     
     return response.data;
@@ -202,6 +237,7 @@ export const logout = async (): Promise<void> => {
   // 사용자 이름 관련 데이터 제거
   localStorage.removeItem(AUTH_USERNAME_KEY);
   localStorage.removeItem('username');
+  localStorage.removeItem(USER_ID_KEY);
   
   // 워크스페이스 관련 데이터 제거
   localStorage.removeItem('currentWorkspaceId');
@@ -253,6 +289,13 @@ export const getCurrentUser = async (): Promise<any> => {
     }
     
     const response = await apiClient.get(`${AUTH_URL}/me`);
+    
+    // 응답에서 사용자 ID를 추출하여 저장
+    if (response.data && response.data.id) {
+      setUserId(response.data.id);
+      console.log('사용자 정보에서 ID 저장됨:', response.data.id);
+    }
+    
     return { success: true, data: response.data };
   } catch (error: any) {
     console.error('사용자 정보 조회 오류:', error);

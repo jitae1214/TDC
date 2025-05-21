@@ -41,6 +41,9 @@ public class WorkspaceService {
     @Autowired
     private UserRepository userRepository;
     
+    @Autowired
+    private ChatService chatService;
+    
     /**
      * 워크스페이스 생성
      * @param userId 생성자 ID
@@ -83,7 +86,22 @@ public class WorkspaceService {
         
         membershipRepository.save(membership);
         
-        // 5. 응답 생성
+        // 5. 기본 채팅방 생성
+        String chatRoomName = workspace.getName() + " 채널";
+        String chatRoomDescription = workspace.getName() + "의 기본 채팅 채널입니다.";
+        List<Long> memberIds = new ArrayList<>();
+        memberIds.add(owner.getId());
+        
+        chatService.createChatRoom(
+            workspace.getId(),
+            chatRoomName,
+            chatRoomDescription,
+            owner.getId(),
+            memberIds,
+            false  // 일반 채팅방 (1:1 채팅방 아님)
+        );
+        
+        // 6. 응답 생성
         return new WorkspaceResponse(workspace, 1, "OWNER");
     }
     
@@ -310,7 +328,10 @@ public class WorkspaceService {
         
         membership = membershipRepository.save(membership);
         
-        // 6. 응답 생성
+        // 6. 워크스페이스의 모든 채팅방에 멤버 추가
+        chatService.addUserToWorkspaceChannels(workspaceId, userToAdd.getId());
+        
+        // 7. 응답 생성
         return new WorkspaceMemberResponse(membership);
     }
     
