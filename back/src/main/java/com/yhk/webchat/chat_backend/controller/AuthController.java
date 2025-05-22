@@ -51,8 +51,8 @@ public class AuthController {
      */
     @PostMapping("/register")
     public ResponseEntity<ApiResponse> register(@Valid @RequestBody RegisterRequest registerRequest) {
-        ApiResponse response = registerService.register(registerRequest);
-        return ResponseEntity.status(response.isSuccess() ? 201 : 400).body(response);
+        ApiResponse response = registerService.register(registerRequest); // 회원가입 서비스 호출
+        return ResponseEntity.status(response.isSuccess() ? 201 : 400).body(response); // 201 생성됨, 400 잘못된 요청
     }
     
     /**

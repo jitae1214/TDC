@@ -29,6 +29,11 @@ public class WorkspaceMembership {
     @Column(name = "joined_at", nullable = false)
     private LocalDateTime joinedAt;
     
+    // 새로 추가: 채팅방 참조
+    @ManyToOne
+    @JoinColumn(name = "chat_room_id")
+    private ChatRoom chatRoom;
+    
     // 기본 생성자
     public WorkspaceMembership() {
         this.joinedAt = LocalDateTime.now();
@@ -91,6 +96,15 @@ public class WorkspaceMembership {
         this.joinedAt = joinedAt;
     }
     
+    // 새로 추가: 채팅방 getter/setter
+    public ChatRoom getChatRoom() {
+        return chatRoom;
+    }
+    
+    public void setChatRoom(ChatRoom chatRoom) {
+        this.chatRoom = chatRoom;
+    }
+    
     // 역할 확인 메서드
     public boolean isOwner() {
         return "OWNER".equals(this.role);
@@ -115,6 +129,7 @@ public class WorkspaceMembership {
         private User user;
         private String role;
         private LocalDateTime joinedAt;
+        private ChatRoom chatRoom; // 새로 추가
         
         public WorkspaceMembershipBuilder workspace(Workspace workspace) {
             this.workspace = workspace;
@@ -136,8 +151,16 @@ public class WorkspaceMembership {
             return this;
         }
         
+        // 새로 추가: 채팅방 빌더 메서드
+        public WorkspaceMembershipBuilder chatRoom(ChatRoom chatRoom) {
+            this.chatRoom = chatRoom;
+            return this;
+        }
+        
         public WorkspaceMembership build() {
-            return new WorkspaceMembership(workspace, user, role, joinedAt);
+            WorkspaceMembership membership = new WorkspaceMembership(workspace, user, role, joinedAt);
+            membership.setChatRoom(chatRoom); // 새로 추가
+            return membership;
         }
     }
     
@@ -150,6 +173,7 @@ public class WorkspaceMembership {
                 ", user=" + (user != null ? user.getUsername() : "null") +
                 ", role='" + role + '\'' +
                 ", joinedAt=" + joinedAt +
+                ", chatRoom=" + (chatRoom != null ? chatRoom.getId() : "null") +
                 '}';
     }
 } 

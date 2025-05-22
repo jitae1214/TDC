@@ -80,7 +80,7 @@ public class SecurityConfig {
      * @return SecurityFilterChain 인스턴스
      * @throws Exception 보안 설정 중 발생할 수 있는 예외
      */
-    @Bean
+    @Bean 
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)  // CSRF 보호 비활성화 (API 서버용)

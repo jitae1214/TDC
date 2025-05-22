@@ -3,6 +3,7 @@ package com.yhk.webchat.chat_backend.service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -16,15 +17,23 @@ import com.yhk.webchat.chat_backend.dto.request.workspace.AddMemberRequest;
 import com.yhk.webchat.chat_backend.dto.request.workspace.CreateWorkspaceRequest;
 import com.yhk.webchat.chat_backend.dto.request.workspace.UpdateMemberRoleRequest;
 import com.yhk.webchat.chat_backend.dto.request.workspace.UpdateWorkspaceRequest;
+import com.yhk.webchat.chat_backend.dto.response.ApiResponse;
 import com.yhk.webchat.chat_backend.dto.response.workspace.WorkspaceListResponse;
 import com.yhk.webchat.chat_backend.dto.response.workspace.WorkspaceMemberResponse;
 import com.yhk.webchat.chat_backend.dto.response.workspace.WorkspaceResponse;
+import com.yhk.webchat.chat_backend.model.ChatRoom;
+import com.yhk.webchat.chat_backend.model.ChatRoomMember;
 import com.yhk.webchat.chat_backend.model.User;
 import com.yhk.webchat.chat_backend.model.Workspace;
 import com.yhk.webchat.chat_backend.model.WorkspaceMembership;
+import com.yhk.webchat.chat_backend.repository.ChatRoomMemberRepository;
+import com.yhk.webchat.chat_backend.repository.ChatRoomRepository;
 import com.yhk.webchat.chat_backend.repository.UserRepository;
 import com.yhk.webchat.chat_backend.repository.WorkspaceMembershipRepository;
 import com.yhk.webchat.chat_backend.repository.WorkspaceRepository;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 
 /**
  * 워크스페이스 관련 비즈니스 로직을 담당하는 서비스
@@ -43,6 +52,15 @@ public class WorkspaceService {
     
     @Autowired
     private ChatService chatService;
+    
+    @Autowired
+    private ChatRoomRepository chatRoomRepository;
+    
+    @Autowired
+    private ChatRoomMemberRepository chatRoomMemberRepository;
+    
+    @PersistenceContext
+    private EntityManager entityManager;
     
     /**
      * 워크스페이스 생성
@@ -92,7 +110,8 @@ public class WorkspaceService {
         List<Long> memberIds = new ArrayList<>();
         memberIds.add(owner.getId());
         
-        chatService.createChatRoom(
+        // 채팅방 생성 및 응답 데이터 가져오기
+        ApiResponse chatRoomResponse = chatService.createChatRoom(
             workspace.getId(),
             chatRoomName,
             chatRoomDescription,
@@ -100,6 +119,53 @@ public class WorkspaceService {
             memberIds,
             false  // 일반 채팅방 (1:1 채팅방 아님)
         );
+        
+        // 채팅방 ID 가져오기
+        if (chatRoomResponse.isSuccess() && chatRoomResponse.getData() != null) {
+            try {
+                // Data에서 chatRoomId 추출
+                Long chatRoomId = null;
+                
+                if (chatRoomResponse.getData() instanceof Map) {
+                    Map<String, Object> dataMap = (Map<String, Object>) chatRoomResponse.getData();
+                    if (dataMap.containsKey("chatRoomId")) {
+                        chatRoomId = ((Number) dataMap.get("chatRoomId")).longValue();
+                    }
+                }
+                
+                if (chatRoomId != null) {
+                    // 채팅방 객체 조회
+                    Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findById(chatRoomId);
+                    
+                    if (chatRoomOpt.isPresent()) {
+                        // 채팅방 객체 
+                        ChatRoom chatRoom = chatRoomOpt.get();
+                        
+                        // 워크스페이스에 기본 채팅방 설정
+                        workspace.setDefaultChatRoom(chatRoom);
+                        workspaceRepository.save(workspace);
+                        
+                        // 워크스페이스 멤버십에 채팅방 연결
+                        membership.setChatRoom(chatRoom);
+                        membershipRepository.save(membership);
+                        
+                        // 채팅방 멤버에 워크스페이스 설정
+                        Optional<ChatRoomMember> chatRoomMemberOpt = 
+                                chatRoomMemberRepository.findByChatRoomIdAndUserId(chatRoomId, userId);
+                        
+                        if (chatRoomMemberOpt.isPresent()) {
+                            ChatRoomMember chatRoomMember = chatRoomMemberOpt.get();
+                            chatRoomMember.setWorkspace(workspace);
+                            chatRoomMemberRepository.save(chatRoomMember);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // 에러 발생 시 로그만 남기고 계속 진행
+                System.err.println("채팅방 연결 중 오류 발생: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
         
         // 6. 응답 생성
         return new WorkspaceResponse(workspace, 1, "OWNER");

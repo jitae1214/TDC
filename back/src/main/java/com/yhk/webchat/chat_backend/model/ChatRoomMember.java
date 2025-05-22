@@ -25,6 +25,10 @@ public class ChatRoomMember {
     @JoinColumn(name = "user_id")
     private User user;
     
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "workspace_id")
+    private Workspace workspace;
+    
     @Column(name = "joined_at")
     private LocalDateTime joinedAt;
     
@@ -50,6 +54,9 @@ public class ChatRoomMember {
         this.userStatus = user.getStatus();
         this.joinedAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
+        if (chatRoom != null && chatRoom.getWorkspace() != null) {
+            this.workspace = chatRoom.getWorkspace();
+        }
     }
     
     // Getter & Setter
@@ -67,6 +74,9 @@ public class ChatRoomMember {
     
     public void setChatRoom(ChatRoom chatRoom) {
         this.chatRoom = chatRoom;
+        if (chatRoom != null && chatRoom.getWorkspace() != null) {
+            this.workspace = chatRoom.getWorkspace();
+        }
     }
     
     public User getUser() {
@@ -75,6 +85,14 @@ public class ChatRoomMember {
     
     public void setUser(User user) {
         this.user = user;
+    }
+    
+    public Workspace getWorkspace() {
+        return workspace;
+    }
+    
+    public void setWorkspace(Workspace workspace) {
+        this.workspace = workspace;
     }
     
     public LocalDateTime getJoinedAt() {

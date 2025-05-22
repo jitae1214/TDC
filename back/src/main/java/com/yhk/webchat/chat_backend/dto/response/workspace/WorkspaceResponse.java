@@ -13,30 +13,41 @@ public class WorkspaceResponse {
     private String name;
     private String description;
     private Long ownerId;
-    private String ownerUsername;
+    private String ownerName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private String iconColor;
     private String imageUrl;
     private int memberCount;
-    private String memberRole; // 현재 요청한 사용자의 역할
+    private String userRole;
+    private Long defaultChatRoomId;
     
     // 기본 생성자
     public WorkspaceResponse() {}
     
     // 엔티티를 DTO로 변환하는 생성자
-    public WorkspaceResponse(Workspace workspace, int memberCount, String memberRole) {
+    public WorkspaceResponse(Workspace workspace, int memberCount, String userRole) {
         this.id = workspace.getId();
         this.name = workspace.getName();
         this.description = workspace.getDescription();
-        this.ownerId = workspace.getOwner().getId();
-        this.ownerUsername = workspace.getOwner().getUsername();
+        
+        // 소유자 정보
+        if (workspace.getOwner() != null) {
+            this.ownerId = workspace.getOwner().getId();
+            this.ownerName = workspace.getOwner().getUsername();
+        }
+        
         this.createdAt = workspace.getCreatedAt();
         this.updatedAt = workspace.getUpdatedAt();
         this.iconColor = workspace.getIconColor();
         this.imageUrl = workspace.getImageUrl();
         this.memberCount = memberCount;
-        this.memberRole = memberRole;
+        this.userRole = userRole;
+        
+        // 기본 채팅방 ID 설정
+        if (workspace.getDefaultChatRoom() != null) {
+            this.defaultChatRoomId = workspace.getDefaultChatRoom().getId();
+        }
     }
     
     // Getter 및 Setter
@@ -72,12 +83,12 @@ public class WorkspaceResponse {
         this.ownerId = ownerId;
     }
     
-    public String getOwnerUsername() {
-        return ownerUsername;
+    public String getOwnerName() {
+        return ownerName;
     }
     
-    public void setOwnerUsername(String ownerUsername) {
-        this.ownerUsername = ownerUsername;
+    public void setOwnerName(String ownerName) {
+        this.ownerName = ownerName;
     }
     
     public LocalDateTime getCreatedAt() {
@@ -120,11 +131,19 @@ public class WorkspaceResponse {
         this.memberCount = memberCount;
     }
     
-    public String getMemberRole() {
-        return memberRole;
+    public String getUserRole() {
+        return userRole;
     }
     
-    public void setMemberRole(String memberRole) {
-        this.memberRole = memberRole;
+    public void setUserRole(String userRole) {
+        this.userRole = userRole;
+    }
+    
+    public Long getDefaultChatRoomId() {
+        return defaultChatRoomId;
+    }
+    
+    public void setDefaultChatRoomId(Long defaultChatRoomId) {
+        this.defaultChatRoomId = defaultChatRoomId;
     }
 } 

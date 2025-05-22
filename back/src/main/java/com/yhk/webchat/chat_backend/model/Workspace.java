@@ -38,6 +38,10 @@ public class Workspace {
     @Column(name = "image_url", length = 255)
     private String imageUrl;
     
+    @OneToOne
+    @JoinColumn(name = "default_chat_room_id")
+    private ChatRoom defaultChatRoom;
+    
     // 기본 생성자
     public Workspace() {
         this.createdAt = LocalDateTime.now();
@@ -146,6 +150,15 @@ public class Workspace {
         this.updatedAt = LocalDateTime.now(); // 이미지 URL 변경 시 updatedAt 자동 갱신
     }
     
+    public ChatRoom getDefaultChatRoom() {
+        return defaultChatRoom;
+    }
+    
+    public void setDefaultChatRoom(ChatRoom defaultChatRoom) {
+        this.defaultChatRoom = defaultChatRoom;
+        this.updatedAt = LocalDateTime.now(); // 기본 채팅방 변경 시 updatedAt 자동 갱신
+    }
+    
     // 빌더 패턴 구현
     public static WorkspaceBuilder builder() {
         return new WorkspaceBuilder();
@@ -158,6 +171,7 @@ public class Workspace {
         private User owner;
         private String iconColor;
         private String imageUrl;
+        private ChatRoom defaultChatRoom;
         
         public WorkspaceBuilder name(String name) {
             this.name = name;
@@ -184,8 +198,15 @@ public class Workspace {
             return this;
         }
         
+        public WorkspaceBuilder defaultChatRoom(ChatRoom defaultChatRoom) {
+            this.defaultChatRoom = defaultChatRoom;
+            return this;
+        }
+        
         public Workspace build() {
-            return new Workspace(name, description, owner, iconColor, imageUrl);
+            Workspace workspace = new Workspace(name, description, owner, iconColor, imageUrl);
+            workspace.setDefaultChatRoom(defaultChatRoom);
+            return workspace;
         }
     }
     
@@ -201,6 +222,7 @@ public class Workspace {
                 ", updatedAt=" + updatedAt +
                 ", iconColor='" + iconColor + '\'' +
                 ", imageUrl='" + imageUrl + '\'' +
+                ", defaultChatRoom=" + (defaultChatRoom != null ? defaultChatRoom.getId() : "null") +
                 '}';
     }
 } 

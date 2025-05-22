@@ -13,6 +13,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * 채팅방 멤버 데이터 접근 인터페이스
+ */
 @Repository
 public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, ChatRoomMemberId> {
     
@@ -59,4 +62,16 @@ public interface ChatRoomMemberRepository extends JpaRepository<ChatRoomMember, 
     List<ChatRoomMember> findByWorkspaceIdAndUserId(
             @Param("workspaceId") Long workspaceId, 
             @Param("userId") Long userId);
+    
+    /**
+     * 채팅방 멤버 수 조회
+     */
+    @Query("SELECT COUNT(crm) FROM ChatRoomMember crm WHERE crm.chatRoom = :chatRoom")
+    int countByChatRoom(@Param("chatRoom") ChatRoom chatRoom);
+    
+    /**
+     * 채팅방 내 사용자 목록 조회
+     */
+    @Query("SELECT crm.user FROM ChatRoomMember crm WHERE crm.chatRoom = :chatRoom")
+    List<User> findUsersByChatRoom(@Param("chatRoom") ChatRoom chatRoom);
 } 

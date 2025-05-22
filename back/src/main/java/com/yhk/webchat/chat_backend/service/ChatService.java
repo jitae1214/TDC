@@ -317,6 +317,55 @@ public class ChatService {
             // 사용자가 속한 채팅방 목록 조회
             List<ChatRoom> chatRooms = chatRoomRepository.findByWorkspaceAndMember(workspace, user);
             
+            // 채팅방이 없으면 워크스페이스의 모든 채팅방 목록을 조회하고 사용자를 추가
+            if (chatRooms.isEmpty()) {
+                // 워크스페이스의 기본 채팅방 확인
+                ChatRoom defaultChatRoom = workspace.getDefaultChatRoom();
+                
+                if (defaultChatRoom != null) {
+                    // 기본 채팅방에 사용자가 멤버가 아니면 추가
+                    if (!defaultChatRoom.isMember(user)) {
+                        defaultChatRoom.addMember(user);
+                        ChatRoom savedChatRoom = chatRoomRepository.save(defaultChatRoom);
+                        
+                        // 채팅방 멤버에 워크스페이스 설정
+                        Optional<ChatRoomMember> memberOpt = chatRoomMemberRepository.findByChatRoomIdAndUserId(
+                                savedChatRoom.getId(), user.getId());
+                        
+                        if (memberOpt.isPresent()) {
+                            ChatRoomMember member = memberOpt.get();
+                            member.setWorkspace(workspace);
+                            chatRoomMemberRepository.save(member);
+                        }
+                    }
+                    
+                    // 기본 채팅방을 목록에 추가
+                    chatRooms.add(defaultChatRoom);
+                } else {
+                    // 기본 채팅방이 없으면 워크스페이스의 모든 채팅방 조회
+                    chatRooms = chatRoomRepository.findByWorkspace(workspace);
+                    
+                    // 각 채팅방에 사용자 추가 (1:1 채팅방은 제외)
+                    for (ChatRoom chatRoom : chatRooms) {
+                        if (!chatRoom.isDirect() && !chatRoom.isMember(user)) {
+                            // 채팅방에 사용자 추가
+                            chatRoom.addMember(user);
+                            ChatRoom savedChatRoom = chatRoomRepository.save(chatRoom);
+                            
+                            // 채팅방 멤버에 워크스페이스 설정
+                            Optional<ChatRoomMember> memberOpt = chatRoomMemberRepository.findByChatRoomIdAndUserId(
+                                    savedChatRoom.getId(), user.getId());
+                            
+                            if (memberOpt.isPresent()) {
+                                ChatRoomMember member = memberOpt.get();
+                                member.setWorkspace(workspace);
+                                chatRoomMemberRepository.save(member);
+                            }
+                        }
+                    }
+                }
+            }
+            
             // 채팅방 정보 구성
             List<Map<String, Object>> chatRoomData = new ArrayList<>();
             
@@ -339,6 +388,12 @@ public class ChatService {
                     memberData.put("profileImageUrl", memberUser.getProfileImageUrl());
                     memberData.put("status", member.getUserStatus()); // 멤버별 상태 정보 추가
                     memberInfo.add(memberData);
+                    
+                    // 멤버의 워크스페이스 연결이 없는 경우 설정
+                    if (member.getWorkspace() == null) {
+                        member.setWorkspace(workspace);
+                        chatRoomMemberRepository.save(member);
+                    }
                 }
                 roomInfo.put("members", memberInfo);
                 
