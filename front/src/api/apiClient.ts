@@ -23,14 +23,22 @@ apiClient.interceptors.request.use(
       url: config.url, 
       method: config.method, 
       hasToken: !!token,
-      tokenPreview: token ? token.substring(0, 15) + '...' : 'null',
+      tokenPreview: token && token.length > 0 ? token.substring(0, 15) + '...' : 'null',
     });
     
-    if (token && config.headers) { // 토큰이 있고 헤더가 있으면
-      config.headers.Authorization = `Bearer ${token}`; // 헤더에 토큰 추가
+    // 토큰이 있고 (빈 문자열이 아니고) 헤더가 있으면 헤더에 토큰 추가
+    if (token && token.length > 0 && config.headers) {
+      config.headers.Authorization = `Bearer ${token}`;
       console.log('Authorization 헤더 설정됨');
     } else {
-      console.log('토큰이 없거나 헤더가 없어 Authorization 설정 실패');
+      // 토큰이 없거나 빈 문자열이면 헤더를 설정하지 않음
+      console.log('토큰이 없거나 빈 문자열이어서 Authorization 헤더를 설정하지 않음');
+      
+      // 대신 사용자 정보가 있는지 확인
+      const username = localStorage.getItem('username');
+      if (username) {
+        console.log('사용자 정보는 있으므로 요청은 계속 진행합니다:', username);
+      }
     }
     
     return config;
@@ -58,8 +66,12 @@ apiClient.interceptors.response.use(
           localStorage.removeItem('username');
           localStorage.removeItem('userId');
           
-          // 로그인 페이지로 리다이렉트
-          window.location.href = '/login';
+          // 현재 페이지가 로그인 페이지가 아닌 경우에만 리다이렉트
+          if (!window.location.pathname.includes('/login')) {
+            console.log('인증 만료로 로그인 페이지로 이동합니다.');
+            // 로그인 페이지로 리다이렉트
+            window.location.href = '/login?reason=expired';
+          }
           break;
           
         case 403: // Forbidden 에러 처리
@@ -67,13 +79,18 @@ apiClient.interceptors.response.use(
             url: error.config?.url,
             method: error.config?.method,
             params: error.config?.params,
-            // 토큰 정보 로깅 (보안상 앞부분만)
-            token: localStorage.getItem(AUTH_TOKEN_KEY) ? '존재함 (일부 표시): ' + 
-              localStorage.getItem(AUTH_TOKEN_KEY)?.substring(0, 20) + '...' : '없음',
-            userId: localStorage.getItem('userId'),
-            error: error.response
           });
-          // 403 에러는 임시로 무시하고 진행 (UI 계속 표시)
+          
+          // 토큰이 있지만 403 에러가 발생한 경우 토큰이 유효하지 않을 수 있음
+          // 소셜 로그인 사용자는 username이 저장되어 있으면 로그인 상태로 간주
+          const token = getAuthToken();
+          const username = localStorage.getItem('username');
+          
+          // 토큰이 있고, 로그인 페이지가 아니며, 사용자 이름도 없는 경우에만 경고 표시
+          if (token && !window.location.pathname.includes('/login') && !username) {
+            console.warn('유효하지 않은 권한으로 인해 재로그인이 필요할 수 있습니다.');
+            // 사용자에게 재로그인 유도를 위한 안내 메시지는 표시하되 자동 리다이렉트는 하지 않음
+          }
           break;
           
         case 404: // Not Found 에러 처리
@@ -139,14 +156,27 @@ export const getAuthToken = (): string | null => {
       }
     }
     
-    console.log('getAuthToken 상태:', !!token);
+    // 소셜 로그인의 경우 토큰 형식이 다를 수 있으므로 추가 확인
+    const username = localStorage.getItem('username');
+    const userId = localStorage.getItem('userId');
+    
+    // 사용자 정보가 있지만 토큰이 없는 경우 (소셜 로그인 등)
+    if (!token && (username || userId)) {
+      console.log('토큰은 없지만 사용자 정보가 있습니다. 소셜 로그인 사용자일 수 있습니다.');
+      // 여기서 필요하다면 새 토큰을 발급받는 로직을 추가할 수 있습니다
+    }
+    
+    console.log('getAuthToken 상태:', !!token, '사용자 정보 존재:', !!username);
     
     // 토큰이 비어있거나 undefined, null, 'undefined' 문자열인 경우 처리
     if (!token || token === 'undefined' || token === 'null') {
       console.log('유효하지 않은 토큰이 발견되어 제거합니다');
       localStorage.removeItem(AUTH_TOKEN_KEY);
       sessionStorage.removeItem(AUTH_TOKEN_KEY);
-      return null;
+      
+      // 사용자 정보가 있으면 토큰이 없어도 null을 반환하지 않음 (빈 문자열 반환)
+      // 이렇게 하면 Authorization 헤더는 설정되지 않지만 로그인 상태는 유지됨
+      return username || userId ? '' : null;
     }
     
     return token;

@@ -65,6 +65,29 @@ public class ChatController {
     }
     
     /**
+     * 사용자 상태 변경 이벤트 (WebSocket)
+     * 클라이언트에서 /app/chat.updateStatus로 메시지를 보내면 처리
+     */
+    @MessageMapping("/chat.updateStatus")
+    public void updateStatus(@Payload Map<String, Object> statusMessage) {
+        String username = (String) statusMessage.get("username");
+        String status = (String) statusMessage.get("status");
+        Long chatRoomId = Long.valueOf(statusMessage.get("chatRoomId").toString());
+        
+        // 상태 변경 메시지를 해당 채팅방으로 전파
+        messagingTemplate.convertAndSend(
+            "/topic/chat/" + chatRoomId + "/status",
+            statusMessage
+        );
+        
+        // UserService의 상태 업데이트 메서드 호출 (선택적)
+        // 사용자가 브라우저 종료나 오프라인 상태로 전환할 때 활용
+        if (username != null && status != null) {
+            chatService.updateUserStatusInRoom(username, status, chatRoomId);
+        }
+    }
+    
+    /**
      * 채팅방 생성 (REST API)
      */
     @PostMapping("/rooms")
@@ -96,6 +119,13 @@ public class ChatController {
             @PathVariable Long workspaceId,
             @CurrentUser User currentUser) {
         
+        // 인증된 사용자가 있는지 확인
+        if (currentUser == null) {
+            return ResponseEntity.status(403).body(
+                new ApiResponse(false, "인증된 사용자만 채팅방 목록을 조회할 수 있습니다.", null)
+            );
+        }
+        
         Long userId = currentUser.getId();
         
         ApiResponse response = chatService.getChatRoomsByWorkspace(workspaceId, userId);
@@ -106,8 +136,8 @@ public class ChatController {
     /**
      * 채팅방 메시지 목록 조회
      */
-    @GetMapping("/rooms/{chatRoomId}/messages")
-    @PreAuthorize("isAuthenticated()")
+    @GetMapping("/rooms/{chatRoomId}/messages") // 채팅방 메시지 목록 조회
+    @PreAuthorize("isAuthenticated()") // 인증된 사용자만 접근 가능
     public ResponseEntity<ApiResponse> getChatMessages(
             @PathVariable Long chatRoomId,
             @RequestParam(defaultValue = "0") int page,

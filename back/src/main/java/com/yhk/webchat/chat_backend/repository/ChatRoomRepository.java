@@ -1,6 +1,7 @@
 package com.yhk.webchat.chat_backend.repository;
 
 import com.yhk.webchat.chat_backend.model.ChatRoom;
+import com.yhk.webchat.chat_backend.model.ChatRoomMember;
 import com.yhk.webchat.chat_backend.model.User;
 import com.yhk.webchat.chat_backend.model.Workspace;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -25,13 +26,13 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     /**
      * 사용자가 속한 채팅방 조회 
      */
-    @Query("SELECT cr FROM ChatRoom cr JOIN cr.members m WHERE m = :user")
+    @Query("SELECT cr FROM ChatRoom cr JOIN cr.members m WHERE m.user = :user")
     List<ChatRoom> findByMember(@Param("user") User user);
     
     /**
      * 워크스페이스 내 사용자가 속한 채팅방 조회
      */
-    @Query("SELECT cr FROM ChatRoom cr JOIN cr.members m WHERE m = :user AND cr.workspace = :workspace")
+    @Query("SELECT cr FROM ChatRoom cr JOIN cr.members m WHERE m.user = :user AND cr.workspace = :workspace")
     List<ChatRoom> findByWorkspaceAndMember(@Param("workspace") Workspace workspace, @Param("user") User user);
     
     /**
@@ -42,7 +43,7 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
            "JOIN cr.members m2 " +
            "WHERE cr.isDirect = true " +
            "AND cr.workspace = :workspace " +
-           "AND m1 = :user1 AND m2 = :user2 " +
+           "AND m1.user = :user1 AND m2.user = :user2 " +
            "AND size(cr.members) = 2")
     Optional<ChatRoom> findDirectChatRoom(
         @Param("workspace") Workspace workspace,

@@ -3,10 +3,12 @@ package com.yhk.webchat.chat_backend.service;
 import com.yhk.webchat.chat_backend.dto.chat.ChatMessage;
 import com.yhk.webchat.chat_backend.dto.response.ApiResponse;
 import com.yhk.webchat.chat_backend.model.ChatRoom;
+import com.yhk.webchat.chat_backend.model.ChatRoomMember;
 import com.yhk.webchat.chat_backend.model.User;
 import com.yhk.webchat.chat_backend.model.Workspace;
 import com.yhk.webchat.chat_backend.repository.ChatMessageRepository;
 import com.yhk.webchat.chat_backend.repository.ChatRoomRepository;
+import com.yhk.webchat.chat_backend.repository.ChatRoomMemberRepository;
 import com.yhk.webchat.chat_backend.repository.UserRepository;
 import com.yhk.webchat.chat_backend.repository.WorkspaceRepository;
 
@@ -47,6 +49,9 @@ public class ChatService {
     
     @Autowired
     private WorkspaceRepository workspaceRepository;
+    
+    @Autowired
+    private ChatRoomMemberRepository chatRoomMemberRepository;
 
     /**
      * 채팅 메시지 전송
@@ -168,8 +173,10 @@ public class ChatService {
             // 멤버 추가
             if (memberIds != null && !memberIds.isEmpty()) {
                 for (Long memberId : memberIds) {
-                    Optional<User> memberOpt = userRepository.findById(memberId);
-                    memberOpt.ifPresent(chatRoom::addMember);
+                    if (!memberId.equals(creator.getId())) { // 생성자는 이미 추가됨
+                        Optional<User> memberOpt = userRepository.findById(memberId);
+                        memberOpt.ifPresent(chatRoom::addMember);
+                    }
                 }
             }
             
@@ -191,6 +198,18 @@ public class ChatService {
             responseData.put("createdAt", savedChatRoom.getCreatedAt());
             responseData.put("creatorId", creator.getId());
             responseData.put("isDirect", savedChatRoom.isDirect());
+            
+            // 멤버 정보 추가
+            List<Map<String, Object>> memberList = new ArrayList<>();
+            for (ChatRoomMember member : savedChatRoom.getMembers()) {
+                Map<String, Object> memberInfo = new HashMap<>();
+                User user = member.getUser();
+                memberInfo.put("userId", user.getId());
+                memberInfo.put("username", user.getUsername());
+                memberInfo.put("status", member.getUserStatus());
+                memberList.add(memberInfo);
+            }
+            responseData.put("members", memberList);
             
             return new ApiResponse(true, "채팅방이 생성되었습니다.", responseData);
         } catch (Exception e) {
@@ -312,11 +331,13 @@ public class ChatService {
                 
                 // 멤버 정보
                 List<Map<String, Object>> memberInfo = new ArrayList<>();
-                for (User member : room.getMembers()) {
+                for (ChatRoomMember member : room.getMembers()) {
+                    User memberUser = member.getUser();
                     Map<String, Object> memberData = new HashMap<>();
-                    memberData.put("id", member.getId());
-                    memberData.put("username", member.getUsername());
-                    memberData.put("profileImageUrl", member.getProfileImageUrl());
+                    memberData.put("id", memberUser.getId());
+                    memberData.put("username", memberUser.getUsername());
+                    memberData.put("profileImageUrl", memberUser.getProfileImageUrl());
+                    memberData.put("status", member.getUserStatus()); // 멤버별 상태 정보 추가
                     memberInfo.add(memberData);
                 }
                 roomInfo.put("members", memberInfo);
@@ -371,7 +392,10 @@ public class ChatService {
             
             // 1:1 채팅방이 아닌 일반 채팅방에만 사용자 추가
             for (ChatRoom chatRoom : chatRooms) {
-                if (!chatRoom.isDirect() && !chatRoom.getMembers().contains(user)) {
+                // 채팅방 멤버인지 확인
+                boolean isMember = chatRoom.isMember(user);
+                
+                if (!chatRoom.isDirect() && !isMember) {
                     chatRoom.addMember(user);
                     chatRoomRepository.save(chatRoom);
                     
@@ -384,6 +408,47 @@ public class ChatService {
                     chatMessageRepository.save(systemMessage);
                 }
             }
+            
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * 채팅방 내 사용자 상태 업데이트
+     * @param username 사용자명
+     * @param status 상태 (ONLINE, OFFLINE, AWAY)
+     * @param chatRoomId 채팅방 ID
+     * @return 업데이트 성공 여부
+     */
+    @Transactional
+    public boolean updateUserStatusInRoom(String username, String status, Long chatRoomId) {
+        try {
+            // 사용자 조회
+            Optional<User> userOpt = userRepository.findByUsername(username);
+            if (!userOpt.isPresent()) {
+                return false;
+            }
+            User user = userOpt.get();
+            
+            // 채팅방 조회
+            Optional<ChatRoom> chatRoomOpt = chatRoomRepository.findById(chatRoomId);
+            if (!chatRoomOpt.isPresent()) {
+                return false;
+            }
+            ChatRoom chatRoom = chatRoomOpt.get();
+            
+            // 해당 채팅방의 멤버인지 확인
+            Optional<ChatRoomMember> memberOpt = chatRoomMemberRepository.findByChatRoomIdAndUserId(chatRoomId, user.getId());
+            if (!memberOpt.isPresent()) {
+                return false;
+            }
+            
+            // 채팅방 멤버의 상태 업데이트
+            ChatRoomMember member = memberOpt.get();
+            member.setUserStatus(status);
+            chatRoomMemberRepository.save(member);
             
             return true;
         } catch (Exception e) {

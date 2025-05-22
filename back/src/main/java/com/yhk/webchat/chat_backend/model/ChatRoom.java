@@ -39,13 +39,9 @@ public class ChatRoom {
     @Column(name = "is_direct", nullable = false)
     private boolean isDirect = false;
     
-    @ManyToMany
-    @JoinTable(
-        name = "chat_room_members",
-        joinColumns = @JoinColumn(name = "chat_room_id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> members = new HashSet<>();
+    // ManyToMany 관계 제거하고 One-to-Many 관계로 변경
+    @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<ChatRoomMember> members = new HashSet<>();
     
     // 생성자
     public ChatRoom() {
@@ -118,22 +114,29 @@ public class ChatRoom {
         isDirect = direct;
     }
     
-    public Set<User> getMembers() {
+    public Set<ChatRoomMember> getMembers() {
         return members;
     }
     
-    public void setMembers(Set<User> members) {
+    public void setMembers(Set<ChatRoomMember> members) {
         this.members = members;
     }
     
     // 채팅방 멤버 추가
     public void addMember(User user) {
-        this.members.add(user);
+        ChatRoomMember member = new ChatRoomMember(this, user);
+        members.add(member);
     }
     
     // 채팅방 멤버 제거
     public void removeMember(User user) {
-        this.members.remove(user);
+        members.removeIf(member -> member.getUser().getId().equals(user.getId()));
+    }
+    
+    // 특정 사용자가 채팅방 멤버인지 확인
+    public boolean isMember(User user) {
+        return members.stream()
+                .anyMatch(member -> member.getUser().getId().equals(user.getId()));
     }
     
     // 상태 업데이트

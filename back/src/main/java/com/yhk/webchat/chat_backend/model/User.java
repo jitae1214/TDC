@@ -2,7 +2,9 @@ package com.yhk.webchat.chat_backend.model;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jakarta.persistence.*;
 
@@ -68,6 +70,11 @@ public class User {
     )
     @JsonIgnore
     private List<User> friends = new ArrayList<>();
+    
+    // 사용자가 속한 채팅방 멤버십 관계 추가
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private Set<ChatRoomMember> chatRoomMemberships = new HashSet<>();
     
     // 기본 생성자
     public User() {
@@ -260,6 +267,29 @@ public class User {
     // 친구 삭제 메서드
     public void removeFriend(User friend) {
         this.friends.remove(friend);
+    }
+    
+    // 채팅방 멤버십 반환
+    public Set<ChatRoomMember> getChatRoomMemberships() {
+        return chatRoomMemberships;
+    }
+
+    // 채팅방 멤버십 설정
+    public void setChatRoomMemberships(Set<ChatRoomMember> chatRoomMemberships) {
+        this.chatRoomMemberships = chatRoomMemberships;
+    }
+    
+    // 상태 변경시 모든 채팅방 멤버 상태 동기화
+    public void updateStatus(String newStatus) {
+        this.status = newStatus;
+        this.updatedAt = LocalDateTime.now();
+        
+        // 사용자가 속한 모든 채팅방 멤버의 상태도 업데이트
+        if (chatRoomMemberships != null) {
+            for (ChatRoomMember membership : chatRoomMemberships) {
+                membership.setUserStatus(newStatus);
+            }
+        }
     }
     
     // 빌더 패턴 구현을 위한 정적 내부 클래스

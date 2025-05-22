@@ -3,14 +3,17 @@ package com.yhk.webchat.chat_backend.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import com.yhk.webchat.chat_backend.dto.response.ApiResponse;
 import com.yhk.webchat.chat_backend.model.User;
 import com.yhk.webchat.chat_backend.model.Workspace;
+import com.yhk.webchat.chat_backend.model.ChatRoomMember;
 import com.yhk.webchat.chat_backend.model.WorkspaceMembership;
 import com.yhk.webchat.chat_backend.repository.UserRepository;
 import com.yhk.webchat.chat_backend.repository.WorkspaceMembershipRepository;
 import com.yhk.webchat.chat_backend.repository.WorkspaceRepository;
+import com.yhk.webchat.chat_backend.repository.ChatRoomMemberRepository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -34,6 +37,12 @@ public class UserService {
     
     @Autowired
     private WorkspaceMembershipRepository workspaceMembershipRepository;
+    
+    @Autowired
+    private ChatRoomMemberRepository chatRoomMemberRepository;
+    
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
     
     // 상태 상수 정의
     public static final String STATUS_ONLINE = "ONLINE";
@@ -132,9 +141,18 @@ public class UserService {
                 return new ApiResponse(false, "잘못된 상태값입니다. (ONLINE, OFFLINE, AWAY 중 하나여야 함)", null);
             }
             
-            // 사용자 상태 업데이트
-            user.setStatus(status);
-            user.setUpdatedAt(LocalDateTime.now());
+            // 이전 상태와 동일하면 변경하지 않음
+            if (status.equals(user.getStatus())) {
+                Map<String, Object> data = new HashMap<>();
+                data.put("userId", user.getId());
+                data.put("username", user.getUsername());
+                data.put("status", user.getStatus());
+                data.put("lastLoginAt", user.getLastLoginAt());
+                return new ApiResponse(true, "사용자 상태가 이미 " + status + " 상태입니다.", data);
+            }
+            
+            // 사용자 상태 업데이트 (연관된 모든 채팅방 멤버 상태도 함께 업데이트)
+            user.updateStatus(status);
             
             // 로그인 시간 업데이트 (온라인 상태로 변경 시)
             if (status.equals(STATUS_ONLINE)) {
@@ -142,6 +160,9 @@ public class UserService {
             }
             
             userRepository.save(user);
+            
+            // 상태 변경 이벤트를 웹소켓으로 전파
+            broadcastStatusChange(user);
             
             // 응답 데이터 구성
             Map<String, Object> data = new HashMap<>();
@@ -154,6 +175,38 @@ public class UserService {
         } catch (Exception e) {
             return new ApiResponse(false, "사용자 상태 업데이트 중 오류가 발생했습니다: " + e.getMessage(), null);
         }
+    }
+    
+    /**
+     * 사용자 상태 변경을 실시간으로 전파
+     * @param user 상태가 변경된 사용자
+     */
+    private void broadcastStatusChange(User user) {
+        // 1. 상태 변경 정보 생성
+        Map<String, Object> statusUpdate = new HashMap<>();
+        statusUpdate.put("userId", user.getId());
+        statusUpdate.put("username", user.getUsername());
+        statusUpdate.put("status", user.getStatus());
+        statusUpdate.put("timestamp", LocalDateTime.now());
+        
+        // 2. 사용자가 속한 모든 채팅방으로 상태 변경 전파
+        List<ChatRoomMember> memberships = chatRoomMemberRepository.findByUser(user);
+        for (ChatRoomMember membership : memberships) {
+            Long chatRoomId = membership.getChatRoom().getId();
+            // 채팅방별 상태 업데이트 메시지 전송
+            messagingTemplate.convertAndSend("/topic/chat/" + chatRoomId + "/status", statusUpdate);
+        }
+        
+        // 3. 사용자가 속한 모든 워크스페이스로 상태 변경 전파
+        List<WorkspaceMembership> workspaceMemberships = workspaceMembershipRepository.findByUser(user);
+        for (WorkspaceMembership workspaceMembership : workspaceMemberships) {
+            Long workspaceId = workspaceMembership.getWorkspace().getId();
+            // 워크스페이스별 상태 업데이트 메시지 전송
+            messagingTemplate.convertAndSend("/topic/workspace/" + workspaceId + "/status", statusUpdate);
+        }
+        
+        // 4. 전체 사용자 상태 업데이트 주제로도 전송
+        messagingTemplate.convertAndSend("/topic/users/status", statusUpdate);
     }
     
     /**

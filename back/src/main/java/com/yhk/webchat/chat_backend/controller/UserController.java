@@ -3,6 +3,7 @@ package com.yhk.webchat.chat_backend.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import com.yhk.webchat.chat_backend.dto.request.user.UpdateProfileImageRequest;
 import com.yhk.webchat.chat_backend.dto.request.user.UpdateUserStatusRequest;
@@ -12,6 +13,8 @@ import com.yhk.webchat.chat_backend.security.CurrentUser;
 import com.yhk.webchat.chat_backend.service.UserService;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * 사용자 관련 API 컨트롤러
@@ -56,35 +59,57 @@ public class UserController {
     }
     
     /**
-     * 사용자 온라인 상태 업데이트
-     * @param statusRequest 상태 업데이트 요청
-     * @param currentUser 현재 로그인한 사용자
-     * @return 업데이트 결과
+     * 사용자 상태 업데이트
      */
-    @PostMapping("/status")
+    @PutMapping("/status")
+    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<ApiResponse> updateUserStatus(
-            @RequestBody UpdateUserStatusRequest statusRequest,
+            @RequestBody Map<String, String> statusRequest,
             @CurrentUser User currentUser) {
         
-        ApiResponse response;
-        try {
-            // 사용자 찾는 방법
-            if (currentUser != null) {
-                // 인증된 사용자가 있는 경우
-                response = userService.updateUserStatus(currentUser.getId(), statusRequest.getStatus());
-            } else if (statusRequest.getUserId() != null) {
-                // 지정된 userId 값으로 찾는 경우
-                response = userService.updateUserStatus(statusRequest.getUserId(), statusRequest.getStatus());
-            } else if (statusRequest.getUsername() != null) {
-                // 지정된 username으로 찾는 경우
-                response = userService.updateUserStatusByUsername(statusRequest.getUsername(), statusRequest.getStatus());
-            } else {
-                return ResponseEntity.badRequest().body(new ApiResponse(false, "사용자 정보가 없습니다.", null));
-            }
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "상태 업데이트 중 오류: " + e.getMessage(), null));
+        String status = statusRequest.get("status");
+        
+        if (status == null) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse(false, "상태값이 제공되지 않았습니다.", null)
+            );
         }
+        
+        ApiResponse response = userService.updateUserStatus(currentUser.getId(), status);
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * 특정 사용자의 상태 조회
+     */
+    @GetMapping("/{userId}/status")
+    public ResponseEntity<ApiResponse> getUserStatus(@PathVariable Long userId) {
+        String status = userService.getUserStatus(userId);
+        
+        if (status == null) {
+            return ResponseEntity.notFound().build();
+        }
+        
+        Map<String, Object> data = new HashMap<>();
+        data.put("userId", userId);
+        data.put("status", status);
+        
+        return ResponseEntity.ok(new ApiResponse(true, "사용자 상태 조회 성공", data));
+    }
+    
+    /**
+     * 워크스페이스의 온라인 사용자 목록 조회
+     */
+    @GetMapping("/workspace/{workspaceId}/online")
+    public ResponseEntity<ApiResponse> getWorkspaceOnlineUsers(@PathVariable Long workspaceId) {
+        List<Long> onlineUserIds = userService.getWorkspaceOnlineMembers(workspaceId);
+        
+        Map<String, Object> data = new HashMap<>();
+        data.put("workspaceId", workspaceId);
+        data.put("onlineUserIds", onlineUserIds);
+        
+        return ResponseEntity.ok(new ApiResponse(true, "워크스페이스 온라인 사용자 목록 조회 성공", data));
     }
     
     /**
@@ -106,16 +131,5 @@ public class UserController {
     public ResponseEntity<List<Long>> getWorkspaceOnlineMembers(@PathVariable Long workspaceId) {
         List<Long> onlineMembers = userService.getWorkspaceOnlineMembers(workspaceId);
         return ResponseEntity.ok(onlineMembers);
-    }
-    
-    /**
-     * 특정 사용자의 온라인 상태 조회
-     * @param userId 사용자 ID
-     * @return 온라인 상태 (ONLINE, OFFLINE, AWAY)
-     */
-    @GetMapping("/{userId}/status")
-    public ResponseEntity<String> getUserStatus(@PathVariable Long userId) {
-        String status = userService.getUserStatus(userId);
-        return ResponseEntity.ok(status);
     }
 } 
