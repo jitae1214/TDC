@@ -408,3 +408,20 @@
     font-size: 24px;
     margin-bottom: 5px;
 }
+
+/* 동영상 미리보기 스타일 */
+.video-preview {
+    margin-bottom: 10px;
+    display: block;
+    width: 100%;
+}
+
+.video-preview video {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 4px;
+    height: auto !important;
+    display: block;
+    margin: 5px 0;
+    object-fit: contain;
+}

@@ -361,10 +361,20 @@ const WorkspaceChat: React.FC = () => {
         if (files && files.length > 0) {
             const file = files[0];
             
-            // 이미지 파일만 허용
-            if (!file.type.startsWith('image/')) {
-                alert('이미지 파일만 업로드할 수 있습니다.');
+            // 이미지와 동영상 파일 허용
+            if (!file.type.startsWith('image/') && !file.type.startsWith('video/')) {
+                alert('이미지 또는 동영상 파일만 업로드할 수 있습니다.');
                 // 파일 입력 필드 초기화
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+                return;
+            }
+            
+            // 파일 크기 제한 (100MB)
+            const maxSize = 100 * 1024 * 1024; // 100MB
+            if (file.size > maxSize) {
+                alert('파일 크기는 100MB 이하여야 합니다.');
                 if (fileInputRef.current) {
                     fileInputRef.current.value = '';
                 }
@@ -783,8 +793,20 @@ const WorkspaceChat: React.FC = () => {
 
     // 파일 타입에 따른 아이콘 결정
     const getFileIcon = (fileType: string): string => {
-        if (fileType.startsWith('image/')) return '🖼️';
-        if (fileType.startsWith('video/')) return '🎬';
+        // 비디오 파일 타입
+        const videoTypes = [
+            'video/mp4', 'video/webm', 'video/ogg', 'video/quicktime',
+            'video/x-msvideo', 'video/x-ms-wmv', 'video/x-flv', 'video/mpeg'
+        ];
+        
+        // 이미지 파일 타입
+        const imageTypes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/svg+xml',
+            'image/webp', 'image/bmp', 'image/tiff'
+        ];
+        
+        if (imageTypes.some(type => fileType.includes(type) || fileType.startsWith('image/'))) return '🖼️';
+        if (videoTypes.some(type => fileType.includes(type) || fileType.startsWith('video/'))) return '🎬';
         if (fileType.startsWith('audio/')) return '🎵';
         if (fileType.includes('pdf')) return '📄';
         if (fileType.includes('word') || fileType.includes('document')) return '📝';
@@ -800,9 +822,10 @@ const WorkspaceChat: React.FC = () => {
         
         const { fileUrl, fileName, fileType, fileSize } = fileInfo;
         const isImage = fileType.startsWith('image/');
+        const isVideo = fileType.startsWith('video/');
         
         console.log('파일 정보:', fileInfo);
-        console.log('이미지 URL:', fileUrl);
+        console.log('파일 URL:', fileUrl);
         
         return (
             <div className="file-attachment">
@@ -818,6 +841,19 @@ const WorkspaceChat: React.FC = () => {
                             }}
                             style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
                         />
+                    </div>
+                ) : isVideo ? (
+                    <div className="video-preview">
+                        <video 
+                            src={fileUrl} 
+                            controls 
+                            onError={(e) => {
+                                console.error('비디오 로딩 오류:', e);
+                            }}
+                            style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
+                        >
+                            브라우저가 동영상 태그를 지원하지 않습니다.
+                        </video>
                     </div>
                 ) : (
                     <div className="file-info">
@@ -949,7 +985,7 @@ const WorkspaceChat: React.FC = () => {
                         ref={fileInputRef}
                         style={{ display: 'none' }}
                         onChange={handleFileSelect}
-                        accept="image/*"
+                        accept="image/*,video/*"
                     />
                     <input 
                         type="text" 

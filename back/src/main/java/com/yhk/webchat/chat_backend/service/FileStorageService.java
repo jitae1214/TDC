@@ -34,10 +34,10 @@ public class FileStorageService {
             throw new IOException("저장할 파일이 비어있습니다");
         }
 
-        // 파일 확장자 체크
+        // 파일 타입 체크 (이미지와 동영상 허용)
         String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            throw new IOException("이미지 파일만 업로드 가능합니다");
+        if (contentType == null || (!contentType.startsWith("image/") && !contentType.startsWith("video/"))) {
+            throw new IOException("이미지 또는 동영상 파일만 업로드 가능합니다");
         }
 
         // 원본 파일명에서 확장자 추출
