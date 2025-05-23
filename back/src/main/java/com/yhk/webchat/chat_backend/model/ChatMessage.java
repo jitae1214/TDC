@@ -37,6 +37,18 @@ public class ChatMessage {
     @Column(nullable = false)
     private MessageType type;
     
+    @Column(name = "file_url")
+    private String fileUrl;
+    
+    @Column(name = "file_name")
+    private String fileName;
+    
+    @Column(name = "file_type")
+    private String fileType;
+    
+    @Column(name = "file_size")
+    private Long fileSize;
+    
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "chat_message_read_status",
@@ -52,7 +64,8 @@ public class ChatMessage {
         CHAT,   // 일반 채팅 메시지
         JOIN,   // 채팅방 입장
         LEAVE,  // 채팅방 퇴장
-        SYSTEM  // 시스템 메시지
+        SYSTEM, // 시스템 메시지
+        FILE    // 파일 첨부 메시지
     }
     
     // 생성자
@@ -117,6 +130,38 @@ public class ChatMessage {
     
     public void setType(MessageType type) {
         this.type = type;
+    }
+    
+    public String getFileUrl() {
+        return fileUrl;
+    }
+    
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
+    
+    public String getFileName() {
+        return fileName;
+    }
+    
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
+    
+    public String getFileType() {
+        return fileType;
+    }
+    
+    public void setFileType(String fileType) {
+        this.fileType = fileType;
+    }
+    
+    public Long getFileSize() {
+        return fileSize;
+    }
+    
+    public void setFileSize(Long fileSize) {
+        this.fileSize = fileSize;
     }
     
     public Set<User> getReadBy() {

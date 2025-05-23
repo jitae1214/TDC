@@ -37,6 +37,15 @@ public class ChatController {
      */
     @MessageMapping("/chat.sendMessage")
     public void sendMessage(@Payload ChatMessage chatMessage) {
+        System.out.println("메시지 수신: " + chatMessage.getContent());
+        
+        // 메시지에 파일 정보가 있는지 확인
+        if (chatMessage.getFileInfo() != null) {
+            System.out.println("파일 메시지 감지: " + chatMessage.getFileInfo().getFileName());
+            // 명시적으로 FILE 타입으로 설정
+            chatMessage.setType(ChatMessage.MessageType.FILE);
+        }
+        
         chatService.sendMessage(chatMessage);
     }
     

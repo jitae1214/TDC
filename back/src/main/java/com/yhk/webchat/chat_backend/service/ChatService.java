@@ -100,6 +100,17 @@ public class ChatService {
                 case LEAVE:
                     entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.LEAVE;
                     break;
+                case FILE:
+                    entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.FILE;
+                    
+                    // 파일 정보 설정
+                    if (message.getFileInfo() != null) {
+                        entity.setFileUrl(message.getFileInfo().getFileUrl());
+                        entity.setFileName(message.getFileInfo().getFileName());
+                        entity.setFileType(message.getFileInfo().getFileType());
+                        entity.setFileSize(message.getFileInfo().getFileSize());
+                    }
+                    break;
                 default:
                     entityType = com.yhk.webchat.chat_backend.model.ChatMessage.MessageType.CHAT;
             }
@@ -283,6 +294,20 @@ public class ChatService {
                 break;
             case SYSTEM:
                 dto.setType(ChatMessage.MessageType.CHAT); // 시스템 메시지는 일반 채팅으로 표시
+                break;
+            case FILE:
+                dto.setType(ChatMessage.MessageType.FILE);
+                
+                // 파일 정보 설정
+                if (entity.getFileUrl() != null) {
+                    ChatMessage.FileInfo fileInfo = new ChatMessage.FileInfo(
+                        entity.getFileUrl(),
+                        entity.getFileName() != null ? entity.getFileName() : "",
+                        entity.getFileType() != null ? entity.getFileType() : "",
+                        entity.getFileSize() != null ? entity.getFileSize() : 0
+                    );
+                    dto.setFileInfo(fileInfo);
+                }
                 break;
             default:
                 dto.setType(ChatMessage.MessageType.CHAT);

@@ -267,16 +267,27 @@ export const sendChatMessage = (chatRoomId: number, senderId: number, content: s
     return false;
   }
 
+  // 파일 정보가 있는 경우, 백엔드에서 기대하는 형식으로 변환
+  const transformedFileInfo = fileInfo ? {
+    fileUrl: fileInfo.fileUrl,
+    fileName: fileInfo.fileName,
+    fileType: fileInfo.fileType,
+    fileSize: fileInfo.fileSize
+  } : null;
+
   const message = {
     chatRoomId,
     senderId,
     senderName,
     content,
     senderProfileUrl,
-    type: fileInfo ? 'FILE' : 'CHAT', // 파일이 있는 경우 메시지 타입을 FILE로 설정
+    // 파일이 있는 경우 명시적으로 FILE 타입 설정
+    type: fileInfo ? 'FILE' : 'CHAT',
     timestamp: new Date(),
-    fileInfo // 파일 정보 추가
+    fileInfo: transformedFileInfo
   };
+
+  console.log('전송할 메시지:', JSON.stringify(message));
 
   stompClient.publish({
     destination: '/app/chat.sendMessage',
