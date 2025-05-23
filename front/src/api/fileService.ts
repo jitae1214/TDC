@@ -206,4 +206,70 @@ export const uploadAndUpdateProfileImage = async (file: File): Promise<any> => {
     
     throw new Error('ud504ub85cud544 uc774ubbf8uc9c0 uc5c5ub85cub4dc ubc0f uc5c5ub370uc774ud2b8 uc911 uc624ub958uac00 ubc1cuc0ddud588uc2b5ub2c8ub2e4: ' + (error.message || 'uc54c uc218 uc5c6ub294 uc624ub958'));
   }
+};
+
+/**
+ * 채팅에 첨부할 파일 업로드
+ * @param file 업로드할 파일
+ * @param chatRoomId 채팅방 ID
+ * @returns 업로드된 파일 URL 및 정보
+ */
+export const uploadChatFile = async (file: File, chatRoomId: number): Promise<{fileUrl: string, fileName: string, fileType: string, fileSize: number}> => {
+  try {
+    // FormData 생성
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    // 인증 토큰 설정
+    const token = getAuthToken();
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
+    };
+    
+    console.log('파일 업로드 요청 시작:', file.name, file.type);
+    
+    // 요청 전송: 워크스페이스 이미지 업로드 엔드포인트 사용
+    const response = await apiClient.post('/api/files/upload/workspace', formData, config);
+    
+    console.log('파일 업로드 응답:', response.data);
+    
+    // 응답에서 파일 정보 추출
+    if (response.data && response.data.fileUrl) {
+      // 캐싱 방지를 위해 URL에 타임스탬프 추가
+      const timestamp = new Date().getTime();
+      const fileUrl = response.data.fileUrl.includes('?') 
+        ? `${response.data.fileUrl}&t=${timestamp}`
+        : `${response.data.fileUrl}?t=${timestamp}`;
+        
+      // 전체 URL 생성
+      let fullFileUrl = fileUrl;
+      if (!fileUrl.startsWith('http')) {
+        const baseUrl = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080';
+        fullFileUrl = `${baseUrl}${fileUrl.startsWith('/') ? '' : '/'}${fileUrl}`;
+      }
+      
+      console.log('생성된 파일 URL:', fullFileUrl);
+      
+      return {
+        fileUrl: fullFileUrl,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size
+      };
+    }
+    
+    throw new Error('파일 URL을 받지 못했습니다.');
+  } catch (error: any) {
+    console.error('채팅 파일 업로드 실패:', error);
+    
+    // 서버에서 오는 상세 오류 메시지 출력
+    if (error.response && error.response.data) {
+      console.error('서버 오류 메시지:', error.response.data);
+    }
+    
+    throw new Error('채팅 파일 업로드 중 오류가 발생했습니다: ' + (error.message || '알 수 없는 오류'));
+  }
 }; 

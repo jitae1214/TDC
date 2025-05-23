@@ -69,7 +69,7 @@ apiClient.interceptors.response.use(
           // 현재 페이지가 로그인 페이지가 아닌 경우에만 리다이렉트
           if (!window.location.pathname.includes('/login')) {
             console.log('인증 만료로 로그인 페이지로 이동합니다.');
-            // 로그인 페이지로 리다이렉트
+          // 로그인 페이지로 리다이렉트
             window.location.href = '/login?reason=expired';
           }
           break;

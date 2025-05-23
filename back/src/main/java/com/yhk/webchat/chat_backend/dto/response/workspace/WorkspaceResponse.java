@@ -33,7 +33,7 @@ public class WorkspaceResponse {
         
         // 소유자 정보
         if (workspace.getOwner() != null) {
-            this.ownerId = workspace.getOwner().getId();
+        this.ownerId = workspace.getOwner().getId();
             this.ownerName = workspace.getOwner().getUsername();
         }
         

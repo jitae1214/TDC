@@ -261,7 +261,7 @@ export const unsubscribeFromChatRoom = () => {
 };
 
 // 메시지 전송
-export const sendChatMessage = (chatRoomId: number, senderId: number, content: string, senderName: string, senderProfileUrl?: string) => {
+export const sendChatMessage = (chatRoomId: number, senderId: number, content: string, senderName: string, senderProfileUrl?: string, fileInfo?: {fileUrl: string, fileName: string, fileType: string, fileSize: number}) => {
   if (!stompClient || !stompClient.connected) {
     console.error('WebSocket이 연결되어 있지 않습니다.');
     return false;
@@ -273,8 +273,9 @@ export const sendChatMessage = (chatRoomId: number, senderId: number, content: s
     senderName,
     content,
     senderProfileUrl,
-    type: 'CHAT',
-    timestamp: new Date()
+    type: fileInfo ? 'FILE' : 'CHAT', // 파일이 있는 경우 메시지 타입을 FILE로 설정
+    timestamp: new Date(),
+    fileInfo // 파일 정보 추가
   };
 
   stompClient.publish({

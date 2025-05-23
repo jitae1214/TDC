@@ -7,6 +7,7 @@ import chatImage from "../../../../shared/image/chat.png";
 import { getWorkspaceMembers, getWorkspace, getWorkspaceOnlineMembers, getUserOnlineStatus } from "../../../../api/workspaceService";
 import { getCurrentUser, getUsernameFromStorage, getUserId } from "../../../../api/authService";
 import { connectWebSocket, disconnectWebSocket, subscribeToChatRoom, sendChatMessage, sendJoinMessage, loadChatMessages, getChatRooms } from "../../../../api/chatService";
+import { uploadChatFile } from "../../../../api/fileService";
 
 // 멤버 타입 수정 (서버에서 가져오는 데이터와 일치하도록)
 type Member = {
@@ -28,6 +29,12 @@ type Message = {
     timestamp: string;
     originalTimestamp: string; // 원본 타임스탬프 추가
     type: string;
+    fileInfo?: {
+        fileUrl: string;
+        fileName: string;
+        fileType: string;
+        fileSize: number;
+    };
 };
 
 type GroupedMessage = {
@@ -58,6 +65,9 @@ const WorkspaceChat: React.FC = () => {
     const [connectionStatus, setConnectionStatus] = useState<boolean>(false);
     const [chatRoomId, setChatRoomId] = useState<number | null>(null);
     const [showEmojis, setShowEmojis] = useState<boolean>(false); // 이모티콘 표시 상태
+    const [selectedFile, setSelectedFile] = useState<File | null>(null); // 선택된 파일 상태
+    const [isUploading, setIsUploading] = useState<boolean>(false); // 파일 업로드 중 상태
+    const fileInputRef = useRef<HTMLInputElement>(null); // 파일 입력 ref
     const emojiPickerRef = useRef<HTMLDivElement>(null); // 이모티콘 선택기 ref
     const navigate = useNavigate();
 
@@ -154,7 +164,8 @@ const WorkspaceChat: React.FC = () => {
                     content: msg.content,
                     timestamp: new Date(msg.timestamp).toLocaleTimeString(),
                     originalTimestamp: msg.timestamp, // 원본 타임스탬프 저장
-                    type: msg.type
+                    type: msg.type,
+                    fileInfo: msg.fileInfo
                 }));
                 
                 if (formattedMessages.length === 0) {
@@ -180,6 +191,12 @@ const WorkspaceChat: React.FC = () => {
 
     // WebSocket 메시지 수신 핸들러
     const handleMessageReceived = (message: any) => {
+        console.log('새 메시지 수신:', message);
+        
+        // 메시지 타입 확인
+        const messageType = message.fileInfo ? 'FILE' : (message.type || 'CHAT');
+        console.log('메시지 타입 감지:', messageType, '파일 정보:', message.fileInfo);
+        
         const formattedMessage: Message = {
             id: message.id || Date.now().toString(),
             senderId: message.senderId,
@@ -188,8 +205,11 @@ const WorkspaceChat: React.FC = () => {
             content: message.content,
             timestamp: new Date(message.timestamp).toLocaleTimeString(),
             originalTimestamp: message.timestamp,
-            type: message.type
+            type: messageType, // 타입 명시적 설정
+            fileInfo: message.fileInfo
         };
+        
+        console.log('포맷된 메시지:', formattedMessage);
         
         setMessages(prev => [...prev, formattedMessage]);
     };
@@ -316,13 +336,58 @@ const WorkspaceChat: React.FC = () => {
     // 채팅방 구독 설정
     useEffect(() => {
         if (connectionStatus && chatRoomId) {
+            console.log(`채팅방 ${chatRoomId} 구독 시작`);
             subscribeToChatRoom(chatRoomId, handleMessageReceived);
         }
     }, [connectionStatus, chatRoomId]);
 
-    // 메시지 전송 함수
-    const handleSendMessage = () => {
-        if (!messageInput.trim() || !chatRoomId) return;
+    // 메시지 수신 시 메시지 형식을 디버깅하기 위한 효과
+    useEffect(() => {
+        if (messages.length > 0) {
+            console.log('현재 메시지 목록:', messages);
+            
+            // 파일 메시지 개수 확인
+            const fileMessages = messages.filter(msg => msg.type === 'FILE' && msg.fileInfo);
+            if (fileMessages.length > 0) {
+                console.log('파일 메시지 개수:', fileMessages.length);
+                console.log('파일 메시지 예시:', fileMessages[fileMessages.length - 1]);
+            }
+        }
+    }, [messages]);
+
+    // 파일 선택 핸들러
+    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target.files;
+        if (files && files.length > 0) {
+            const file = files[0];
+            
+            // 이미지 파일만 허용
+            if (!file.type.startsWith('image/')) {
+                alert('이미지 파일만 업로드할 수 있습니다.');
+                // 파일 입력 필드 초기화
+                if (fileInputRef.current) {
+                    fileInputRef.current.value = '';
+                }
+                return;
+            }
+            
+            setSelectedFile(file);
+            // 파일 이름을 메시지 입력창에 표시
+            setMessageInput(`파일: ${file.name}`);
+        }
+    };
+
+    // 파일 첨부 버튼 클릭 핸들러
+    const handleAttachmentClick = () => {
+        // 파일 선택 다이얼로그 열기
+        if (fileInputRef.current) {
+            fileInputRef.current.click();
+        }
+    };
+
+    // 메시지 전송 함수 수정
+    const handleSendMessage = async () => {
+        if ((!messageInput.trim() && !selectedFile) || !chatRoomId) return;
         
         const userId = getUserId();
         const username = getUsernameFromStorage();
@@ -336,16 +401,82 @@ const WorkspaceChat: React.FC = () => {
             m.id === userId || m.username === username
         );
         
-        const success = sendChatMessage(
-            chatRoomId,
-            Number(userId),
-            messageInput,
-            username,
-            currentMember?.profileImageUrl
-        );
-        
-        if (success) {
-            setMessageInput('');
+        // 파일이 첨부된 경우
+        if (selectedFile) {
+            setIsUploading(true);
+            try {
+                console.log('파일 업로드 시작:', selectedFile.name, selectedFile.type);
+                
+                // 파일 업로드 처리
+                const fileInfo = await uploadChatFile(selectedFile, chatRoomId);
+                console.log('파일 업로드 완료, 받은 정보:', fileInfo);
+                
+                // 파일 정보를 포함한 메시지 전송
+                const messageContent = messageInput.startsWith('파일: ') 
+                    ? `${username}님이 파일을 공유했습니다.` 
+                    : messageInput;
+                    
+                console.log('전송할 메시지:', {
+                    content: messageContent,
+                    fileInfo
+                });
+                
+                // 파일 정보를 포함한 메시지 전송 (sendChatMessage는 fileInfo가 있으면 자동으로 FILE 타입으로 설정)
+                const success = sendChatMessage(
+                    chatRoomId,
+                    Number(userId),
+                    messageContent,
+                    username,
+                    currentMember?.profileImageUrl,
+                    fileInfo
+                );
+                
+                if (success) {
+                    console.log('파일 메시지 전송 성공');
+                    
+                    // UI에 즉시 메시지 추가 (WebSocket 응답을 기다리지 않고)
+                    const newMessage: Message = {
+                        id: Date.now().toString(),
+                        senderId: Number(userId),
+                        senderName: username,
+                        senderProfileUrl: currentMember?.profileImageUrl,
+                        content: messageContent,
+                        timestamp: new Date().toLocaleTimeString(),
+                        originalTimestamp: new Date().toISOString(),
+                        type: 'FILE',
+                        fileInfo: fileInfo
+                    };
+                    
+                    setMessages(prev => [...prev, newMessage]);
+                    
+                    setMessageInput('');
+                    setSelectedFile(null);
+                    // 파일 입력 필드 초기화
+                    if (fileInputRef.current) {
+                        fileInputRef.current.value = '';
+                    }
+                } else {
+                    console.error('파일 메시지 전송 실패');
+                }
+            } catch (error) {
+                console.error('파일 업로드 실패:', error);
+                alert('파일 업로드에 실패했습니다. 다시 시도해주세요.');
+            } finally {
+                setIsUploading(false);
+            }
+        } else {
+            // 일반 텍스트 메시지 전송
+            const success = sendChatMessage(
+                chatRoomId,
+                Number(userId),
+                messageInput,
+                username,
+                currentMember?.profileImageUrl
+            );
+            
+            if (success) {
+                setMessageInput('');
+            }
         }
     };
 
@@ -641,6 +772,88 @@ const WorkspaceChat: React.FC = () => {
         }
     }, [forceUpdate]);
 
+    // 파일 크기를 읽기 쉬운 형식으로 변환하는 함수
+    const formatFileSize = (bytes: number): string => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    // 파일 타입에 따른 아이콘 결정
+    const getFileIcon = (fileType: string): string => {
+        if (fileType.startsWith('image/')) return '🖼️';
+        if (fileType.startsWith('video/')) return '🎬';
+        if (fileType.startsWith('audio/')) return '🎵';
+        if (fileType.includes('pdf')) return '📄';
+        if (fileType.includes('word') || fileType.includes('document')) return '📝';
+        if (fileType.includes('excel') || fileType.includes('sheet')) return '📊';
+        if (fileType.includes('powerpoint') || fileType.includes('presentation')) return '📑';
+        if (fileType.includes('zip') || fileType.includes('compressed')) return '🗜️';
+        return '📁';
+    };
+
+    // 파일 타입에 따른 미리보기/다운로드 컴포넌트 렌더링
+    const renderFilePreview = (fileInfo: Message['fileInfo']) => {
+        if (!fileInfo) return null;
+        
+        const { fileUrl, fileName, fileType, fileSize } = fileInfo;
+        const isImage = fileType.startsWith('image/');
+        
+        console.log('파일 정보:', fileInfo);
+        console.log('이미지 URL:', fileUrl);
+        
+        return (
+            <div className="file-attachment">
+                {isImage ? (
+                    <div className="image-preview">
+                        <img 
+                            src={fileUrl} 
+                            alt={fileName} 
+                            onError={(e) => {
+                                console.error('이미지 로딩 오류:', e);
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = chatImage;
+                            }}
+                            style={{ maxWidth: '100%', maxHeight: '300px', objectFit: 'contain' }}
+                        />
+                    </div>
+                ) : (
+                    <div className="file-info">
+                        <span className="file-icon">{getFileIcon(fileType)}</span>
+                        <span className="file-name">{fileName}</span>
+                        <span className="file-size">({formatFileSize(fileSize)})</span>
+                    </div>
+                )}
+                <a href={fileUrl} target="_blank" rel="noopener noreferrer" className="download-link">
+                    다운로드
+                </a>
+            </div>
+        );
+    };
+
+    // 그룹화된 메시지의 내용 렌더링 부분 수정
+    const renderMessageContent = (group: GroupedMessage) => {
+        // 메시지 타입이 FILE인 경우 확인하기 위해 원본 메시지 찾기
+        const originalMessage = messages.find(msg => msg.id === group.id);
+        
+        console.log('메시지 렌더링:', group.id, originalMessage?.type, originalMessage?.fileInfo);
+        
+        if (originalMessage?.type === 'FILE' && originalMessage.fileInfo) {
+            console.log('파일 메시지 렌더링:', originalMessage.fileInfo);
+            return (
+                <div className="file-message">
+                    <div>{group.contents[0]}</div>
+                    {renderFilePreview(originalMessage.fileInfo)}
+                </div>
+            );
+        }
+        
+        // 일반 텍스트 메시지인 경우
+        return group.contents.map((line, i) => <div key={i}>{line}</div>);
+    };
+
     if (isLoading) {
         return <div className="loading">로딩 중...</div>;
     }
@@ -722,9 +935,7 @@ const WorkspaceChat: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="workspaceChat-message-body">
-                                        {group.contents.map((line, i) => (
-                                            <div key={i}>{line}</div>
-                                        ))}
+                                        {renderMessageContent(group)}
                                     </div>
                                 </div>
                             </div>
@@ -732,15 +943,34 @@ const WorkspaceChat: React.FC = () => {
                     </div>
                 </div>
                 <div className="workspaceChat-inputBox">
+                    {/* 파일 선택 입력 필드 (숨김) */}
+                    <input 
+                        type="file"
+                        ref={fileInputRef}
+                        style={{ display: 'none' }}
+                        onChange={handleFileSelect}
+                        accept="image/*"
+                    />
                     <input 
                         type="text" 
-                        placeholder="메시지 입력..." 
+                        placeholder={isUploading ? "파일 업로드 중..." : "메시지 입력..."} 
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}
                         onKeyPress={handleKeyPress}
+                        disabled={isUploading}
                     />
-                    <div className="workspaceChat-button" onClick={handleSendMessage}>전송</div>
-                    <div className="workspaceChat-button">📎</div>
+                    <div 
+                        className={`workspaceChat-button ${isUploading ? 'disabled' : ''}`} 
+                        onClick={isUploading ? undefined : handleSendMessage}
+                    >
+                        전송
+                    </div>
+                    <div 
+                        className={`workspaceChat-button ${isUploading ? 'disabled' : ''}`} 
+                        onClick={isUploading ? undefined : handleAttachmentClick}
+                    >
+                        📎
+                    </div>
                     <div className="workspaceChat-button emoji-button" onClick={toggleEmojiPicker}>😊</div>
                     
                     {/* 이모티콘 선택기 */}

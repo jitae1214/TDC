@@ -77,7 +77,7 @@ public class UserController {
         
         ApiResponse response = userService.updateUserStatus(currentUser.getId(), status);
         
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
     }
     
     /**

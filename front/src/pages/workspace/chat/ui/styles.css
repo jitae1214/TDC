@@ -221,7 +221,8 @@
 
 .workspaceChat-message-body div {
     font-size: 24px;
-    height: 35px;
+    height: auto;
+    min-height: 35px;
 }
 
 /* 로딩 표시 */
@@ -316,4 +317,94 @@
 .emoji-button:hover {
     background-color: rgba(255, 255, 255, 0.1);
     border-radius: 5px;
+}
+
+.workspaceChat-button:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 5px;
+}
+
+/* 파일 첨부 관련 스타일 */
+.file-attachment {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #2d2d2d;
+    border-radius: 8px;
+    border: 1px solid #555;
+    max-width: 400px;
+    width: 100%;
+}
+
+.image-preview {
+    margin-bottom: 10px;
+    display: block;
+    width: 100%;
+}
+
+.image-preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 4px;
+    height: auto !important;
+    display: block;
+    margin: 5px 0;
+    object-fit: contain;
+}
+
+.file-info {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.file-icon {
+    font-size: 24px;
+}
+
+.file-name {
+    font-weight: bold;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.file-size {
+    color: #aaa;
+    font-size: 14px;
+}
+
+.download-link {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #8a44a0;
+    color: white;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.download-link:hover {
+    background-color: #a053bc;
+}
+
+.file-message {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* 비활성화된 버튼 스타일 */
+.workspaceChat-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 파일 메시지 내용이 긴 경우 높이 자동 조정 */
+.workspaceChat-message-body .file-message div {
+    height: auto;
+    min-height: 35px;
+    font-size: 24px;
+    margin-bottom: 5px;
 }
