@@ -77,7 +77,25 @@ public class UserController {
         
         ApiResponse response = userService.updateUserStatus(currentUser.getId(), status);
         
-            return ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * 사용자 상태 업데이트 (username 기반)
+     */
+    @PostMapping("/status")
+    public ResponseEntity<ApiResponse> updateUserStatusByUsername(@RequestBody Map<String, String> statusRequest) {
+        String username = statusRequest.get("username");
+        String status = statusRequest.get("status");
+        
+        if (username == null || status == null) {
+            return ResponseEntity.badRequest().body(
+                new ApiResponse(false, "사용자명과 상태값이 모두 제공되어야 합니다.", null)
+            );
+        }
+        
+        ApiResponse response = userService.updateUserStatusByUsername(username, status);
+        return ResponseEntity.ok(response);
     }
     
     /**

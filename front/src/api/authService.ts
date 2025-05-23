@@ -216,6 +216,7 @@ export const checkEmailAvailability = async (email: string): Promise<Availabilit
 export const logout = async (): Promise<void> => {
   // 현재 사용자 ID 가져오기
   const currentUser = getUsername();
+  const userId = getUserId();
   
   // 로그아웃 전에 사용자 상태를 OFFLINE으로 변경
   try {
@@ -226,9 +227,21 @@ export const logout = async (): Promise<void> => {
         status: 'OFFLINE' 
       });
       console.log(`사용자 ${currentUser} 상태를 OFFLINE으로 변경했습니다.`);
+      
+      // 백엔드 로그아웃 API도 호출하여 서버 측에서도 상태 업데이트
+      try {
+        await apiClient.post('/api/auth/logout');
+        console.log('서버 로그아웃 API 호출 성공');
+      } catch (logoutError) {
+        console.error('서버 로그아웃 API 호출 실패:', logoutError);
+        // 실패해도 계속 진행 (클라이언트 측 로그아웃은 수행)
+      }
     }
   } catch (error) {
     console.error('로그아웃 중 사용자 상태 업데이트 오류:', error);
+    
+    // 상태 업데이트 실패 시에도 로그아웃은 계속 진행
+    console.log('상태 업데이트 실패했지만 로그아웃 진행');
   }
   
   // JWT 토큰 제거

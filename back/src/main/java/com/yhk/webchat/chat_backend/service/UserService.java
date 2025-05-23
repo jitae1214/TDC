@@ -210,8 +210,8 @@ public class UserService {
     }
     
     /**
-     * 사용자명으로 온라인 상태 업데이트
-     * @param username 사용자명
+     * 사용자 상태를 username으로 업데이트
+     * @param username 사용자 이름
      * @param status 상태 (ONLINE, OFFLINE, AWAY)
      * @return 업데이트 결과
      */
@@ -221,13 +221,47 @@ public class UserService {
             // 사용자 조회
             Optional<User> optionalUser = userRepository.findByUsername(username);
             if (!optionalUser.isPresent()) {
-                return new ApiResponse(false, "사용자를 찾을 수 없습니다.", null);
+                return new ApiResponse(false, "사용자를 찾을 수 없습니다: " + username, null);
             }
             
             User user = optionalUser.get();
             
-            // 업데이트 메서드 재사용
-            return updateUserStatus(user.getId(), status);
+            // 상태값 검증
+            if (!status.equals(STATUS_ONLINE) && !status.equals(STATUS_OFFLINE) && !status.equals(STATUS_AWAY)) {
+                return new ApiResponse(false, "잘못된 상태값입니다. (ONLINE, OFFLINE, AWAY 중 하나여야 함)", null);
+            }
+            
+            // 이전 상태와 동일하면 변경하지 않음
+            if (status.equals(user.getStatus())) {
+                Map<String, Object> data = new HashMap<>();
+                data.put("userId", user.getId());
+                data.put("username", user.getUsername());
+                data.put("status", user.getStatus());
+                data.put("lastLoginAt", user.getLastLoginAt());
+                return new ApiResponse(true, "사용자 상태가 이미 " + status + " 상태입니다.", data);
+            }
+            
+            // 사용자 상태 업데이트
+            user.updateStatus(status);
+            
+            // 로그인 시간 업데이트 (온라인 상태로 변경 시)
+            if (status.equals(STATUS_ONLINE)) {
+                user.setLastLoginAt(LocalDateTime.now());
+            }
+            
+            userRepository.save(user);
+            
+            // 상태 변경 이벤트를 웹소켓으로 전파
+            broadcastStatusChange(user);
+            
+            // 응답 데이터 구성
+            Map<String, Object> data = new HashMap<>();
+            data.put("userId", user.getId());
+            data.put("username", user.getUsername());
+            data.put("status", user.getStatus());
+            data.put("lastLoginAt", user.getLastLoginAt());
+            
+            return new ApiResponse(true, "사용자 상태가 업데이트되었습니다.", data);
         } catch (Exception e) {
             return new ApiResponse(false, "사용자 상태 업데이트 중 오류가 발생했습니다: " + e.getMessage(), null);
         }
