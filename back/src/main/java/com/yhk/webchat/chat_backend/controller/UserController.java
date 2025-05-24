@@ -92,10 +92,10 @@ public class UserController {
             return ResponseEntity.badRequest().body(
                 new ApiResponse(false, "사용자명과 상태값이 모두 제공되어야 합니다.", null)
             );
-        }
+            }
         
         ApiResponse response = userService.updateUserStatusByUsername(username, status);
-        return ResponseEntity.ok(response);
+            return ResponseEntity.ok(response);
     }
     
     /**

@@ -206,7 +206,7 @@ export const uploadAndUpdateProfileImage = async (file: File): Promise<any> => {
     
     throw new Error('ud504ub85cud544 uc774ubbf8uc9c0 uc5c5ub85cub4dc ubc0f uc5c5ub370uc774ud2b8 uc911 uc624ub958uac00 ubc1cuc0ddud588uc2b5ub2c8ub2e4: ' + (error.message || 'uc54c uc218 uc5c6ub294 uc624ub958'));
   }
-};
+}; 
 
 /**
  * 채팅에 첨부할 파일 업로드

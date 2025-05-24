@@ -476,16 +476,16 @@ const WorkspaceChat: React.FC = () => {
             }
         } else {
             // 일반 텍스트 메시지 전송
-            const success = sendChatMessage(
-                chatRoomId,
-                Number(userId),
-                messageInput,
-                username,
-                currentMember?.profileImageUrl
-            );
-            
-            if (success) {
-                setMessageInput('');
+        const success = sendChatMessage(
+            chatRoomId,
+            Number(userId),
+            messageInput,
+            username,
+            currentMember?.profileImageUrl
+        );
+        
+        if (success) {
+            setMessageInput('');
             }
         }
     };
@@ -909,44 +909,33 @@ const WorkspaceChat: React.FC = () => {
 
             {/* 중앙 유저 목록 */}
             <div className="workspaceChat-memberList">
-                {["online", "offline"].map((status) => (
-                    <div className="workspaceChat-statusGroup" key={`status-group-${status}`}>
-                        <div className="workspaceChat-statusHeader">
-                            {status === "online" 
-                                ? `온라인 - ${members.filter(m => m.status === "online").length}명` 
-                                : `오프라인 - ${members.filter(m => m.status === "offline").length}명`}
+                <div className="workspaceChat-statusHeader">
+                    초대된 사용자 - {members.length}명
+                </div>
+                {members.map((member) => {
+                    // 멤버 ID가 문자열이거나 존재하지 않을 경우를 대비한 고유 키 생성
+                    const memberKey = `member-${String(member.id || '')}-${member.username || member.email}`;
+                    
+                    return (
+                        <div className="workspaceChat-member" key={memberKey}>
+                            {member.profileImageUrl ? (
+                                <img 
+                                    src={getProfileImageUrl(member)} 
+                                    className="workspaceChat-avatar" 
+                                    alt="profile"
+                                    onError={handleImageError}
+                                />
+                            ) : (
+                                <div className="workspaceChat-avatar workspaceChat-avatar-initial">
+                                    {getUserInitial(member)}
+                                </div>
+                            )}
+                            <span className="workspaceChat-name">
+                                {member.nickname || member.username}
+                            </span>
                         </div>
-                        {members
-                            .filter((member) => member.status === status)
-                            .map((member) => {
-                                // 멤버 ID가 문자열이거나 존재하지 않을 경우를 대비한 고유 키 생성
-                                const memberKey = `member-${String(member.id || '')}-${member.username || member.email}`;
-                                
-                                return (
-                                    <div className="workspaceChat-member" key={memberKey}>
-                                        {member.profileImageUrl ? (
-                                            <img 
-                                                src={getProfileImageUrl(member)} 
-                                                className="workspaceChat-avatar" 
-                                                alt="profile"
-                                                onError={handleImageError}
-                                            />
-                                        ) : (
-                                            <div className="workspaceChat-avatar workspaceChat-avatar-initial">
-                                                {getUserInitial(member)}
-                                            </div>
-                                        )}
-                                        <span
-                                            className={`workspaceChat-status-dot ${status === "online" ? "green" : "red"}`}>
-                                        </span>
-                                        <span className="workspaceChat-name">
-                                            {member.nickname || member.username}
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             {/* 채팅 영역 */}

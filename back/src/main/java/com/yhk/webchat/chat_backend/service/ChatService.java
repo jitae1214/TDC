@@ -185,8 +185,8 @@ public class ChatService {
             if (memberIds != null && !memberIds.isEmpty()) {
                 for (Long memberId : memberIds) {
                     if (!memberId.equals(creator.getId())) { // 생성자는 이미 추가됨
-                        Optional<User> memberOpt = userRepository.findById(memberId);
-                        memberOpt.ifPresent(chatRoom::addMember);
+                    Optional<User> memberOpt = userRepository.findById(memberId);
+                    memberOpt.ifPresent(chatRoom::addMember);
                     }
                 }
             }

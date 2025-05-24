@@ -404,7 +404,7 @@ export const getChatRooms = async (workspaceId: number) => {
     console.log(`채팅방 목록 요청 - 워크스페이스 ID: ${workspaceId}, 토큰: ${token ? '있음' : '없음'}`);
     
     const response = await apiClient.get(`/api/chat/rooms/workspace/${workspaceId}`);
-    
+
     if (!response.data || !response.data.success) {
       console.warn('채팅방 목록 로드 실패:', response.data?.message || '알 수 없는 오류');
       return [];
@@ -416,7 +416,7 @@ export const getChatRooms = async (workspaceId: number) => {
       console.warn('채팅방 데이터가 예상 형식이 아닙니다:', response.data);
       return [];
     }
-    
+
     return response.data.data;
   } catch (error: any) {
     if (error.response && error.response.status === 403) {
