@@ -70,10 +70,10 @@ const Main = () => {
             </header>
 
             <main className="main-content">
-                <h1 className="main-title">👋 어 그래 왔니? 내 하얼빈의 장첸이야아!!! </h1>
+                <h1 className="main-title">👋 반가워요 </h1>
 
                 <div className="main-workspace-card">
-                    <div className="main-workspace-header">
+                    <div className="main-workspace-header"> 
                         <p>{username}의 워크스페이스</p>
                         <button onClick={handleCreateWorkspace} className="main-create-btn">새 워크스페이스 개설</button>
                     </div>

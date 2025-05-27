@@ -1,14 +1,20 @@
 import axios from 'axios';
 import type { AxiosInstance, InternalAxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
-// API 기본 URL 설정
-const BASE_URL = 'http://localhost:8080';  // '/api' 부분 제거
+// API 기본 URL 설정 - 환경 변수가 있으면 사용하고, 없으면 Render 배포 URL 사용
+const BASE_URL = process.env.REACT_APP_API_URL || 'https://your-backend-app.onrender.com';
+// 개발 환경에서는 로컬 서버 사용
+const isLocalDevelopment = process.env.NODE_ENV === 'development';
+const API_URL = isLocalDevelopment ? 'http://localhost:8080' : BASE_URL;
+
+console.log('API URL:', API_URL, 'Environment:', process.env.NODE_ENV);
+
 // 토큰 저장 관련 상수
 const AUTH_TOKEN_KEY = 'token';
 
 // axios 인스턴스 생성
 const apiClient: AxiosInstance = axios.create({
-  baseURL: BASE_URL,
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json',
   },

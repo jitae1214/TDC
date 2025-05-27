@@ -909,33 +909,33 @@ const WorkspaceChat: React.FC = () => {
 
             {/* 중앙 유저 목록 */}
             <div className="workspaceChat-memberList">
-                <div className="workspaceChat-statusHeader">
+                        <div className="workspaceChat-statusHeader">
                     초대된 사용자 - {members.length}명
-                </div>
-                {members.map((member) => {
-                    // 멤버 ID가 문자열이거나 존재하지 않을 경우를 대비한 고유 키 생성
-                    const memberKey = `member-${String(member.id || '')}-${member.username || member.email}`;
-                    
-                    return (
-                        <div className="workspaceChat-member" key={memberKey}>
-                            {member.profileImageUrl ? (
-                                <img 
-                                    src={getProfileImageUrl(member)} 
-                                    className="workspaceChat-avatar" 
-                                    alt="profile"
-                                    onError={handleImageError}
-                                />
-                            ) : (
-                                <div className="workspaceChat-avatar workspaceChat-avatar-initial">
-                                    {getUserInitial(member)}
-                                </div>
-                            )}
-                            <span className="workspaceChat-name">
-                                {member.nickname || member.username}
-                            </span>
                         </div>
-                    );
-                })}
+                {members.map((member) => {
+                                // 멤버 ID가 문자열이거나 존재하지 않을 경우를 대비한 고유 키 생성
+                                const memberKey = `member-${String(member.id || '')}-${member.username || member.email}`;
+                                
+                                return (
+                                    <div className="workspaceChat-member" key={memberKey}>
+                                        {member.profileImageUrl ? (
+                                            <img 
+                                                src={getProfileImageUrl(member)} 
+                                                className="workspaceChat-avatar" 
+                                                alt="profile"
+                                                onError={handleImageError}
+                                            />
+                                        ) : (
+                                            <div className="workspaceChat-avatar workspaceChat-avatar-initial">
+                                                {getUserInitial(member)}
+                                            </div>
+                                        )}
+                                        <span className="workspaceChat-name">
+                                            {member.nickname || member.username}
+                                        </span>
+                                    </div>
+                                );
+                            })}
             </div>
 
             {/* 채팅 영역 */}

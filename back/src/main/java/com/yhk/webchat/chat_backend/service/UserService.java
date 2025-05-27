@@ -85,10 +85,9 @@ public class UserService {
     }
 
     /**
-     * uc0acuc6a9uc790uba85uc73cub85c ud504ub85cud544 uc774ubbf8uc9c0 URL uc5c5ub370uc774ud2b8
-     * @param username uc0acuc6a9uc790 uc774ub984
-     * @param imageUrl uc774ubbf8uc9c0 URL
-     * @return uc5c5ub370uc774ud2b8 uacb0uacfc
+     * @param username 
+     * @param imageUrl 
+     * @return 
      */
     @Transactional
     public ApiResponse updateProfileImageByUsername(String username, String imageUrl) {

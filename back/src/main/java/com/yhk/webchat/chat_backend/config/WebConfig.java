@@ -16,7 +16,7 @@ import java.nio.file.Paths;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     
-    @Value("${file.upload.dir:${user.home}/uploads}")
+    @Value("${file.upload.dir:${user.home}/uploads}") // 업로드 경로 설정
     private String uploadDir;
     
     /**
@@ -26,20 +26,22 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**") // 전체 경로 허용
-                .allowedOrigins("http://localhost:3000", "http://localhost:3001")  // 리액트 개발 서버
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedOrigins("https://hyunki.github.io", "http://localhost:3000", "http://localhost:3001")  // GitHub Pages와 로컬 개발 서버
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // CRUD
                 .allowedHeaders("*")
                 .allowCredentials(true)
-                .maxAge(3600);
+                .maxAge(3600); // 3600초 동안 캐시 사용
     }
 
+    
     @Override
+    
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        // uc5c5ub85cub4dc ub514ub809ud130ub9acub97c uc815uc801 ub9acuc18cuc2a4ub85c uc81cuacf5
-        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize();
         
-        // ud30cuc77c uc2dcuc2a4ud15c uacbdub85cub85c uc811uadfcud558ub3c4ub85d uc124uc815
-        registry.addResourceHandler("/uploads/**")
+        Path uploadPath = Paths.get(uploadDir).toAbsolutePath().normalize(); // 업로드 경로 설정
+        
+        
+        registry.addResourceHandler("/uploads/**") 
                 .addResourceLocations("file:" + uploadPath.toString() + "/");
                 
         System.out.println("Resource location set to: file:" + uploadPath.toString() + "/");
